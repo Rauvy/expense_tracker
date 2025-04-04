@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "react-native-svg": "^15.11.2",
+    "victory": "^37.3.6",
+    "victory-native": "^41.16.1"
+  }
+}
