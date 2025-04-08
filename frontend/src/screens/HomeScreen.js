@@ -219,6 +219,14 @@ const HomeScreen = () => {
   const [earnedTilePressed, setEarnedTilePressed] = useState(false);
   const [spentTilePressed, setSpentTilePressed] = useState(false);
 
+  // State for statistics modals
+  const [incomeStatsModalVisible, setIncomeStatsModalVisible] = useState(false);
+  const [expenseStatsModalVisible, setExpenseStatsModalVisible] = useState(false);
+
+  // State for transaction details modal
+  const [transactionDetailsVisible, setTransactionDetailsVisible] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
+
   // Handle slice press with animation
   const handleSlicePress = (index) => {
     // Fade out
@@ -267,6 +275,12 @@ const HomeScreen = () => {
     setIncomeModalVisible(false);
   };
 
+  // Handle transaction click
+  const handleTransactionClick = (transaction) => {
+    setSelectedTransaction(transaction);
+    setTransactionDetailsVisible(true);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView 
@@ -287,6 +301,33 @@ const HomeScreen = () => {
             
             <Text style={styles.balance}>$2,450.00</Text>
             <Text style={styles.balanceLabel}>Total Balance</Text>
+            
+            {/* Add Action Buttons */}
+            <View style={styles.actionButtonsContainer}>
+              <TouchableOpacity 
+                style={[styles.actionButton, {backgroundColor: '#4BC0C0'}]}
+                activeOpacity={0.7}
+                onPress={() => setIncomeModalVisible(true)}
+              >
+                <Ionicons name="add-circle" size={18} color="#FFFFFF" />
+                <Text style={styles.actionButtonText}>Add Income</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.actionButton, {backgroundColor: '#FF6384'}]}
+                activeOpacity={0.7}
+                onPress={() => setExpenseModalVisible(true)}
+              >
+                <Ionicons name="remove-circle" size={18} color="#FFFFFF" />
+                <Text style={styles.actionButtonText}>Add Expense</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+          
+          {/* Monthly Stats Section */}
+          <View style={styles.monthlyStatsHeader}>
+            <Text style={styles.sectionTitle}>Monthly Statistics</Text>
+            <Ionicons name="stats-chart" size={22} color="#276EF1" />
           </View>
           
           {/* Tiles for Monthly Earned and Monthly Spent */}
@@ -297,17 +338,13 @@ const HomeScreen = () => {
               onPress={() => {
                 setEarnedTilePressed(true);
                 setTimeout(() => setEarnedTilePressed(false), 150);
-                setIncomeModalVisible(true);
+                setIncomeStatsModalVisible(true);
               }}
             >
               <Text style={styles.tileLabel}>Monthly Earned</Text>
               <Text style={[styles.tileAmount, styles.earnedAmount]}>${monthlyEarned.toFixed(2)}</Text>
               <View style={styles.tileIconContainer}>
                 <Ionicons name="trending-up" size={24} color="#4BC0C0" />
-              </View>
-              <View style={styles.tapIndicator}>
-                <Ionicons name="add-circle" size={18} color="#4BC0C0" />
-                <Text style={[styles.tapText, {color: '#4BC0C0'}]}>Tap to add</Text>
               </View>
             </TouchableOpacity>
             
@@ -317,17 +354,13 @@ const HomeScreen = () => {
               onPress={() => {
                 setSpentTilePressed(true);
                 setTimeout(() => setSpentTilePressed(false), 150);
-                setExpenseModalVisible(true);
+                setExpenseStatsModalVisible(true);
               }}
             >
               <Text style={styles.tileLabel}>Monthly Spent</Text>
               <Text style={[styles.tileAmount, styles.spentAmount]}>${monthlySpent.toFixed(2)}</Text>
               <View style={styles.tileIconContainer}>
                 <Ionicons name="trending-down" size={24} color="#FF6384" />
-              </View>
-              <View style={styles.tapIndicator}>
-                <Ionicons name="add-circle" size={18} color="#FF6384" />
-                <Text style={[styles.tapText, {color: '#FF6384'}]}>Tap to add</Text>
               </View>
             </TouchableOpacity>
           </View>
@@ -415,7 +448,12 @@ const HomeScreen = () => {
             <Text style={styles.sectionTitle}>Recent Expenses</Text>
             
             {recentExpenses.map((expense) => (
-              <View key={expense.id} style={styles.expenseItem}>
+              <TouchableOpacity 
+                key={expense.id} 
+                style={styles.expenseItem}
+                activeOpacity={0.7}
+                onPress={() => handleTransactionClick(expense)}
+              >
                 <View style={[styles.expenseIcon, { backgroundColor: expense.color }]}>
                   <Ionicons name={expense.icon} size={20} color="#FFFFFF" />
                 </View>
@@ -429,7 +467,7 @@ const HomeScreen = () => {
                   <Text style={styles.expenseAmount}>-${expense.amount.toFixed(2)}</Text>
                   <Text style={styles.expenseDate}>{expense.date}</Text>
                 </View>
-              </View>
+              </TouchableOpacity>
             ))}
           </View>
         </View>
@@ -996,6 +1034,396 @@ const HomeScreen = () => {
           </View>
         </View>
       </Modal>
+      
+      {/* Income Statistics Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={incomeStatsModalVisible}
+        onRequestClose={() => setIncomeStatsModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Income Analysis</Text>
+                <TouchableOpacity onPress={() => setIncomeStatsModalVisible(false)}>
+                  <Ionicons name="close" size={24} color="#ffffff" />
+                </TouchableOpacity>
+              </View>
+              
+              {/* Monthly Income Summary Card */}
+              <View style={styles.statsSummaryCard}>
+                <View style={styles.statsSummaryHeader}>
+                  <Text style={styles.statsCardTitle}>Monthly Income</Text>
+                </View>
+                
+                <Text style={[styles.statsAmount, {color: '#4BC0C0'}]}>${monthlyEarned.toFixed(2)}</Text>
+                
+                <View style={styles.statsDivider} />
+                
+                <View style={styles.statsMetricsContainer}>
+                  <View style={styles.statsMetricItem}>
+                    <View style={styles.statsMetricIcon}>
+                      <Ionicons name="arrow-up" size={16} color="#FFFFFF" style={styles.statsMetricIconBg} />
+                    </View>
+                    <Text style={styles.statsMetricValue}>+12.5%</Text>
+                    <Text style={styles.statsMetricLabel}>vs Last Month</Text>
+                  </View>
+                  
+                  <View style={styles.statsMetricItem}>
+                    <View style={styles.statsMetricIcon}>
+                      <Ionicons name="calendar" size={16} color="#FFFFFF" style={[styles.statsMetricIconBg, {backgroundColor: '#9966FF'}]} />
+                    </View>
+                    <Text style={styles.statsMetricValue}>${(monthlyEarned / 30).toFixed(2)}</Text>
+                    <Text style={styles.statsMetricLabel}>Daily Average</Text>
+                  </View>
+                  
+                  <View style={styles.statsMetricItem}>
+                    <View style={styles.statsMetricIcon}>
+                      <Ionicons name="trending-up" size={16} color="#FFFFFF" style={[styles.statsMetricIconBg, {backgroundColor: '#36A2EB'}]} />
+                    </View>
+                    <Text style={styles.statsMetricValue}>$34,200</Text>
+                    <Text style={styles.statsMetricLabel}>Yearly Pace</Text>
+                  </View>
+                </View>
+              </View>
+              
+              {/* Income Trend Chart */}
+              <View style={styles.statsTrendCard}>
+                <Text style={styles.statsSectionTitle}>Monthly Trend</Text>
+                <View style={styles.trendChartContainer}>
+                  {/* Simplified trend bars */}
+                  {[0.7, 0.8, 0.75, 0.9, 0.85, 1].map((height, index) => (
+                    <View key={index} style={styles.trendBarWrapper}>
+                      <View style={[styles.trendBar, { height: 100 * height, backgroundColor: '#4BC0C0' }]} />
+                      <Text style={styles.trendBarLabel}>{['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'][index]}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+              
+              {/* Income by Category */}
+              <View style={styles.statsDetailCard}>
+                <Text style={styles.statsSectionTitle}>Income by Category</Text>
+                <View style={styles.statsBarContainer}>
+                  {incomeCategories.slice(0, 4).map((category, index) => (
+                    <View key={index} style={styles.statsBarItemEnhanced}>
+                      <View style={styles.statsBarHeader}>
+                        <View style={styles.statsBarLabelContainer}>
+                          <View style={[styles.categoryDot, {backgroundColor: category.color}]} />
+                          <Text style={styles.statsBarLabel}>{category.name}</Text>
+                        </View>
+                        <View style={styles.statsBarValueContainer}>
+                          <Text style={styles.statsBarValue}>${(monthlyEarned * (0.3 - index * 0.05)).toFixed(2)}</Text>
+                          <Text style={styles.statsBarPercentage}>{Math.round(30 - index * 5)}%</Text>
+                        </View>
+                      </View>
+                      <View style={styles.statsBarBackground}>
+                        <View style={[styles.statsBar, {
+                          backgroundColor: category.color,
+                          width: `${Math.max(5, 90 - index * 20)}%`
+                        }]} />
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              </View>
+              
+              {/* Income Sources */}
+              <View style={styles.statsDetailCard}>
+                <Text style={styles.statsSectionTitle}>Income Sources</Text>
+                <View style={styles.statsSourceList}>
+                  {incomeSources.map((source, index) => (
+                    <View key={index} style={styles.statsSourceItem}>
+                      <View style={[styles.statsSourceIcon, {backgroundColor: source.color}]}>
+                        <Ionicons name={source.icon} size={20} color="#FFFFFF" />
+                      </View>
+                      <View style={styles.statsSourceInfo}>
+                        <Text style={styles.statsSourceName}>{source.name}</Text>
+                        <Text style={styles.statsSourceCount}>{index + 2} transactions</Text>
+                      </View>
+                      <Text style={styles.statsSourceAmount}>${(monthlyEarned * (0.4 - index * 0.15)).toFixed(2)}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+      
+      {/* Expense Statistics Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={expenseStatsModalVisible}
+        onRequestClose={() => setExpenseStatsModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Expense Analysis</Text>
+                <TouchableOpacity onPress={() => setExpenseStatsModalVisible(false)}>
+                  <Ionicons name="close" size={24} color="#ffffff" />
+                </TouchableOpacity>
+              </View>
+              
+              {/* Monthly Expense Summary */}
+              <View style={styles.statsSummaryCard}>
+                <View style={styles.statsSummaryHeader}>
+                  <Text style={styles.statsCardTitle}>Monthly Expenses</Text>
+                </View>
+                
+                <Text style={[styles.statsAmount, {color: '#FF6384'}]}>${monthlySpent.toFixed(2)}</Text>
+                
+                <View style={styles.statsDivider} />
+                
+                <View style={styles.statsMetricsContainer}>
+                  <View style={styles.statsMetricItem}>
+                    <View style={styles.statsMetricIcon}>
+                      <Ionicons name="arrow-down" size={16} color="#FFFFFF" style={styles.statsMetricIconBg} />
+                    </View>
+                    <Text style={styles.statsMetricValue}>-8.3%</Text>
+                    <Text style={styles.statsMetricLabel}>vs Last Month</Text>
+                  </View>
+                  
+                  <View style={styles.statsMetricItem}>
+                    <View style={styles.statsMetricIcon}>
+                      <Ionicons name="calendar" size={16} color="#FFFFFF" style={[styles.statsMetricIconBg, {backgroundColor: '#9966FF'}]} />
+                    </View>
+                    <Text style={styles.statsMetricValue}>${(monthlySpent / 30).toFixed(2)}</Text>
+                    <Text style={styles.statsMetricLabel}>Daily Average</Text>
+                  </View>
+                  
+                  <View style={styles.statsMetricItem}>
+                    <View style={styles.statsMetricIcon}>
+                      <Ionicons name="wallet" size={16} color="#FFFFFF" style={[styles.statsMetricIconBg, {backgroundColor: '#FF9F40'}]} />
+                    </View>
+                    <Text style={styles.statsMetricValue}>${(monthlyEarned - monthlySpent).toFixed(2)}</Text>
+                    <Text style={styles.statsMetricLabel}>Net Income</Text>
+                  </View>
+                </View>
+              </View>
+              
+              {/* Budget Progress */}
+              <View style={styles.statsBudgetCard}>
+                <Text style={styles.statsSectionTitle}>Budget Progress</Text>
+                <View style={styles.budgetProgressContainer}>
+                  {/* Budget progress circles */}
+                  <View style={styles.budgetProgressItem}>
+                    <View style={styles.budgetCircleContainer}>
+                      <View style={styles.budgetCircleBackground}></View>
+                      <View style={[styles.budgetCircleProgress, {
+                        borderColor: '#FF6384',
+                        transform: [{ rotateZ: `${0.71 * Math.PI}rad` }],
+                      }]}></View>
+                      <View style={styles.budgetCircleContent}>
+                        <Text style={styles.budgetCirclePercentage}>71%</Text>
+                        <Text style={styles.budgetCircleLabel}>of budget</Text>
+                      </View>
+                    </View>
+                    <Text style={styles.budgetProgressLabel}>Total Spending</Text>
+                  </View>
+                  
+                  <View style={styles.budgetProgressItem}>
+                    <View style={styles.budgetCircleContainer}>
+                      <View style={styles.budgetCircleBackground}></View>
+                      <View style={[styles.budgetCircleProgress, {
+                        borderColor: '#4BC0C0',
+                        transform: [{ rotateZ: `${0.35 * Math.PI}rad` }],
+                      }]}></View>
+                      <View style={styles.budgetCircleContent}>
+                        <Text style={styles.budgetCirclePercentage}>35%</Text>
+                        <Text style={styles.budgetCircleLabel}>of month</Text>
+                      </View>
+                    </View>
+                    <Text style={styles.budgetProgressLabel}>Time Elapsed</Text>
+                  </View>
+                </View>
+              </View>
+              
+              {/* Expense Pie Chart */}
+              <View style={styles.statsDetailCard}>
+                <Text style={styles.statsSectionTitle}>Expenses by Category</Text>
+                <View style={styles.statsPieContainer}>
+                  <View style={styles.chartContainer}>
+                    <Svg width={chartRadius * 2} height={chartRadius * 2}>
+                      <G>
+                        {formattedCategoryData.map((item, index) => (
+                          <Path
+                            key={index}
+                            d={generatePieChartPath(index, categoryData, chartRadius, innerRadius)}
+                            fill={item.color}
+                            stroke="#1a1a1a"
+                            strokeWidth={1}
+                          />
+                        ))}
+                        <Circle
+                          cx={centerX}
+                          cy={centerY}
+                          r={innerRadius}
+                          fill="#1a1a1a"
+                          stroke="#333333"
+                          strokeWidth={2}
+                        />
+                      </G>
+                    </Svg>
+                    
+                    <View style={styles.chartCenterView}>
+                      <View style={styles.chartCenterContent}>
+                        <Text style={styles.chartCenterValue} numberOfLines={1} adjustsFontSizeToFit>
+                          ${total.toFixed(2)}
+                        </Text>
+                        <Text style={styles.chartCenterLabel} numberOfLines={1}>
+                          Total Spent
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+                
+                {/* Category List */}
+                <View style={styles.statsBarContainer}>
+                  {formattedCategoryData.map((category, index) => (
+                    <View key={index} style={styles.statsBarItemEnhanced}>
+                      <View style={styles.statsBarHeader}>
+                        <View style={styles.statsBarLabelContainer}>
+                          <View style={[styles.categoryDot, {backgroundColor: category.color}]} />
+                          <Text style={styles.statsBarLabel}>{category.name}</Text>
+                        </View>
+                        <View style={styles.statsBarValueContainer}>
+                          <Text style={styles.statsBarValue}>${category.amount.toFixed(2)}</Text>
+                          <Text style={styles.statsBarPercentage}>{category.percentage}%</Text>
+                        </View>
+                      </View>
+                      <View style={styles.statsBarBackground}>
+                        <View style={[styles.statsBar, {
+                          backgroundColor: category.color,
+                          width: `${Math.max(5, category.percentage)}%`
+                        }]} />
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              </View>
+              
+              {/* Payment Methods */}
+              <View style={styles.statsDetailCard}>
+                <Text style={styles.statsSectionTitle}>Payment Methods</Text>
+                <View style={styles.statsSourceList}>
+                  {paymentMethods.map((method, index) => (
+                    <View key={index} style={styles.statsSourceItem}>
+                      <View style={[styles.statsSourceIcon, {backgroundColor: method.color}]}>
+                        <Ionicons name={method.icon} size={20} color="#FFFFFF" />
+                      </View>
+                      <View style={styles.statsSourceInfo}>
+                        <Text style={styles.statsSourceName}>{method.name}</Text>
+                        <Text style={styles.statsSourceCount}>{3 - index} transactions</Text>
+                      </View>
+                      <Text style={styles.statsSourceAmount}>${(monthlySpent * (0.5 - index * 0.15)).toFixed(2)}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+      
+      {/* Transaction Details Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={transactionDetailsVisible}
+        onRequestClose={() => setTransactionDetailsVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Transaction Details</Text>
+              <TouchableOpacity onPress={() => setTransactionDetailsVisible(false)}>
+                <Ionicons name="close" size={24} color="#ffffff" />
+              </TouchableOpacity>
+            </View>
+            
+            {selectedTransaction && (
+              <View style={styles.transactionDetailsContainer}>
+                {/* Transaction Header */}
+                <View style={styles.transactionHeaderContainer}>
+                  <View style={[styles.transactionDetailIcon, { backgroundColor: selectedTransaction.color }]}>
+                    <Ionicons name={selectedTransaction.icon} size={30} color="#FFFFFF" />
+                  </View>
+                  
+                  <View style={styles.transactionHeaderInfo}>
+                    <Text style={styles.transactionTitle}>{selectedTransaction.title}</Text>
+                    <Text style={styles.transactionCategory}>{selectedTransaction.category}</Text>
+                  </View>
+                  
+                  <Text style={styles.transactionAmount}>-${selectedTransaction.amount.toFixed(2)}</Text>
+                </View>
+                
+                {/* Transaction Details */}
+                <View style={styles.transactionInfoSection}>
+                  <View style={styles.transactionInfoRow}>
+                    <Text style={styles.transactionInfoLabel}>Date</Text>
+                    <Text style={styles.transactionInfoValue}>{selectedTransaction.date}, 2023</Text>
+                  </View>
+                  
+                  <View style={styles.transactionInfoRow}>
+                    <Text style={styles.transactionInfoLabel}>Category</Text>
+                    <View style={styles.transactionCategoryTag}>
+                      <View style={[styles.miniCategoryDot, { backgroundColor: selectedTransaction.color }]} />
+                      <Text style={styles.transactionCategoryText}>{selectedTransaction.category}</Text>
+                    </View>
+                  </View>
+                  
+                  <View style={styles.transactionInfoRow}>
+                    <Text style={styles.transactionInfoLabel}>Payment Method</Text>
+                    <View style={styles.transactionCategoryTag}>
+                      <Ionicons name="card" size={14} color="#FF6384" />
+                      <Text style={styles.transactionCategoryText}>Credit Card</Text>
+                    </View>
+                  </View>
+                  
+                  <View style={styles.transactionInfoRow}>
+                    <Text style={styles.transactionInfoLabel}>Status</Text>
+                    <View style={styles.transactionStatusTag}>
+                      <Text style={styles.transactionStatusText}>Completed</Text>
+                    </View>
+                  </View>
+                  
+                  <View style={styles.transactionNotesContainer}>
+                    <Text style={styles.transactionInfoLabel}>Notes</Text>
+                    <View style={styles.transactionNotesCard}>
+                      <Text style={styles.transactionNotesText}>
+                        {selectedTransaction.title === 'Grocery Shopping' ? 'Weekly grocery run at Trader Joe\'s.' : 
+                         selectedTransaction.title === 'Uber Ride' ? 'Business trip to downtown meeting.' :
+                         selectedTransaction.title === 'New Headphones' ? 'Sony WH-1000XM4 noise cancelling headphones.' : 
+                         'No notes available.'}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+                
+                {/* Transaction Actions */}
+                <View style={styles.transactionActionsContainer}>
+                  <TouchableOpacity style={styles.transactionActionButton}>
+                    <Ionicons name="create-outline" size={18} color="#FFFFFF" />
+                    <Text style={styles.transactionActionText}>Edit</Text>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity style={[styles.transactionActionButton, {backgroundColor: '#FF6384'}]}>
+                    <Ionicons name="trash-outline" size={18} color="#FFFFFF" />
+                    <Text style={styles.transactionActionText}>Delete</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -1382,6 +1810,442 @@ const styles = StyleSheet.create({
   tapText: {
     fontSize: 12,
     marginLeft: 5,
+  },
+  actionButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginTop: 20,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 25,
+    width: '48%',
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 2,
+  },
+  actionButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  statsIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#333333',
+  },
+  statsText: {
+    fontSize: 12,
+    marginLeft: 5,
+  },
+  statsSummaryCard: {
+    backgroundColor: '#252525',
+    borderRadius: 15,
+    padding: 20,
+    marginBottom: 18,
+  },
+  statsSummaryHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  timeFrameSelector: {
+    flexDirection: 'row',
+    backgroundColor: '#1A1A1A',
+    borderRadius: 20,
+    padding: 4,
+  },
+  timeFrameOption: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  timeFrameSelected: {
+    backgroundColor: '#333333',
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  timeFrameText: {
+    fontSize: 12,
+    color: '#999999',
+  },
+  timeFrameTextSelected: {
+    color: '#FFFFFF',
+  },
+  statsCardTitle: {
+    fontSize: 16,
+    color: '#999999',
+    fontWeight: '500',
+  },
+  statsAmount: {
+    fontSize: 36,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  statsDivider: {
+    height: 1,
+    backgroundColor: '#333333',
+    marginTop: 10,
+    marginBottom: 15,
+    width: '100%',
+  },
+  statsMetricsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingTop: 15,
+  },
+  statsMetricItem: {
+    alignItems: 'center',
+    width: '30%',
+  },
+  statsMetricIcon: {
+    marginBottom: 12,
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statsMetricIconBg: {
+    backgroundColor: '#4BC0C0',
+    borderRadius: 18,
+    padding: 8,
+    overflow: 'hidden',
+  },
+  statsMetricValue: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#ffffff',
+    marginBottom: 5,
+    textAlign: 'center',
+  },
+  statsMetricLabel: {
+    fontSize: 12,
+    color: '#999999',
+    textAlign: 'center',
+  },
+  statsTrendCard: {
+    backgroundColor: '#252525',
+    borderRadius: 15,
+    padding: 20,
+    marginBottom: 18,
+  },
+  statsSectionTitle: {
+    fontSize: 17,
+    color: '#ffffff',
+    fontWeight: '600',
+    marginBottom: 15,
+  },
+  trendChartContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    height: 120,
+  },
+  trendBarWrapper: {
+    alignItems: 'center',
+    width: '14%',
+  },
+  trendBar: {
+    width: '70%',
+    backgroundColor: '#4BC0C0',
+    borderRadius: 3,
+  },
+  trendBarLabel: {
+    fontSize: 12,
+    color: '#999999',
+    marginTop: 8,
+  },
+  statsDetailCard: {
+    backgroundColor: '#252525',
+    borderRadius: 15,
+    padding: 20,
+    marginBottom: 18,
+  },
+  statsBarContainer: {
+    marginTop: 10,
+  },
+  statsBarItemEnhanced: {
+    marginBottom: 16,
+  },
+  statsBarHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  statsBarLabelContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  statsBarValueContainer: {
+    alignItems: 'flex-end',
+  },
+  statsBarPercentage: {
+    fontSize: 12,
+    color: '#999999',
+    marginTop: 2,
+  },
+  categoryDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: 8,
+  },
+  statsBarLabel: {
+    fontSize: 14,
+    color: '#ffffff',
+  },
+  statsBarValue: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  statsBarBackground: {
+    height: 8,
+    backgroundColor: '#333333',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  statsBar: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  statsSourceList: {
+    marginTop: 5,
+  },
+  statsSourceItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+    backgroundColor: '#1A1A1A',
+    borderRadius: 12,
+    padding: 12,
+  },
+  statsSourceIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  statsSourceInfo: {
+    flex: 1,
+  },
+  statsSourceName: {
+    fontSize: 14,
+    color: '#FFFFFF',
+    fontWeight: '500',
+  },
+  statsSourceCount: {
+    fontSize: 12,
+    color: '#999999',
+    marginTop: 2,
+  },
+  statsSourceAmount: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  statsBudgetCard: {
+    backgroundColor: '#252525',
+    borderRadius: 15,
+    padding: 20,
+    marginBottom: 18,
+  },
+  budgetProgressContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  budgetProgressItem: {
+    alignItems: 'center',
+  },
+  budgetCircleContainer: {
+    width: 110,
+    height: 110,
+    position: 'relative',
+    marginBottom: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  budgetCircleBackground: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    borderRadius: 55,
+    borderWidth: 8,
+    borderColor: '#333333',
+  },
+  budgetCircleProgress: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    borderRadius: 55,
+    borderWidth: 8,
+    borderLeftColor: 'transparent',
+    borderBottomColor: 'transparent',
+    borderRightColor: 'transparent',
+  },
+  budgetCircleContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  budgetCirclePercentage: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  budgetCircleLabel: {
+    fontSize: 12,
+    color: '#999999',
+  },
+  budgetProgressLabel: {
+    fontSize: 14,
+    color: '#FFFFFF',
+    fontWeight: '500',
+  },
+  statsPieContainer: {
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  monthlyStatsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+    marginTop: 5,
+  },
+  transactionDetailsContainer: {
+    marginBottom: 20,
+  },
+  transactionHeaderContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#252525',
+    borderRadius: 15,
+    padding: 16,
+    marginBottom: 20,
+  },
+  transactionDetailIcon: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  transactionHeaderInfo: {
+    flex: 1,
+  },
+  transactionTitle: {
+    fontSize: 18,
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  transactionCategory: {
+    fontSize: 14,
+    color: '#999999',
+    marginTop: 3,
+  },
+  transactionAmount: {
+    fontSize: 20,
+    color: '#FF6384',
+    fontWeight: 'bold',
+  },
+  transactionInfoSection: {
+    backgroundColor: '#252525',
+    borderRadius: 15,
+    padding: 20,
+    marginBottom: 20,
+  },
+  transactionInfoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  transactionInfoLabel: {
+    fontSize: 15,
+    color: '#999999',
+  },
+  transactionInfoValue: {
+    fontSize: 15,
+    color: '#FFFFFF',
+    fontWeight: '500',
+  },
+  transactionCategoryTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1A1A1A',
+    borderRadius: 12,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+  },
+  transactionCategoryText: {
+    fontSize: 14,
+    color: '#FFFFFF',
+    marginLeft: 6,
+  },
+  transactionStatusTag: {
+    backgroundColor: '#4BC0C0',
+    borderRadius: 12,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+  },
+  transactionStatusText: {
+    fontSize: 14,
+    color: '#FFFFFF',
+    fontWeight: '500',
+  },
+  transactionNotesContainer: {
+    marginTop: 10,
+  },
+  transactionNotesCard: {
+    backgroundColor: '#1A1A1A',
+    borderRadius: 12,
+    padding: 15,
+    marginTop: 8,
+  },
+  transactionNotesText: {
+    fontSize: 14,
+    color: '#FFFFFF',
+    lineHeight: 20,
+  },
+  transactionActionsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  transactionActionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#333333',
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    width: '48%',
+  },
+  transactionActionText: {
+    fontSize: 14,
+    color: '#FFFFFF',
+    fontWeight: '600',
+    marginLeft: 8,
   },
 });
 
