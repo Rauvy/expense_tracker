@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, Image, Platform, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -46,19 +46,22 @@ const ProfileScreen = ({ navigation }) => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView>
+    
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <ScrollView 
+        style={styles.content} 
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.screenPadding}>
-          {/* Header Section */}
-          <View style={styles.headerContainer}>
-            <View style={styles.headerTop}>
+          
+          {/* Profile Card with integrated heading */}
+          <View style={styles.profileCard}>
+            <View style={styles.cardHeader}>
               <Text style={styles.sectionTitle}>Profile</Text>
               <Ionicons name="person-circle" size={24} color="#276EF1" />
             </View>
-          </View>
-          
-          {/* Profile Card */}
-          <View style={styles.profileCard}>
+            
             <View style={styles.profileHeader}>
               {userData.profilePhoto ? (
                 <Image source={{ uri: userData.profilePhoto }} style={styles.profilePhoto} />
@@ -105,7 +108,10 @@ const ProfileScreen = ({ navigation }) => {
           
           {/* Settings Section */}
           <View style={styles.sectionCard}>
-            <Text style={styles.sectionTitle}>Settings</Text>
+            <View style={styles.cardHeader}>
+              <Text style={styles.sectionTitle}>Settings</Text>
+              <Ionicons name="settings" size={24} color="#276EF1" />
+            </View>
             
             {renderMenuItem(
               'moon',
@@ -149,7 +155,10 @@ const ProfileScreen = ({ navigation }) => {
           
           {/* Preferences Section */}
           <View style={styles.sectionCard}>
-            <Text style={styles.sectionTitle}>Preferences</Text>
+            <View style={styles.cardHeader}>
+              <Text style={styles.sectionTitle}>Preferences</Text>
+              <Ionicons name="options" size={24} color="#276EF1" />
+            </View>
             
             {renderMenuItem(
               'card',
@@ -182,7 +191,10 @@ const ProfileScreen = ({ navigation }) => {
           
           {/* Data & Privacy Section */}
           <View style={styles.sectionCard}>
-            <Text style={styles.sectionTitle}>Data & Privacy</Text>
+            <View style={styles.cardHeader}>
+              <Text style={styles.sectionTitle}>Data & Privacy</Text>
+              <Ionicons name="shield" size={24} color="#276EF1" />
+            </View>
             
             {renderMenuItem(
               'cloud-download',
@@ -246,26 +258,24 @@ const ProfileScreen = ({ navigation }) => {
           <Text style={styles.versionText}>Version 1.0.0</Text>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </SafeAreaView> 
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#121212',
+  },
+  content: {
+    flex: 1,
+    backgroundColor: '#121212',
+  },
+  contentContainer: {
+    paddingBottom: 30,
   },
   screenPadding: {
-    padding: 20,
-  },
-  headerContainer: {
-    marginBottom: 20,
-  },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 15,
+    padding: 10,
   },
   sectionTitle: {
     fontSize: 18,
@@ -277,11 +287,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#1a1a1a',
     borderRadius: 15,
     padding: 20,
-    marginBottom: 20,
+    marginBottom: 15,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: 15,
+    paddingTop: 5,
+    paddingBottom: 5,
   },
   profileHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
     marginBottom: 20,
   },
   profilePhotoPlaceholder: {
@@ -359,7 +377,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#1a1a1a',
     borderRadius: 15,
     padding: 20,
-    marginBottom: 20,
+    marginBottom: 15,
   },
   menuItem: {
     flexDirection: 'row',
@@ -368,7 +386,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#252525',
     borderRadius: 12,
     padding: 15,
-    marginBottom: 10,
+    marginBottom: 8,
   },
   menuItemLeft: {
     flexDirection: 'row',
@@ -404,7 +422,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF3B30',
     borderRadius: 12,
     padding: 15,
-    marginBottom: 15,
+    marginBottom: 12,
   },
   logoutIcon: {
     marginRight: 10,

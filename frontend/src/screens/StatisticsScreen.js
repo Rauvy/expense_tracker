@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity, PanResponder } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity, PanResponder, Platform, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Path, Circle, Line, Text as SvgText, G, Rect } from 'react-native-svg';
@@ -238,7 +238,7 @@ const SimpleLineChart = ({ data, labels, width, height }) => {
           
           {/* Y-axis title - moved lower to ensure visibility */}
           <SvgText
-            x={6}
+            x={12}
             y={paddingTop - 20}
             fill="#999999"
             fontSize="9"
@@ -352,22 +352,29 @@ const SimpleLineChart = ({ data, labels, width, height }) => {
             // Calculate precise position
             const x = getX(index);
             
+            // Adjust x-coordinate for the last label
+            const adjustedX = index === labels.length - 1 
+              ? (labels.length >= 10 && label === 'Dec' 
+                ? x + 0.1  // More space for December in yearly view
+                : x - 10) // Default adjustment for other last labels
+              : x;
+            
             if (labels.length >= 10) {
               // Annual view - show all months with better alignment
               return (
                 <G key={`label-container-${index}`}>
                   {/* Small tick mark to show exact position */}
                   <Line
-                    x1={x}
+                    x1={adjustedX}
                     y1={paddingTop + chartHeight}
-                    x2={x}
+                    x2={adjustedX}
                     y2={paddingTop + chartHeight + 3}
                     stroke={activePointIndex === index ? "#fff" : "#555"}
                     strokeWidth="1"
                   />
                   <SvgText
                     key={`label-${index}`}
-                    x={x}
+                    x={adjustedX}
                     y={paddingTop + chartHeight + 15}
                     fill={activePointIndex === index ? "#fff" : "#999999"}
                     fontSize="8"
@@ -384,16 +391,16 @@ const SimpleLineChart = ({ data, labels, width, height }) => {
                 <G key={`label-container-${index}`}>
                   {/* Small tick mark to show exact position */}
                   <Line
-                    x1={x}
+                    x1={adjustedX}
                     y1={paddingTop + chartHeight}
-                    x2={x}
+                    x2={adjustedX}
                     y2={paddingTop + chartHeight + 3}
                     stroke={activePointIndex === index ? "#fff" : "#555"}
                     strokeWidth="1"
                   />
                   <SvgText
                     key={`label-${index}`}
-                    x={x}
+                    x={adjustedX}
                     y={paddingTop + chartHeight + 15}
                     fill={activePointIndex === index ? "#fff" : "#999999"}
                     fontSize="9"
@@ -797,25 +804,28 @@ const StatisticsScreen = () => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView>
+    <View style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top']}>
+      
+      <ScrollView 
+        style={styles.content} 
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.screenPadding}>
-          {/* Header Section */}
-          <View style={styles.headerContainer}>
-            <View style={styles.headerTop}>
+          {/* Timeframe buttons - now at the top */}
+          <View style={styles.timeframeButtons}>
+            {renderTimeframeButton('Weekly', 'weekly')}
+            {renderTimeframeButton('Monthly', 'monthly')}
+            {renderTimeframeButton('Yearly', 'yearly')}
+          </View>
+          
+          {/* Overview Card with integrated heading */}
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
               <Text style={styles.sectionTitle}>Statistics</Text>
               <Ionicons name="stats-chart" size={24} color="#276EF1" />
             </View>
-            
-            <View style={styles.timeframeButtons}>
-              {renderTimeframeButton('Weekly', 'weekly')}
-              {renderTimeframeButton('Monthly', 'monthly')}
-              {renderTimeframeButton('Yearly', 'yearly')}
-            </View>
-          </View>
-          
-          {/* Overview Card */}
-          <View style={styles.card}>
             <Text style={styles.cardLabel}>
               {timeframe === 'weekly' ? 'This Week' : timeframe === 'monthly' ? 'This Month' : 'This Year'}
             </Text>
@@ -964,45 +974,44 @@ const StatisticsScreen = () => {
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#121212',
+  },
+  content: {
+    flex: 1,
+    backgroundColor: '#121212',
+  },
+  contentContainer: {
+    paddingBottom: 30,
   },
   screenPadding: {
-    padding: 20,
-  },
-  headerContainer: {
-    marginBottom: 20,
-  },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 15,
+    padding: 10,
   },
   timeframeButtons: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    backgroundColor: '#1a1a1a',
-    borderRadius: 12,
-    padding: 4,
+    justifyContent: 'center',
+    marginBottom: 15,
   },
   timeframeButton: {
-    flex: 1,
-    paddingVertical: 10,
-    alignItems: 'center',
-    borderRadius: 10,
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    marginHorizontal: 5,
+    borderRadius: 20,
+    backgroundColor: '#1a1a1a',
   },
   activeTimeframeButton: {
     backgroundColor: '#276EF1',
   },
   timeframeText: {
-    color: '#666666',
+    color: '#888888',
+    fontSize: 14,
     fontWeight: '500',
   },
   activeTimeframeText: {
@@ -1012,8 +1021,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#1a1a1a',
     borderRadius: 15,
     padding: 20,
-    marginBottom: 20,
+    marginBottom: 15,
     alignItems: 'center',
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: 15,
+    paddingTop: 5,
+    paddingBottom: 5,
   },
   cardLabel: {
     fontSize: 14,
@@ -1045,7 +1063,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#1a1a1a',
     borderRadius: 15,
     padding: 12,
-    marginBottom: 20,
+    marginBottom: 15,
   },
   sectionHeader: {
     marginBottom: 20,
@@ -1083,7 +1101,7 @@ const styles = StyleSheet.create({
   },
   chartContainer: {
     alignItems: 'center',
-    marginVertical: 8,
+    marginVertical: 0,
     borderRadius: 12,
     overflow: 'hidden',
     width: '100%',
@@ -1094,7 +1112,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#252525',
     borderRadius: 12,
     padding: 15,
-    marginBottom: 10,
+    marginBottom: 8,
   },
   categoryIcon: {
     width: 40,
@@ -1141,7 +1159,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#252525',
     borderRadius: 15,
     padding: 20,
-    marginBottom: 20,
+    marginBottom: 15,
     borderLeftWidth: 4,
     borderLeftColor: '#FFCE56',
   },

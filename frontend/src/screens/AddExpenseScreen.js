@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Dimensions, Modal } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Platform, StatusBar, SafeAreaView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
 
-// Mock data for all expenses
-const allExpenses = [
+// Mock data for all transactions (both expenses and income)
+const allTransactions = [
   {
     id: 1,
     title: 'Grocery Shopping',
@@ -15,369 +14,379 @@ const allExpenses = [
     date: '15 Jun',
     icon: 'fast-food',
     color: '#FF6384',
+    paymentMethod: 'Credit Card',
+    paymentIcon: 'card',
+    paymentColor: '#FF6384',
+    type: 'expense',
   },
   {
     id: 2,
+    title: 'Monthly Salary',
+    category: 'Salary',
+    amount: 2800.00,
+    date: '15 Jun',
+    icon: 'cash',
+    color: '#4BC0C0',
+    source: 'Employer',
+    sourceIcon: 'business',
+    sourceColor: '#4BC0C0',
+    type: 'income',
+  },
+  {
+    id: 3,
     title: 'Uber Ride',
     category: 'Transport',
     amount: 24.50,
     date: '14 Jun',
     icon: 'car',
     color: '#36A2EB',
+    paymentMethod: 'Mobile Pay',
+    paymentIcon: 'phone-portrait',
+    paymentColor: '#9966FF',
+    type: 'expense',
   },
   {
-    id: 3,
+    id: 4,
+    title: 'Freelance Project',
+    category: 'Freelance',
+    amount: 350.00,
+    date: '13 Jun',
+    icon: 'laptop',
+    color: '#36A2EB',
+    source: 'Client',
+    sourceIcon: 'person',
+    sourceColor: '#36A2EB',
+    type: 'income',
+  },
+  {
+    id: 5,
     title: 'New Headphones',
     category: 'Shopping',
     amount: 159.99,
     date: '12 Jun',
     icon: 'cart',
     color: '#FFCE56',
+    paymentMethod: 'Credit Card',
+    paymentIcon: 'card',
+    paymentColor: '#FF6384',
+    type: 'expense',
   },
   {
-    id: 4,
+    id: 6,
     title: 'Electricity Bill',
     category: 'Bills',
     amount: 75.40,
     date: '10 Jun',
     icon: 'flash',
     color: '#4BC0C0',
+    paymentMethod: 'Cash',
+    paymentIcon: 'cash',
+    paymentColor: '#4BC0C0',
+    type: 'expense',
   },
   {
-    id: 5,
+    id: 7,
+    title: 'Gift from Dad',
+    category: 'Gifts',
+    amount: 100.00,
+    date: '10 Jun',
+    icon: 'gift',
+    color: '#9966FF',
+    source: 'Family',
+    sourceIcon: 'people',
+    sourceColor: '#9966FF',
+    type: 'income',
+  },
+  {
+    id: 8,
     title: 'Coffee Shop',
     category: 'Food',
     amount: 12.99,
     date: '9 Jun',
     icon: 'cafe',
     color: '#FF6384',
+    paymentMethod: 'Mobile Pay',
+    paymentIcon: 'phone-portrait',
+    paymentColor: '#9966FF',
+    type: 'expense',
   },
   {
-    id: 6,
+    id: 9,
     title: 'Movie Tickets',
     category: 'Entertainment',
     amount: 32.00,
     date: '8 Jun',
     icon: 'film',
     color: '#9966FF',
+    paymentMethod: 'Credit Card',
+    paymentIcon: 'card',
+    paymentColor: '#FF6384',
+    type: 'expense',
+  },
+  {
+    id: 10,
+    title: 'Stock Dividend',
+    category: 'Investments',
+    amount: 75.50,
+    date: '7 Jun',
+    icon: 'trending-up',
+    color: '#FFCE56',
+    source: 'Investments',
+    sourceIcon: 'stats-chart',
+    sourceColor: '#FFCE56',
+    type: 'income',
   },
 ];
 
-// Available icons for custom categories
-const availableIcons = [
-  'basketball', 'airplane', 'book', 'briefcase', 'calculator', 
-  'calendar', 'camera', 'color-palette', 'desktop', 'fitness',
-  'gift', 'glasses', 'home', 'medical', 'paw', 'school'
-];
+const TransactionsScreen = () => {
+  const [filterType, setFilterType] = useState('all'); // 'all', 'expense', 'income'
+  
+  // Filter transactions based on selected type
+  const filteredTransactions = filterType === 'all' 
+    ? allTransactions 
+    : allTransactions.filter(transaction => transaction.type === filterType);
+  
+  // Calculate total income and expenses
+  const totalIncome = allTransactions
+    .filter(transaction => transaction.type === 'income')
+    .reduce((sum, transaction) => sum + transaction.amount, 0);
+    
+  const totalExpenses = allTransactions
+    .filter(transaction => transaction.type === 'expense')
+    .reduce((sum, transaction) => sum + transaction.amount, 0);
+  
+  const renderFilterButton = (label, value) => (
+    <TouchableOpacity 
+      style={[
+        styles.filterButton, 
+        filterType === value && styles.activeFilterButton,
+        value === 'income' && filterType === value && styles.activeIncomeButton,
+        value === 'expense' && filterType === value && styles.activeExpenseButton
+      ]}
+      onPress={() => setFilterType(value)}
+    >
+      <Text 
+        style={[
+          styles.filterText, 
+          filterType === value && styles.activeFilterText
+        ]}
+      >
+        {label}
+      </Text>
+    </TouchableOpacity>
+  );
 
-// Initial categories
-const initialCategories = [
-  { name: 'Food', icon: 'fast-food', color: '#FF6384' },
-  { name: 'Transport', icon: 'car', color: '#36A2EB' },
-  { name: 'Shopping', icon: 'cart', color: '#FFCE56' },
-  { name: 'Bills', icon: 'flash', color: '#4BC0C0' },
-  { name: 'Entertainment', icon: 'film', color: '#9966FF' },
-];
-
-const AddExpenseScreen = () => {
-  const [amount, setAmount] = useState('');
-  const [description, setDescription] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  const [customModalVisible, setCustomModalVisible] = useState(false);
-  const [customCategoryName, setCustomCategoryName] = useState('');
-  const [selectedIcon, setSelectedIcon] = useState(null);
-  const [selectedColor, setSelectedColor] = useState('#276EF1');
-  const [categories, setCategories] = useState(initialCategories);
-  
-  // Predefined colors for custom categories
-  const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#8C9EFF', '#FF5252'];
-  
-  const addCustomCategory = () => {
-    if (customCategoryName.trim() && selectedIcon) {
-      const newCategory = {
-        name: customCategoryName.trim(),
-        icon: selectedIcon,
-        color: selectedColor
-      };
-      
-      setCategories([...categories, newCategory]);
-      setSelectedCategory(newCategory.name);
-      setCustomModalVisible(false);
-      
-      // Reset form
-      setCustomCategoryName('');
-      setSelectedIcon(null);
-    }
-  };
-  
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView>
-        <View style={styles.screenPadding}>
-          {/* Add Expense Section */}
-          <View style={styles.formContainer}>
-            <View style={styles.formHeader}>
-              <Text style={styles.sectionTitle}>Add Expense</Text>
-              <Ionicons name="add-circle" size={24} color="#276EF1" />
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <ScrollView 
+          style={styles.content} 
+          contentContainerStyle={styles.contentContainer}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.screenPadding}>
+            {/* Header */}
+            <View style={styles.header}>
+              <Text style={styles.headerTitle}>Transactions</Text>
             </View>
             
-            <TextInput
-              style={styles.amountInput}
-              placeholder="$0.00"
-              placeholderTextColor="#666666"
-              keyboardType="decimal-pad"
-              value={amount}
-              onChangeText={setAmount}
-            />
-            
-            <TextInput
-              style={styles.input}
-              placeholder="Description"
-              placeholderTextColor="#666666"
-              value={description}
-              onChangeText={setDescription}
-            />
-            
-            <Text style={styles.categoryLabel}>Select Category</Text>
-            <View style={styles.categoriesContainer}>
-              {categories.map((category) => (
-                <TouchableOpacity 
-                  key={category.name}
-                  style={[
-                    styles.categoryButton,
-                    selectedCategory === category.name && { borderColor: category.color }
-                  ]}
-                  onPress={() => setSelectedCategory(category.name)}
-                >
-                  <View style={[styles.categoryIcon, { backgroundColor: category.color }]}>
-                    <Ionicons name={category.icon} size={18} color="#FFFFFF" />
+            {/* Summary Card */}
+            <View style={styles.summaryCard}>
+              <View style={styles.summaryRow}>
+                <View style={styles.summaryItem}>
+                  <View style={styles.summaryIconContainer}>
+                    <Ionicons name="arrow-down" size={18} color="#4BC0C0" />
                   </View>
-                  <Text style={styles.categoryText}>{category.name}</Text>
-                </TouchableOpacity>
-              ))}
-              
-              <TouchableOpacity 
-                style={styles.addCategoryButton}
-                onPress={() => setCustomModalVisible(true)}
-              >
-                <Ionicons name="add" size={20} color="#276EF1" />
-                <Text style={styles.addCategoryText}>Custom</Text>
-              </TouchableOpacity>
-            </View>
-            
-            <TouchableOpacity style={styles.addButton}>
-              <Text style={styles.buttonText}>Add Expense</Text>
-            </TouchableOpacity>
-          </View>
-          
-          {/* All Expenses Section */}
-          <View style={styles.expensesContainer}>
-            <Text style={styles.sectionTitle}>All Expenses</Text>
-            <Text style={styles.sectionSubtitle}>Your complete expense history</Text>
-            
-            {allExpenses.map((expense) => (
-              <View key={expense.id} style={styles.expenseItem}>
-                <View style={[styles.expenseIcon, { backgroundColor: expense.color }]}>
-                  <Ionicons name={expense.icon} size={20} color="#FFFFFF" />
+                  <View>
+                    <Text style={styles.summaryLabel}>Income</Text>
+                    <Text style={[styles.summaryAmount, styles.incomeAmount]}>${totalIncome.toFixed(2)}</Text>
+                  </View>
                 </View>
                 
-                <View style={styles.expenseInfo}>
-                  <Text style={styles.expenseTitle}>{expense.title}</Text>
-                  <Text style={styles.expenseCategory}>{expense.category}</Text>
-                </View>
+                <View style={styles.summaryDivider} />
                 
-                <View style={styles.expenseDetails}>
-                  <Text style={styles.expenseAmount}>-${expense.amount.toFixed(2)}</Text>
-                  <Text style={styles.expenseDate}>{expense.date}</Text>
+                <View style={styles.summaryItem}>
+                  <View style={styles.summaryIconContainer}>
+                    <Ionicons name="arrow-up" size={18} color="#FF6384" />
+                  </View>
+                  <View>
+                    <Text style={styles.summaryLabel}>Expenses</Text>
+                    <Text style={[styles.summaryAmount, styles.expenseAmount]}>${totalExpenses.toFixed(2)}</Text>
+                  </View>
                 </View>
               </View>
-            ))}
-          </View>
-        </View>
-      </ScrollView>
-      
-      {/* Custom Category Modal */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={customModalVisible}
-        onRequestClose={() => setCustomModalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Create Custom Category</Text>
-              <TouchableOpacity onPress={() => setCustomModalVisible(false)}>
-                <Ionicons name="close" size={24} color="#ffffff" />
-              </TouchableOpacity>
             </View>
             
-            <TextInput
-              style={styles.input}
-              placeholder="Category Name"
-              placeholderTextColor="#666666"
-              value={customCategoryName}
-              onChangeText={setCustomCategoryName}
-            />
+            {/* Filter Buttons */}
+            <View style={styles.filterContainer}>
+              {renderFilterButton('All', 'all')}
+              {renderFilterButton('Income', 'income')}
+              {renderFilterButton('Expenses', 'expense')}
+            </View>
             
-            <Text style={styles.modalLabel}>Select Icon</Text>
-            <View style={styles.iconGrid}>
-              {availableIcons.map((icon) => (
-                <TouchableOpacity 
-                  key={icon}
-                  style={[
-                    styles.iconButton,
-                    selectedIcon === icon && { borderColor: selectedColor, borderWidth: 2 }
-                  ]}
-                  onPress={() => setSelectedIcon(icon)}
-                >
-                  <Ionicons name={icon} size={24} color="#ffffff" />
-                </TouchableOpacity>
+            {/* Transactions List */}
+            <View style={styles.transactionsContainer}>
+              {filteredTransactions.map((transaction) => (
+                <View key={transaction.id} style={styles.transactionItem}>
+                  <View style={[styles.transactionIcon, { backgroundColor: transaction.color }]}>
+                    <Ionicons name={transaction.icon} size={20} color="#FFFFFF" />
+                  </View>
+                  
+                  <View style={styles.transactionInfo}>
+                    <Text style={styles.transactionTitle}>{transaction.title}</Text>
+                    <Text style={styles.transactionCategory}>{transaction.category}</Text>
+                  </View>
+                  
+                  <View style={styles.transactionDetails}>
+                    <Text 
+                      style={[
+                        styles.transactionAmount,
+                        transaction.type === 'income' ? styles.incomeAmount : styles.expenseAmount
+                      ]}
+                    >
+                      {transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)}
+                    </Text>
+                    <Text style={styles.transactionDate}>{transaction.date}</Text>
+                    
+                    <View 
+                      style={[
+                        styles.transactionMethodIcon, 
+                        { 
+                          backgroundColor: transaction.type === 'income' 
+                            ? transaction.sourceColor 
+                            : transaction.paymentColor 
+                        }
+                      ]}
+                    >
+                      <Ionicons 
+                        name={transaction.type === 'income' ? transaction.sourceIcon : transaction.paymentIcon} 
+                        size={14} 
+                        color="#FFFFFF" 
+                      />
+                    </View>
+                  </View>
+                </View>
               ))}
             </View>
-            
-            <Text style={styles.modalLabel}>Select Color</Text>
-            <View style={styles.colorGrid}>
-              {colors.map((color) => (
-                <TouchableOpacity 
-                  key={color}
-                  style={[
-                    styles.colorButton,
-                    { backgroundColor: color },
-                    selectedColor === color && { borderColor: '#ffffff', borderWidth: 2 }
-                  ]}
-                  onPress={() => setSelectedColor(color)}
-                />
-              ))}
-            </View>
-            
-            <TouchableOpacity 
-              style={[styles.createButton, { backgroundColor: selectedColor }]}
-              onPress={addCustomCategory}
-            >
-              <Text style={styles.buttonText}>Create Category</Text>
-            </TouchableOpacity>
           </View>
-        </View>
-      </Modal>
+        </ScrollView>
+      </View>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#121212',
+  },
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#121212',
+  },
+  content: {
+    flex: 1,
+    backgroundColor: '#121212',
+  },
+  contentContainer: {
+    paddingBottom: 30,
   },
   screenPadding: {
-    padding: 20,
+    padding: 10,
   },
-  formContainer: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 15,
-    padding: 20,
-    marginBottom: 20,
-  },
-  formHeader: {
+  header: {
+    paddingTop: Platform.OS === 'ios' ? 10 : StatusBar.currentHeight + 10,
+    paddingBottom: 15,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 15,
   },
-  sectionTitle: {
-    fontSize: 18,
-    color: '#ffffff',
-    fontWeight: '600',
-    marginBottom: 5,
-  },
-  sectionSubtitle: {
-    fontSize: 14,
-    color: '#666666',
-    marginBottom: 20,
-  },
-  amountInput: {
-    backgroundColor: '#252525',
-    borderRadius: 12,
-    padding: 15,
+  headerTitle: {
     fontSize: 24,
-    color: '#ffffff',
-    marginBottom: 15,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
   },
-  input: {
-    backgroundColor: '#252525',
-    borderRadius: 12,
-    padding: 15,
-    fontSize: 16,
-    color: '#ffffff',
-    marginBottom: 15,
-  },
-  categoryLabel: {
-    fontSize: 16,
-    color: '#ffffff',
-    marginBottom: 10,
-  },
-  categoriesContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 20,
-  },
-  categoryButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#252525',
-    borderRadius: 12,
-    padding: 10,
-    marginRight: 10,
-    marginBottom: 10,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  categoryIcon: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 8,
-  },
-  categoryText: {
-    color: '#ffffff',
-    fontSize: 14,
-  },
-  addCategoryButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#252525',
-    borderRadius: 12,
-    padding: 10,
-    marginRight: 10,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: '#276EF1',
-    borderStyle: 'dashed',
-  },
-  addCategoryText: {
-    color: '#276EF1',
-    fontSize: 14,
-    marginLeft: 5,
-  },
-  addButton: {
-    backgroundColor: '#276EF1',
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  expensesContainer: {
+  summaryCard: {
     backgroundColor: '#1a1a1a',
     borderRadius: 15,
     padding: 20,
+    marginBottom: 15,
   },
-  expenseItem: {
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  summaryItem: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  summaryIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#252525',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  summaryLabel: {
+    fontSize: 14,
+    color: '#888888',
+    marginBottom: 4,
+  },
+  summaryAmount: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  incomeAmount: {
+    color: '#4BC0C0',
+  },
+  expenseAmount: {
+    color: '#FF6384',
+  },
+  summaryDivider: {
+    width: 1,
+    height: 40,
+    backgroundColor: '#333333',
+    marginHorizontal: 15,
+  },
+  filterContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+  },
+  filterButton: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+    backgroundColor: '#1a1a1a',
+    marginHorizontal: 5,
+    borderRadius: 10,
+  },
+  activeFilterButton: {
+    backgroundColor: '#276EF1',
+  },
+  activeIncomeButton: {
+    backgroundColor: '#4BC0C0',
+  },
+  activeExpenseButton: {
+    backgroundColor: '#FF6384',
+  },
+  filterText: {
+    color: '#888888',
+    fontWeight: '500',
+  },
+  activeFilterText: {
+    color: '#FFFFFF',
+  },
+  transactionsContainer: {
+    backgroundColor: '#1a1a1a',
+    borderRadius: 15,
+    padding: 15,
+  },
+  transactionItem: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#252525',
@@ -385,7 +394,7 @@ const styles = StyleSheet.create({
     padding: 15,
     marginBottom: 10,
   },
-  expenseIcon: {
+  transactionIcon: {
     width: 40,
     height: 40,
     borderRadius: 20,
@@ -393,90 +402,40 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 15,
   },
-  expenseInfo: {
+  transactionInfo: {
     flex: 1,
   },
-  expenseTitle: {
+  transactionTitle: {
     fontSize: 16,
     color: '#ffffff',
     fontWeight: '500',
+    marginBottom: 3,
   },
-  expenseCategory: {
+  transactionCategory: {
     fontSize: 13,
-    color: '#666666',
-    marginTop: 3,
+    color: '#888888',
   },
-  expenseDetails: {
+  transactionDetails: {
     alignItems: 'flex-end',
   },
-  expenseAmount: {
+  transactionAmount: {
     fontSize: 16,
-    color: '#FF6384',
     fontWeight: '600',
+    marginBottom: 3,
   },
-  expenseDate: {
+  transactionDate: {
     fontSize: 13,
-    color: '#666666',
-    marginTop: 3,
+    color: '#888888',
+    marginBottom: 5,
   },
-  modalContainer: {
-    flex: 1,
+  transactionMethodIcon: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-  },
-  modalContent: {
-    width: width - 40,
-    backgroundColor: '#1a1a1a',
-    borderRadius: 15,
-    padding: 20,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  modalTitle: {
-    fontSize: 18,
-    color: '#ffffff',
-    fontWeight: '600',
-  },
-  modalLabel: {
-    fontSize: 16,
-    color: '#ffffff',
-    marginBottom: 10,
-  },
-  iconGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 20,
-  },
-  iconButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#252525',
-    justifyContent: 'center',
-    alignItems: 'center',
-    margin: 5,
-  },
-  colorGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 20,
-  },
-  colorButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    margin: 5,
-  },
-  createButton: {
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
+    marginTop: 8,
   },
 });
 
-export default AddExpenseScreen; 
+export default TransactionsScreen; 

@@ -6,7 +6,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Platform } from 'react-native';
 
 import HomeScreen from '../screens/HomeScreen';
-import AddExpenseScreen from '../screens/AddExpenseScreen';
+import TransactionsScreen from '../screens/AddExpenseScreen';
 import StatisticsScreen from '../screens/StatisticsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import LoginScreen from '../screens/LoginScreen';
@@ -22,16 +22,16 @@ const MainAppNavigator = () => {
         tabBarStyle: {
           backgroundColor: '#1a1a1a',
           borderTopWidth: 0,
-          paddingBottom: Platform.OS === 'ios' ? 20 : 5,
+          paddingBottom: Platform.OS === 'ios' ? 15 : 5,
           paddingTop: 5,
-          height: Platform.OS === 'ios' ? 85 : 60,
+          height: Platform.OS === 'ios' ? 70 : 55,
           safeAreaInsets: { bottom: 0 }
         },
         tabBarActiveTintColor: '#276EF1',
         tabBarInactiveTintColor: '#666666',
         headerShown: false,
         tabBarLabelStyle: {
-          paddingBottom: Platform.OS === 'ios' ? 5 : 0
+          paddingBottom: Platform.OS === 'ios' ? 2 : 0
         }
       }}
     >
@@ -45,11 +45,11 @@ const MainAppNavigator = () => {
         }}
       />
       <Tab.Screen 
-        name="Add" 
-        component={AddExpenseScreen}
+        name="Transactions" 
+        component={TransactionsScreen}
         options={{
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="add-circle" color={color} size={size} />
+            <Ionicons name="receipt-outline" color={color} size={size} />
           ),
         }}
       />

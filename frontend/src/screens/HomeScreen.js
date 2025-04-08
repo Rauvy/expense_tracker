@@ -1,6 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity, Animated } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity, Animated, Modal, TextInput, SafeAreaView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { G, Path, Circle, Text as SvgText } from 'react-native-svg';
 
@@ -13,6 +12,48 @@ const INNER_RADIUS = CHART_RADIUS * 0.55;
 // Mock data
 const monthlyEarned = 2850;
 const monthlySpent = 950;
+
+// Initial categories
+const initialCategories = [
+  { name: 'Food', icon: 'fast-food', color: '#FF6384' },
+  { name: 'Transport', icon: 'car', color: '#36A2EB' },
+  { name: 'Shopping', icon: 'cart', color: '#FFCE56' },
+  { name: 'Bills', icon: 'flash', color: '#4BC0C0' },
+  { name: 'Entertainment', icon: 'film', color: '#9966FF' },
+];
+
+// Initial payment methods
+const initialPaymentMethods = [
+  { name: 'Credit Card', icon: 'card', color: '#FF6384' },
+  { name: 'Cash', icon: 'cash', color: '#4BC0C0' },
+  { name: 'Mobile Pay', icon: 'phone-portrait', color: '#9966FF' },
+];
+
+// Income categories
+const initialIncomeCategories = [
+  { name: 'Salary', icon: 'cash', color: '#4BC0C0' },
+  { name: 'Freelance', icon: 'laptop', color: '#36A2EB' },
+  { name: 'Investments', icon: 'trending-up', color: '#FFCE56' },
+  { name: 'Gifts', icon: 'gift', color: '#9966FF' },
+  { name: 'Other', icon: 'add-circle', color: '#FF9F40' },
+];
+
+// Income sources
+const initialIncomeSources = [
+  { name: 'Employer', icon: 'business', color: '#4BC0C0' },
+  { name: 'Client', icon: 'person', color: '#36A2EB' },
+  { name: 'Investments', icon: 'stats-chart', color: '#FFCE56' },
+];
+
+// Available icons for custom categories
+const availableIcons = [
+  'basketball', 'airplane', 'book', 'briefcase', 'calculator', 
+  'calendar', 'camera', 'color-palette', 'desktop', 'fitness',
+  'gift', 'glasses', 'home', 'medical', 'paw', 'school'
+];
+
+// Predefined colors
+const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#8C9EFF', '#FF5252'];
 
 const categoryData = [
   {
@@ -125,12 +166,58 @@ const HomeScreen = () => {
   const [activeIndex, setActiveIndex] = useState(null);
   const fadeAnim = useRef(new Animated.Value(1)).current;
   
+  // State for modals
+  const [expenseModalVisible, setExpenseModalVisible] = useState(false);
+  const [incomeModalVisible, setIncomeModalVisible] = useState(false);
+  
+  // State for expense form
+  const [expenseAmount, setExpenseAmount] = useState('');
+  const [expenseDescription, setExpenseDescription] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
+  
+  // State for income form
+  const [incomeAmount, setIncomeAmount] = useState('');
+  const [incomeDescription, setIncomeDescription] = useState('');
+  const [selectedIncomeCategory, setSelectedIncomeCategory] = useState(null);
+  const [selectedIncomeSource, setSelectedIncomeSource] = useState(null);
+  
+  // State for custom category/payment method modals
+  const [customCategoryModalVisible, setCustomCategoryModalVisible] = useState(false);
+  const [customPaymentMethodModalVisible, setCustomPaymentMethodModalVisible] = useState(false);
+  const [customIncomeCategoryModalVisible, setCustomIncomeCategoryModalVisible] = useState(false);
+  const [customIncomeSourceModalVisible, setCustomIncomeSourceModalVisible] = useState(false);
+  
+  // State for custom category/payment method forms
+  const [customCategoryName, setCustomCategoryName] = useState('');
+  const [customPaymentMethodName, setCustomPaymentMethodName] = useState('');
+  const [customIncomeCategoryName, setCustomIncomeCategoryName] = useState('');
+  const [customIncomeSourceName, setCustomIncomeSourceName] = useState('');
+  const [selectedIcon, setSelectedIcon] = useState(null);
+  const [selectedPaymentIcon, setSelectedPaymentIcon] = useState(null);
+  const [selectedIncomeIcon, setSelectedIncomeIcon] = useState(null);
+  const [selectedSourceIcon, setSelectedSourceIcon] = useState(null);
+  const [selectedColor, setSelectedColor] = useState('#276EF1');
+  const [selectedPaymentColor, setSelectedPaymentColor] = useState('#276EF1');
+  const [selectedIncomeColor, setSelectedIncomeColor] = useState('#276EF1');
+  const [selectedSourceColor, setSelectedSourceColor] = useState('#276EF1');
+  
+  // State for categories and payment methods
+  const [categories, setCategories] = useState(initialCategories);
+  const [paymentMethods, setPaymentMethods] = useState(initialPaymentMethods);
+  const [incomeCategories, setIncomeCategories] = useState(initialIncomeCategories);
+  const [incomeSources, setIncomeSources] = useState(initialIncomeSources);
+  
   // Calculate percentages and prepare data
   const total = categoryData.reduce((acc, item) => acc + item.amount, 0);
   const formattedCategoryData = categoryData.map((item) => ({
     ...item,
     percentage: Math.round((item.amount / total) * 100),
   }));
+
+  // Add feedback state for buttons
+  const [earnedTilePressed, setEarnedTilePressed] = useState(false);
+  const [spentTilePressed, setSpentTilePressed] = useState(false);
 
   // Handle slice press with animation
   const handleSlicePress = (index) => {
@@ -158,9 +245,38 @@ const HomeScreen = () => {
   const centerX = chartRadius;
   const centerY = chartRadius;
 
+  // Handle add expense
+  const handleAddExpense = () => {
+    // Here you would add the expense to your data
+    // Then clear the form and close the modal
+    setExpenseAmount('');
+    setExpenseDescription('');
+    setSelectedCategory(null);
+    setSelectedPaymentMethod(null);
+    setExpenseModalVisible(false);
+  };
+
+  // Handle add income
+  const handleAddIncome = () => {
+    // Here you would add the income to your data
+    // Then clear the form and close the modal
+    setIncomeAmount('');
+    setIncomeDescription('');
+    setSelectedIncomeCategory(null);
+    setSelectedIncomeSource(null);
+    setIncomeModalVisible(false);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView>
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollViewContent}
+        showsVerticalScrollIndicator={true}
+        bounces={true}
+        alwaysBounceVertical={true}
+        nestedScrollEnabled={true}
+      >
         <View style={styles.screenPadding}>
           {/* Overview Section */}
           <View style={styles.overviewContainer}>
@@ -175,21 +291,45 @@ const HomeScreen = () => {
           
           {/* Tiles for Monthly Earned and Monthly Spent */}
           <View style={styles.tilesContainer}>
-            <View style={styles.tile}>
+            <TouchableOpacity 
+              activeOpacity={0.7}
+              style={[styles.tile, earnedTilePressed && styles.tileTouched]}
+              onPress={() => {
+                setEarnedTilePressed(true);
+                setTimeout(() => setEarnedTilePressed(false), 150);
+                setIncomeModalVisible(true);
+              }}
+            >
               <Text style={styles.tileLabel}>Monthly Earned</Text>
               <Text style={[styles.tileAmount, styles.earnedAmount]}>${monthlyEarned.toFixed(2)}</Text>
               <View style={styles.tileIconContainer}>
                 <Ionicons name="trending-up" size={24} color="#4BC0C0" />
               </View>
-            </View>
+              <View style={styles.tapIndicator}>
+                <Ionicons name="add-circle" size={18} color="#4BC0C0" />
+                <Text style={[styles.tapText, {color: '#4BC0C0'}]}>Tap to add</Text>
+              </View>
+            </TouchableOpacity>
             
-            <View style={styles.tile}>
+            <TouchableOpacity 
+              activeOpacity={0.7}
+              style={[styles.tile, spentTilePressed && styles.tileTouched]}
+              onPress={() => {
+                setSpentTilePressed(true);
+                setTimeout(() => setSpentTilePressed(false), 150);
+                setExpenseModalVisible(true);
+              }}
+            >
               <Text style={styles.tileLabel}>Monthly Spent</Text>
               <Text style={[styles.tileAmount, styles.spentAmount]}>${monthlySpent.toFixed(2)}</Text>
               <View style={styles.tileIconContainer}>
                 <Ionicons name="trending-down" size={24} color="#FF6384" />
               </View>
-            </View>
+              <View style={styles.tapIndicator}>
+                <Ionicons name="add-circle" size={18} color="#FF6384" />
+                <Text style={[styles.tapText, {color: '#FF6384'}]}>Tap to add</Text>
+              </View>
+            </TouchableOpacity>
           </View>
           
           {/* Activity Section with Pie Chart */}
@@ -294,6 +434,568 @@ const HomeScreen = () => {
           </View>
         </View>
       </ScrollView>
+
+      {/* Add Expense Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={expenseModalVisible}
+        onRequestClose={() => {
+          setExpenseModalVisible(false);
+          setExpenseAmount('');
+          setExpenseDescription('');
+          setSelectedCategory(null);
+          setSelectedPaymentMethod(null);
+        }}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {/* Modal Header */}
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Add Expense</Text>
+                <TouchableOpacity 
+                  onPress={() => {
+                    setExpenseModalVisible(false);
+                    setExpenseAmount('');
+                    setExpenseDescription('');
+                    setSelectedCategory(null);
+                    setSelectedPaymentMethod(null);
+                  }}
+                >
+                  <Ionicons name="close" size={24} color="#ffffff" />
+                </TouchableOpacity>
+              </View>
+              
+              {/* Expense Form */}
+              <TextInput
+                style={styles.amountInput}
+                placeholder="$0.00"
+                placeholderTextColor="#666666"
+                keyboardType="decimal-pad"
+                value={expenseAmount}
+                onChangeText={setExpenseAmount}
+              />
+              
+              <TextInput
+                style={styles.input}
+                placeholder="Description"
+                placeholderTextColor="#666666"
+                value={expenseDescription}
+                onChangeText={setExpenseDescription}
+              />
+              
+              <Text style={styles.categoryLabel}>Select Category</Text>
+              <View style={styles.categoriesContainer}>
+                {categories.map((category) => (
+                  <TouchableOpacity 
+                    key={category.name}
+                    style={[
+                      styles.categoryButton,
+                      selectedCategory === category.name && { borderColor: category.color }
+                    ]}
+                    onPress={() => setSelectedCategory(category.name)}
+                  >
+                    <View style={[styles.categoryIcon, { backgroundColor: category.color }]}>
+                      <Ionicons name={category.icon} size={18} color="#FFFFFF" />
+                    </View>
+                    <Text style={styles.categoryText}>{category.name}</Text>
+                  </TouchableOpacity>
+                ))}
+                
+                <TouchableOpacity 
+                  style={styles.addCategoryButton}
+                  onPress={() => setCustomCategoryModalVisible(true)}
+                >
+                  <Ionicons name="add" size={20} color="#276EF1" />
+                  <Text style={styles.addCategoryText}>Custom</Text>
+                </TouchableOpacity>
+              </View>
+
+              <Text style={styles.categoryLabel}>Payment Method</Text>
+              <View style={styles.categoriesContainer}>
+                {paymentMethods.map((method) => (
+                  <TouchableOpacity 
+                    key={method.name}
+                    style={[
+                      styles.categoryButton,
+                      selectedPaymentMethod === method.name && { borderColor: method.color }
+                    ]}
+                    onPress={() => setSelectedPaymentMethod(method.name)}
+                  >
+                    <View style={[styles.categoryIcon, { backgroundColor: method.color }]}>
+                      <Ionicons name={method.icon} size={18} color="#FFFFFF" />
+                    </View>
+                    <Text style={styles.categoryText}>{method.name}</Text>
+                  </TouchableOpacity>
+                ))}
+                
+                <TouchableOpacity 
+                  style={styles.addCategoryButton}
+                  onPress={() => setCustomPaymentMethodModalVisible(true)}
+                >
+                  <Ionicons name="add" size={20} color="#276EF1" />
+                  <Text style={styles.addCategoryText}>Custom</Text>
+                </TouchableOpacity>
+              </View>
+              
+              <TouchableOpacity 
+                style={[styles.addButton, { backgroundColor: '#FF6384' }]}
+                onPress={handleAddExpense}
+              >
+                <Text style={styles.buttonText}>Add Expense</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Add Income Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={incomeModalVisible}
+        onRequestClose={() => {
+          setIncomeModalVisible(false);
+          setIncomeAmount('');
+          setIncomeDescription('');
+          setSelectedIncomeCategory(null);
+          setSelectedIncomeSource(null);
+        }}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {/* Modal Header */}
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Add Income</Text>
+                <TouchableOpacity 
+                  onPress={() => {
+                    setIncomeModalVisible(false);
+                    setIncomeAmount('');
+                    setIncomeDescription('');
+                    setSelectedIncomeCategory(null);
+                    setSelectedIncomeSource(null);
+                  }}
+                >
+                  <Ionicons name="close" size={24} color="#ffffff" />
+                </TouchableOpacity>
+              </View>
+              
+              {/* Income Form */}
+              <TextInput
+                style={styles.amountInput}
+                placeholder="$0.00"
+                placeholderTextColor="#666666"
+                keyboardType="decimal-pad"
+                value={incomeAmount}
+                onChangeText={setIncomeAmount}
+              />
+              
+              <TextInput
+                style={styles.input}
+                placeholder="Description"
+                placeholderTextColor="#666666"
+                value={incomeDescription}
+                onChangeText={setIncomeDescription}
+              />
+              
+              <Text style={styles.categoryLabel}>Income Category</Text>
+              <View style={styles.categoriesContainer}>
+                {incomeCategories.map((category) => (
+                  <TouchableOpacity 
+                    key={category.name}
+                    style={[
+                      styles.categoryButton,
+                      selectedIncomeCategory === category.name && { borderColor: category.color }
+                    ]}
+                    onPress={() => setSelectedIncomeCategory(category.name)}
+                  >
+                    <View style={[styles.categoryIcon, { backgroundColor: category.color }]}>
+                      <Ionicons name={category.icon} size={18} color="#FFFFFF" />
+                    </View>
+                    <Text style={styles.categoryText}>{category.name}</Text>
+                  </TouchableOpacity>
+                ))}
+                
+                <TouchableOpacity 
+                  style={styles.addCategoryButton}
+                  onPress={() => setCustomIncomeCategoryModalVisible(true)}
+                >
+                  <Ionicons name="add" size={20} color="#276EF1" />
+                  <Text style={styles.addCategoryText}>Custom</Text>
+                </TouchableOpacity>
+              </View>
+
+              <Text style={styles.categoryLabel}>Income Source</Text>
+              <View style={styles.categoriesContainer}>
+                {incomeSources.map((source) => (
+                  <TouchableOpacity 
+                    key={source.name}
+                    style={[
+                      styles.categoryButton,
+                      selectedIncomeSource === source.name && { borderColor: source.color }
+                    ]}
+                    onPress={() => setSelectedIncomeSource(source.name)}
+                  >
+                    <View style={[styles.categoryIcon, { backgroundColor: source.color }]}>
+                      <Ionicons name={source.icon} size={18} color="#FFFFFF" />
+                    </View>
+                    <Text style={styles.categoryText}>{source.name}</Text>
+                  </TouchableOpacity>
+                ))}
+                
+                <TouchableOpacity 
+                  style={styles.addCategoryButton}
+                  onPress={() => setCustomIncomeSourceModalVisible(true)}
+                >
+                  <Ionicons name="add" size={20} color="#276EF1" />
+                  <Text style={styles.addCategoryText}>Custom</Text>
+                </TouchableOpacity>
+              </View>
+              
+              <TouchableOpacity 
+                style={[styles.addButton, { backgroundColor: '#4BC0C0' }]}
+                onPress={handleAddIncome}
+              >
+                <Text style={styles.buttonText}>Add Income</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+      
+      {/* Custom Category Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={customCategoryModalVisible}
+        onRequestClose={() => setCustomCategoryModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Create Custom Category</Text>
+                <TouchableOpacity onPress={() => setCustomCategoryModalVisible(false)}>
+                  <Ionicons name="close" size={24} color="#ffffff" />
+                </TouchableOpacity>
+              </View>
+              
+              <TextInput
+                style={styles.input}
+                placeholder="Category Name"
+                placeholderTextColor="#666666"
+                value={customCategoryName}
+                onChangeText={setCustomCategoryName}
+              />
+              
+              <Text style={styles.categoryLabel}>Select Icon</Text>
+              <View style={styles.iconGrid}>
+                {availableIcons.map((icon) => (
+                  <TouchableOpacity 
+                    key={icon}
+                    style={[
+                      styles.iconButton,
+                      selectedIcon === icon && { borderColor: selectedColor, borderWidth: 2 }
+                    ]}
+                    onPress={() => setSelectedIcon(icon)}
+                  >
+                    <Ionicons name={icon} size={24} color="#ffffff" />
+                  </TouchableOpacity>
+                ))}
+              </View>
+              
+              <Text style={styles.categoryLabel}>Select Color</Text>
+              <View style={styles.colorGrid}>
+                {colors.map((color) => (
+                  <TouchableOpacity 
+                    key={color}
+                    style={[
+                      styles.colorButton,
+                      { backgroundColor: color },
+                      selectedColor === color && { borderColor: '#ffffff', borderWidth: 2 }
+                    ]}
+                    onPress={() => setSelectedColor(color)}
+                  />
+                ))}
+              </View>
+              
+              <TouchableOpacity 
+                style={[styles.addButton, { backgroundColor: selectedColor || '#276EF1' }]}
+                onPress={() => {
+                  if (customCategoryName.trim() && selectedIcon) {
+                    const newCategory = {
+                      name: customCategoryName.trim(),
+                      icon: selectedIcon,
+                      color: selectedColor || '#276EF1'
+                    };
+                    
+                    setCategories([...categories, newCategory]);
+                    setSelectedCategory(newCategory.name);
+                    setCustomCategoryModalVisible(false);
+                    
+                    // Reset form
+                    setCustomCategoryName('');
+                    setSelectedIcon(null);
+                  }
+                }}
+              >
+                <Text style={styles.buttonText}>Create Category</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+      
+      {/* Custom Payment Method Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={customPaymentMethodModalVisible}
+        onRequestClose={() => setCustomPaymentMethodModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Add Payment Method</Text>
+                <TouchableOpacity onPress={() => setCustomPaymentMethodModalVisible(false)}>
+                  <Ionicons name="close" size={24} color="#ffffff" />
+                </TouchableOpacity>
+              </View>
+              
+              <TextInput
+                style={styles.input}
+                placeholder="Payment Method Name"
+                placeholderTextColor="#666666"
+                value={customPaymentMethodName}
+                onChangeText={setCustomPaymentMethodName}
+              />
+              
+              <Text style={styles.categoryLabel}>Select Icon</Text>
+              <View style={styles.iconGrid}>
+                {['card', 'cash', 'wallet', 'phone-portrait', 'logo-paypal'].map((icon) => (
+                  <TouchableOpacity 
+                    key={icon}
+                    style={[
+                      styles.iconButton,
+                      selectedPaymentIcon === icon && { borderColor: selectedPaymentColor, borderWidth: 2 }
+                    ]}
+                    onPress={() => setSelectedPaymentIcon(icon)}
+                  >
+                    <Ionicons name={icon} size={24} color="#ffffff" />
+                  </TouchableOpacity>
+                ))}
+              </View>
+              
+              <Text style={styles.categoryLabel}>Select Color</Text>
+              <View style={styles.colorGrid}>
+                {colors.map((color) => (
+                  <TouchableOpacity 
+                    key={color}
+                    style={[
+                      styles.colorButton,
+                      { backgroundColor: color },
+                      selectedPaymentColor === color && { borderColor: '#ffffff', borderWidth: 2 }
+                    ]}
+                    onPress={() => setSelectedPaymentColor(color)}
+                  />
+                ))}
+              </View>
+              
+              <TouchableOpacity 
+                style={[styles.addButton, { backgroundColor: selectedPaymentColor || '#276EF1' }]}
+                onPress={() => {
+                  if (customPaymentMethodName.trim() && selectedPaymentIcon) {
+                    const newPaymentMethod = {
+                      name: customPaymentMethodName.trim(),
+                      icon: selectedPaymentIcon,
+                      color: selectedPaymentColor || '#276EF1'
+                    };
+                    
+                    setPaymentMethods([...paymentMethods, newPaymentMethod]);
+                    setSelectedPaymentMethod(newPaymentMethod.name);
+                    setCustomPaymentMethodModalVisible(false);
+                    
+                    // Reset form
+                    setCustomPaymentMethodName('');
+                    setSelectedPaymentIcon(null);
+                  }
+                }}
+              >
+                <Text style={styles.buttonText}>Add Payment Method</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+      
+      {/* Custom Income Category Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={customIncomeCategoryModalVisible}
+        onRequestClose={() => setCustomIncomeCategoryModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Create Income Category</Text>
+                <TouchableOpacity onPress={() => setCustomIncomeCategoryModalVisible(false)}>
+                  <Ionicons name="close" size={24} color="#ffffff" />
+                </TouchableOpacity>
+              </View>
+              
+              <TextInput
+                style={styles.input}
+                placeholder="Category Name"
+                placeholderTextColor="#666666"
+                value={customIncomeCategoryName}
+                onChangeText={setCustomIncomeCategoryName}
+              />
+              
+              <Text style={styles.categoryLabel}>Select Icon</Text>
+              <View style={styles.iconGrid}>
+                {['cash', 'card', 'wallet', 'laptop', 'business', 'stats-chart', 'briefcase', 'gift'].map((icon) => (
+                  <TouchableOpacity 
+                    key={icon}
+                    style={[
+                      styles.iconButton,
+                      selectedIncomeIcon === icon && { borderColor: selectedIncomeColor, borderWidth: 2 }
+                    ]}
+                    onPress={() => setSelectedIncomeIcon(icon)}
+                  >
+                    <Ionicons name={icon} size={24} color="#ffffff" />
+                  </TouchableOpacity>
+                ))}
+              </View>
+              
+              <Text style={styles.categoryLabel}>Select Color</Text>
+              <View style={styles.colorGrid}>
+                {colors.map((color) => (
+                  <TouchableOpacity 
+                    key={color}
+                    style={[
+                      styles.colorButton,
+                      { backgroundColor: color },
+                      selectedIncomeColor === color && { borderColor: '#ffffff', borderWidth: 2 }
+                    ]}
+                    onPress={() => setSelectedIncomeColor(color)}
+                  />
+                ))}
+              </View>
+              
+              <TouchableOpacity 
+                style={[styles.addButton, { backgroundColor: selectedIncomeColor || '#4BC0C0' }]}
+                onPress={() => {
+                  if (customIncomeCategoryName.trim() && selectedIncomeIcon) {
+                    const newCategory = {
+                      name: customIncomeCategoryName.trim(),
+                      icon: selectedIncomeIcon,
+                      color: selectedIncomeColor || '#4BC0C0'
+                    };
+                    
+                    setIncomeCategories([...incomeCategories, newCategory]);
+                    setSelectedIncomeCategory(newCategory.name);
+                    setCustomIncomeCategoryModalVisible(false);
+                    
+                    // Reset form
+                    setCustomIncomeCategoryName('');
+                    setSelectedIncomeIcon(null);
+                  }
+                }}
+              >
+                <Text style={styles.buttonText}>Create Category</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+      
+      {/* Custom Income Source Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={customIncomeSourceModalVisible}
+        onRequestClose={() => setCustomIncomeSourceModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Add Income Source</Text>
+                <TouchableOpacity onPress={() => setCustomIncomeSourceModalVisible(false)}>
+                  <Ionicons name="close" size={24} color="#ffffff" />
+                </TouchableOpacity>
+              </View>
+              
+              <TextInput
+                style={styles.input}
+                placeholder="Source Name"
+                placeholderTextColor="#666666"
+                value={customIncomeSourceName}
+                onChangeText={setCustomIncomeSourceName}
+              />
+              
+              <Text style={styles.categoryLabel}>Select Icon</Text>
+              <View style={styles.iconGrid}>
+                {['business', 'person', 'stats-chart', 'globe', 'people', 'home', 'gift'].map((icon) => (
+                  <TouchableOpacity 
+                    key={icon}
+                    style={[
+                      styles.iconButton,
+                      selectedSourceIcon === icon && { borderColor: selectedSourceColor, borderWidth: 2 }
+                    ]}
+                    onPress={() => setSelectedSourceIcon(icon)}
+                  >
+                    <Ionicons name={icon} size={24} color="#ffffff" />
+                  </TouchableOpacity>
+                ))}
+              </View>
+              
+              <Text style={styles.categoryLabel}>Select Color</Text>
+              <View style={styles.colorGrid}>
+                {colors.map((color) => (
+                  <TouchableOpacity 
+                    key={color}
+                    style={[
+                      styles.colorButton,
+                      { backgroundColor: color },
+                      selectedSourceColor === color && { borderColor: '#ffffff', borderWidth: 2 }
+                    ]}
+                    onPress={() => setSelectedSourceColor(color)}
+                  />
+                ))}
+              </View>
+              
+              <TouchableOpacity 
+                style={[styles.addButton, { backgroundColor: selectedSourceColor || '#4BC0C0' }]}
+                onPress={() => {
+                  if (customIncomeSourceName.trim() && selectedSourceIcon) {
+                    const newSource = {
+                      name: customIncomeSourceName.trim(),
+                      icon: selectedSourceIcon,
+                      color: selectedSourceColor || '#4BC0C0'
+                    };
+                    
+                    setIncomeSources([...incomeSources, newSource]);
+                    setSelectedIncomeSource(newSource.name);
+                    setCustomIncomeSourceModalVisible(false);
+                    
+                    // Reset form
+                    setCustomIncomeSourceName('');
+                    setSelectedSourceIcon(null);
+                  }
+                }}
+              >
+                <Text style={styles.buttonText}>Add Source</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -301,22 +1003,34 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#121212',
+    paddingTop: Platform.OS === 'android' ? 30 : 0,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollViewContent: {
+    flexGrow: 1,
+    paddingBottom: 50,
   },
   screenPadding: {
-    padding: 20,
+    padding: 15,
   },
   overviewContainer: {
     backgroundColor: '#1a1a1a',
     borderRadius: 15,
     padding: 20,
-    marginBottom: 20,
+    marginBottom: 12,
+    alignItems: 'center',
   },
   overviewHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    width: '100%',
     marginBottom: 15,
+    paddingTop: 5,
+    paddingBottom: 5,
   },
   balance: {
     fontSize: 36,
@@ -331,15 +1045,28 @@ const styles = StyleSheet.create({
   tilesContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 20,
+    marginBottom: 12,
   },
   tile: {
     backgroundColor: '#1a1a1a',
     borderRadius: 15,
     padding: 15,
-    width: '48%',
+    width: '49%',
     position: 'relative',
     overflow: 'hidden',
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.22,
+    shadowRadius: 2.22,
+    borderWidth: 1,
+    borderColor: '#333333',
+  },
+  tileTouched: {
+    backgroundColor: '#252525',
   },
   tileLabel: {
     fontSize: 14,
@@ -367,7 +1094,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#1a1a1a',
     borderRadius: 15,
     padding: 20,
-    marginBottom: 20,
+    marginBottom: 15,
   },
   sectionTitle: {
     fontSize: 18,
@@ -509,6 +1236,152 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#666666',
     marginTop: 3,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+  },
+  modalContent: {
+    backgroundColor: '#1a1a1a',
+    padding: 20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    width: '100%',
+    maxHeight: '90%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+    paddingTop: 5,
+    paddingBottom: 5,
+  },
+  modalTitle: {
+    fontSize: 20,
+    color: '#ffffff',
+    fontWeight: 'bold',
+  },
+  amountInput: {
+    fontSize: 32,
+    color: '#ffffff',
+    marginBottom: 20,
+    fontWeight: 'bold',
+    borderBottomWidth: 1,
+    borderBottomColor: '#333333',
+    paddingBottom: 10,
+  },
+  input: {
+    fontSize: 16,
+    color: '#ffffff',
+    marginBottom: 20,
+    backgroundColor: '#252525',
+    padding: 15,
+    borderRadius: 10,
+  },
+  categoryLabel: {
+    fontSize: 16,
+    color: '#ffffff',
+    fontWeight: '600',
+    marginBottom: 15,
+  },
+  categoriesContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 20,
+  },
+  categoryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'transparent',
+    backgroundColor: '#252525',
+    borderRadius: 10,
+    padding: 12,
+    margin: 5,
+    minWidth: width / 3 - 20,
+  },
+  categoryIcon: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  categoryText: {
+    fontSize: 14,
+    color: '#ffffff',
+  },
+  addCategoryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'transparent',
+    backgroundColor: '#252525',
+    borderRadius: 10,
+    padding: 12,
+    margin: 5,
+    minWidth: width / 3 - 20,
+  },
+  addCategoryText: {
+    fontSize: 14,
+    color: '#276EF1',
+    marginLeft: 5,
+  },
+  addButton: {
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom: 30,
+  },
+  buttonText: {
+    fontSize: 16,
+    color: '#ffffff',
+    fontWeight: 'bold',
+  },
+  iconGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 20,
+  },
+  iconButton: {
+    width: 50,
+    height: 50,
+    backgroundColor: '#252525',
+    borderWidth: 2,
+    borderColor: 'transparent',
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    margin: 8,
+  },
+  colorGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 20,
+  },
+  colorButton: {
+    width: 40,
+    height: 40,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    borderRadius: 20,
+    margin: 8,
+  },
+  tapIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#333333',
+  },
+  tapText: {
+    fontSize: 12,
+    marginLeft: 5,
   },
 });
 
