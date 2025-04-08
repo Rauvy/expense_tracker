@@ -227,6 +227,9 @@ const HomeScreen = () => {
   const [transactionDetailsVisible, setTransactionDetailsVisible] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
 
+  // State for statistics screen
+  const [activeStatsTab, setActiveStatsTab] = useState('expense');
+
   // Handle slice press with animation
   const handleSlicePress = (index) => {
     // Fade out
@@ -279,6 +282,11 @@ const HomeScreen = () => {
   const handleTransactionClick = (transaction) => {
     setSelectedTransaction(transaction);
     setTransactionDetailsVisible(true);
+  };
+
+  // Handle statistics tab change
+  const handleStatsTabChange = (tab) => {
+    setActiveStatsTab(tab);
   };
 
   return (
@@ -1035,298 +1043,336 @@ const HomeScreen = () => {
         </View>
       </Modal>
       
-      {/* Income Statistics Modal */}
+      {/* Statistics Modal */}
       <Modal
         animationType="slide"
         transparent={true}
-        visible={incomeStatsModalVisible}
-        onRequestClose={() => setIncomeStatsModalVisible(false)}
+        visible={incomeStatsModalVisible || expenseStatsModalVisible}
+        onRequestClose={() => {
+          if (incomeStatsModalVisible) setIncomeStatsModalVisible(false);
+          if (expenseStatsModalVisible) setExpenseStatsModalVisible(false);
+        }}
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <ScrollView showsVerticalScrollIndicator={false}>
               <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Income Analysis</Text>
-                <TouchableOpacity onPress={() => setIncomeStatsModalVisible(false)}>
+                <Text style={styles.modalTitle}>Financial Analysis</Text>
+                <TouchableOpacity 
+                  onPress={() => {
+                    if (incomeStatsModalVisible) setIncomeStatsModalVisible(false);
+                    if (expenseStatsModalVisible) setExpenseStatsModalVisible(false);
+                  }}
+                >
                   <Ionicons name="close" size={24} color="#ffffff" />
                 </TouchableOpacity>
               </View>
               
-              {/* Monthly Income Summary Card */}
-              <View style={styles.statsSummaryCard}>
-                <View style={styles.statsSummaryHeader}>
-                  <Text style={styles.statsCardTitle}>Monthly Income</Text>
-                </View>
+              {/* Tab Selector */}
+              <View style={styles.statsTabSelector}>
+                <TouchableOpacity 
+                  style={[
+                    styles.statsTab, 
+                    activeStatsTab === 'income' && styles.statsTabActive
+                  ]}
+                  onPress={() => handleStatsTabChange('income')}
+                >
+                  <Ionicons 
+                    name="trending-up" 
+                    size={18} 
+                    color={activeStatsTab === 'income' ? '#4BC0C0' : '#999999'} 
+                  />
+                  <Text style={[
+                    styles.statsTabText,
+                    activeStatsTab === 'income' && styles.statsTabTextActive,
+                    activeStatsTab === 'income' && {color: '#4BC0C0'}
+                  ]}>Income</Text>
+                </TouchableOpacity>
                 
-                <Text style={[styles.statsAmount, {color: '#4BC0C0'}]}>${monthlyEarned.toFixed(2)}</Text>
-                
-                <View style={styles.statsDivider} />
-                
-                <View style={styles.statsMetricsContainer}>
-                  <View style={styles.statsMetricItem}>
-                    <View style={styles.statsMetricIcon}>
-                      <Ionicons name="arrow-up" size={16} color="#FFFFFF" style={styles.statsMetricIconBg} />
-                    </View>
-                    <Text style={styles.statsMetricValue}>+12.5%</Text>
-                    <Text style={styles.statsMetricLabel}>vs Last Month</Text>
-                  </View>
-                  
-                  <View style={styles.statsMetricItem}>
-                    <View style={styles.statsMetricIcon}>
-                      <Ionicons name="calendar" size={16} color="#FFFFFF" style={[styles.statsMetricIconBg, {backgroundColor: '#9966FF'}]} />
-                    </View>
-                    <Text style={styles.statsMetricValue}>${(monthlyEarned / 30).toFixed(2)}</Text>
-                    <Text style={styles.statsMetricLabel}>Daily Average</Text>
-                  </View>
-                  
-                  <View style={styles.statsMetricItem}>
-                    <View style={styles.statsMetricIcon}>
-                      <Ionicons name="trending-up" size={16} color="#FFFFFF" style={[styles.statsMetricIconBg, {backgroundColor: '#36A2EB'}]} />
-                    </View>
-                    <Text style={styles.statsMetricValue}>$34,200</Text>
-                    <Text style={styles.statsMetricLabel}>Yearly Pace</Text>
-                  </View>
-                </View>
-              </View>
-              
-              {/* Income Trend Chart */}
-              <View style={styles.statsTrendCard}>
-                <Text style={styles.statsSectionTitle}>Monthly Trend</Text>
-                <View style={styles.trendChartContainer}>
-                  {/* Simplified trend bars */}
-                  {[0.7, 0.8, 0.75, 0.9, 0.85, 1].map((height, index) => (
-                    <View key={index} style={styles.trendBarWrapper}>
-                      <View style={[styles.trendBar, { height: 100 * height, backgroundColor: '#4BC0C0' }]} />
-                      <Text style={styles.trendBarLabel}>{['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'][index]}</Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-              
-              {/* Income by Category */}
-              <View style={styles.statsDetailCard}>
-                <Text style={styles.statsSectionTitle}>Income by Category</Text>
-                <View style={styles.statsBarContainer}>
-                  {incomeCategories.slice(0, 4).map((category, index) => (
-                    <View key={index} style={styles.statsBarItemEnhanced}>
-                      <View style={styles.statsBarHeader}>
-                        <View style={styles.statsBarLabelContainer}>
-                          <View style={[styles.categoryDot, {backgroundColor: category.color}]} />
-                          <Text style={styles.statsBarLabel}>{category.name}</Text>
-                        </View>
-                        <View style={styles.statsBarValueContainer}>
-                          <Text style={styles.statsBarValue}>${(monthlyEarned * (0.3 - index * 0.05)).toFixed(2)}</Text>
-                          <Text style={styles.statsBarPercentage}>{Math.round(30 - index * 5)}%</Text>
-                        </View>
-                      </View>
-                      <View style={styles.statsBarBackground}>
-                        <View style={[styles.statsBar, {
-                          backgroundColor: category.color,
-                          width: `${Math.max(5, 90 - index * 20)}%`
-                        }]} />
-                      </View>
-                    </View>
-                  ))}
-                </View>
-              </View>
-              
-              {/* Income Sources */}
-              <View style={styles.statsDetailCard}>
-                <Text style={styles.statsSectionTitle}>Income Sources</Text>
-                <View style={styles.statsSourceList}>
-                  {incomeSources.map((source, index) => (
-                    <View key={index} style={styles.statsSourceItem}>
-                      <View style={[styles.statsSourceIcon, {backgroundColor: source.color}]}>
-                        <Ionicons name={source.icon} size={20} color="#FFFFFF" />
-                      </View>
-                      <View style={styles.statsSourceInfo}>
-                        <Text style={styles.statsSourceName}>{source.name}</Text>
-                        <Text style={styles.statsSourceCount}>{index + 2} transactions</Text>
-                      </View>
-                      <Text style={styles.statsSourceAmount}>${(monthlyEarned * (0.4 - index * 0.15)).toFixed(2)}</Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
-      
-      {/* Expense Statistics Modal */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={expenseStatsModalVisible}
-        onRequestClose={() => setExpenseStatsModalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Expense Analysis</Text>
-                <TouchableOpacity onPress={() => setExpenseStatsModalVisible(false)}>
-                  <Ionicons name="close" size={24} color="#ffffff" />
+                <TouchableOpacity 
+                  style={[
+                    styles.statsTab, 
+                    activeStatsTab === 'expense' && styles.statsTabActive
+                  ]}
+                  onPress={() => handleStatsTabChange('expense')}
+                >
+                  <Ionicons 
+                    name="trending-down" 
+                    size={18} 
+                    color={activeStatsTab === 'expense' ? '#FF6384' : '#999999'} 
+                  />
+                  <Text style={[
+                    styles.statsTabText,
+                    activeStatsTab === 'expense' && styles.statsTabTextActive,
+                    activeStatsTab === 'expense' && {color: '#FF6384'}
+                  ]}>Expenses</Text>
                 </TouchableOpacity>
               </View>
               
-              {/* Monthly Expense Summary */}
-              <View style={styles.statsSummaryCard}>
-                <View style={styles.statsSummaryHeader}>
-                  <Text style={styles.statsCardTitle}>Monthly Expenses</Text>
-                </View>
-                
-                <Text style={[styles.statsAmount, {color: '#FF6384'}]}>${monthlySpent.toFixed(2)}</Text>
-                
-                <View style={styles.statsDivider} />
-                
-                <View style={styles.statsMetricsContainer}>
-                  <View style={styles.statsMetricItem}>
-                    <View style={styles.statsMetricIcon}>
-                      <Ionicons name="arrow-down" size={16} color="#FFFFFF" style={styles.statsMetricIconBg} />
+              {/* Income Statistics Content */}
+              {activeStatsTab === 'income' && (
+                <>
+                  {/* Monthly Income Summary Card */}
+                  <View style={styles.statsSummaryCard}>
+                    <View style={styles.statsSummaryHeader}>
+                      <Text style={styles.statsCardTitle}>Monthly Income</Text>
                     </View>
-                    <Text style={styles.statsMetricValue}>-8.3%</Text>
-                    <Text style={styles.statsMetricLabel}>vs Last Month</Text>
-                  </View>
-                  
-                  <View style={styles.statsMetricItem}>
-                    <View style={styles.statsMetricIcon}>
-                      <Ionicons name="calendar" size={16} color="#FFFFFF" style={[styles.statsMetricIconBg, {backgroundColor: '#9966FF'}]} />
-                    </View>
-                    <Text style={styles.statsMetricValue}>${(monthlySpent / 30).toFixed(2)}</Text>
-                    <Text style={styles.statsMetricLabel}>Daily Average</Text>
-                  </View>
-                  
-                  <View style={styles.statsMetricItem}>
-                    <View style={styles.statsMetricIcon}>
-                      <Ionicons name="wallet" size={16} color="#FFFFFF" style={[styles.statsMetricIconBg, {backgroundColor: '#FF9F40'}]} />
-                    </View>
-                    <Text style={styles.statsMetricValue}>${(monthlyEarned - monthlySpent).toFixed(2)}</Text>
-                    <Text style={styles.statsMetricLabel}>Net Income</Text>
-                  </View>
-                </View>
-              </View>
-              
-              {/* Budget Progress */}
-              <View style={styles.statsBudgetCard}>
-                <Text style={styles.statsSectionTitle}>Budget Progress</Text>
-                <View style={styles.budgetProgressContainer}>
-                  {/* Budget progress circles */}
-                  <View style={styles.budgetProgressItem}>
-                    <View style={styles.budgetCircleContainer}>
-                      <View style={styles.budgetCircleBackground}></View>
-                      <View style={[styles.budgetCircleProgress, {
-                        borderColor: '#FF6384',
-                        transform: [{ rotateZ: `${0.71 * Math.PI}rad` }],
-                      }]}></View>
-                      <View style={styles.budgetCircleContent}>
-                        <Text style={styles.budgetCirclePercentage}>71%</Text>
-                        <Text style={styles.budgetCircleLabel}>of budget</Text>
-                      </View>
-                    </View>
-                    <Text style={styles.budgetProgressLabel}>Total Spending</Text>
-                  </View>
-                  
-                  <View style={styles.budgetProgressItem}>
-                    <View style={styles.budgetCircleContainer}>
-                      <View style={styles.budgetCircleBackground}></View>
-                      <View style={[styles.budgetCircleProgress, {
-                        borderColor: '#4BC0C0',
-                        transform: [{ rotateZ: `${0.35 * Math.PI}rad` }],
-                      }]}></View>
-                      <View style={styles.budgetCircleContent}>
-                        <Text style={styles.budgetCirclePercentage}>35%</Text>
-                        <Text style={styles.budgetCircleLabel}>of month</Text>
-                      </View>
-                    </View>
-                    <Text style={styles.budgetProgressLabel}>Time Elapsed</Text>
-                  </View>
-                </View>
-              </View>
-              
-              {/* Expense Pie Chart */}
-              <View style={styles.statsDetailCard}>
-                <Text style={styles.statsSectionTitle}>Expenses by Category</Text>
-                <View style={styles.statsPieContainer}>
-                  <View style={styles.chartContainer}>
-                    <Svg width={chartRadius * 2} height={chartRadius * 2}>
-                      <G>
-                        {formattedCategoryData.map((item, index) => (
-                          <Path
-                            key={index}
-                            d={generatePieChartPath(index, categoryData, chartRadius, innerRadius)}
-                            fill={item.color}
-                            stroke="#1a1a1a"
-                            strokeWidth={1}
-                          />
-                        ))}
-                        <Circle
-                          cx={centerX}
-                          cy={centerY}
-                          r={innerRadius}
-                          fill="#1a1a1a"
-                          stroke="#333333"
-                          strokeWidth={2}
-                        />
-                      </G>
-                    </Svg>
                     
-                    <View style={styles.chartCenterView}>
-                      <View style={styles.chartCenterContent}>
-                        <Text style={styles.chartCenterValue} numberOfLines={1} adjustsFontSizeToFit>
-                          ${total.toFixed(2)}
-                        </Text>
-                        <Text style={styles.chartCenterLabel} numberOfLines={1}>
-                          Total Spent
-                        </Text>
+                    <Text style={[styles.statsAmount, {color: '#4BC0C0'}]}>${monthlyEarned.toFixed(2)}</Text>
+                    
+                    <View style={styles.statsDivider} />
+                    
+                    <View style={styles.statsMetricsContainer}>
+                      <View style={styles.statsMetricItem}>
+                        <View style={styles.statsMetricIcon}>
+                          <Ionicons name="arrow-up" size={16} color="#FFFFFF" style={styles.statsMetricIconBg} />
+                        </View>
+                        <Text style={styles.statsMetricValue}>+12.5%</Text>
+                        <Text style={styles.statsMetricLabel}>vs Last Month</Text>
+                      </View>
+                      
+                      <View style={styles.statsMetricItem}>
+                        <View style={styles.statsMetricIcon}>
+                          <Ionicons name="calendar" size={16} color="#FFFFFF" style={[styles.statsMetricIconBg, {backgroundColor: '#9966FF'}]} />
+                        </View>
+                        <Text style={styles.statsMetricValue}>${(monthlyEarned / 30).toFixed(2)}</Text>
+                        <Text style={styles.statsMetricLabel}>Daily Average</Text>
+                      </View>
+                      
+                      <View style={styles.statsMetricItem}>
+                        <View style={styles.statsMetricIcon}>
+                          <Ionicons name="trending-up" size={16} color="#FFFFFF" style={[styles.statsMetricIconBg, {backgroundColor: '#36A2EB'}]} />
+                        </View>
+                        <Text style={styles.statsMetricValue}>$34,200</Text>
+                        <Text style={styles.statsMetricLabel}>Yearly Pace</Text>
                       </View>
                     </View>
                   </View>
-                </View>
-                
-                {/* Category List */}
-                <View style={styles.statsBarContainer}>
-                  {formattedCategoryData.map((category, index) => (
-                    <View key={index} style={styles.statsBarItemEnhanced}>
-                      <View style={styles.statsBarHeader}>
-                        <View style={styles.statsBarLabelContainer}>
-                          <View style={[styles.categoryDot, {backgroundColor: category.color}]} />
-                          <Text style={styles.statsBarLabel}>{category.name}</Text>
+                  
+                  {/* Income Trend Chart */}
+                  <View style={styles.statsTrendCard}>
+                    <Text style={styles.statsSectionTitle}>Monthly Trend</Text>
+                    <View style={styles.trendChartContainer}>
+                      {/* Simplified trend bars */}
+                      {[0.7, 0.8, 0.75, 0.9, 0.85, 1].map((height, index) => (
+                        <View key={index} style={styles.trendBarWrapper}>
+                          <View style={[styles.trendBar, { height: 100 * height, backgroundColor: '#4BC0C0' }]} />
+                          <Text style={styles.trendBarLabel}>{['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'][index]}</Text>
                         </View>
-                        <View style={styles.statsBarValueContainer}>
-                          <Text style={styles.statsBarValue}>${category.amount.toFixed(2)}</Text>
-                          <Text style={styles.statsBarPercentage}>{category.percentage}%</Text>
-                        </View>
-                      </View>
-                      <View style={styles.statsBarBackground}>
-                        <View style={[styles.statsBar, {
-                          backgroundColor: category.color,
-                          width: `${Math.max(5, category.percentage)}%`
-                        }]} />
-                      </View>
+                      ))}
                     </View>
-                  ))}
-                </View>
-              </View>
+                  </View>
+                  
+                  {/* Income by Category */}
+                  <View style={styles.statsDetailCard}>
+                    <Text style={styles.statsSectionTitle}>Income by Category</Text>
+                    <View style={styles.statsBarContainer}>
+                      {incomeCategories.slice(0, 4).map((category, index) => (
+                        <View key={index} style={styles.statsBarItemEnhanced}>
+                          <View style={styles.statsBarHeader}>
+                            <View style={styles.statsBarLabelContainer}>
+                              <View style={[styles.categoryDot, {backgroundColor: category.color}]} />
+                              <Text style={styles.statsBarLabel}>{category.name}</Text>
+                            </View>
+                            <View style={styles.statsBarValueContainer}>
+                              <Text style={styles.statsBarValue}>${(monthlyEarned * (0.3 - index * 0.05)).toFixed(2)}</Text>
+                              <Text style={styles.statsBarPercentage}>{Math.round(30 - index * 5)}%</Text>
+                            </View>
+                          </View>
+                          <View style={styles.statsBarBackground}>
+                            <View style={[styles.statsBar, {
+                              backgroundColor: category.color,
+                              width: `${Math.max(5, 90 - index * 20)}%`
+                            }]} />
+                          </View>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                  
+                  {/* Income Sources */}
+                  <View style={styles.statsDetailCard}>
+                    <Text style={styles.statsSectionTitle}>Income Sources</Text>
+                    <View style={styles.statsSourceList}>
+                      {incomeSources.map((source, index) => (
+                        <View key={index} style={styles.statsSourceItem}>
+                          <View style={[styles.statsSourceIcon, {backgroundColor: source.color}]}>
+                            <Ionicons name={source.icon} size={20} color="#FFFFFF" />
+                          </View>
+                          <View style={styles.statsSourceInfo}>
+                            <Text style={styles.statsSourceName}>{source.name}</Text>
+                            <Text style={styles.statsSourceCount}>{index + 2} transactions</Text>
+                          </View>
+                          <Text style={styles.statsSourceAmount}>${(monthlyEarned * (0.4 - index * 0.15)).toFixed(2)}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                </>
+              )}
               
-              {/* Payment Methods */}
-              <View style={styles.statsDetailCard}>
-                <Text style={styles.statsSectionTitle}>Payment Methods</Text>
-                <View style={styles.statsSourceList}>
-                  {paymentMethods.map((method, index) => (
-                    <View key={index} style={styles.statsSourceItem}>
-                      <View style={[styles.statsSourceIcon, {backgroundColor: method.color}]}>
-                        <Ionicons name={method.icon} size={20} color="#FFFFFF" />
-                      </View>
-                      <View style={styles.statsSourceInfo}>
-                        <Text style={styles.statsSourceName}>{method.name}</Text>
-                        <Text style={styles.statsSourceCount}>{3 - index} transactions</Text>
-                      </View>
-                      <Text style={styles.statsSourceAmount}>${(monthlySpent * (0.5 - index * 0.15)).toFixed(2)}</Text>
+              {/* Expense Statistics Content */}
+              {activeStatsTab === 'expense' && (
+                <>
+                  {/* Monthly Expense Summary */}
+                  <View style={styles.statsSummaryCard}>
+                    <View style={styles.statsSummaryHeader}>
+                      <Text style={styles.statsCardTitle}>Monthly Expenses</Text>
                     </View>
-                  ))}
-                </View>
-              </View>
+                    
+                    <Text style={[styles.statsAmount, {color: '#FF6384'}]}>${monthlySpent.toFixed(2)}</Text>
+                    
+                    <View style={styles.statsDivider} />
+                    
+                    <View style={styles.statsMetricsContainer}>
+                      <View style={styles.statsMetricItem}>
+                        <View style={styles.statsMetricIcon}>
+                          <Ionicons name="arrow-down" size={16} color="#FFFFFF" style={styles.statsMetricIconBg} />
+                        </View>
+                        <Text style={styles.statsMetricValue}>-8.3%</Text>
+                        <Text style={styles.statsMetricLabel}>vs Last Month</Text>
+                      </View>
+                      
+                      <View style={styles.statsMetricItem}>
+                        <View style={styles.statsMetricIcon}>
+                          <Ionicons name="calendar" size={16} color="#FFFFFF" style={[styles.statsMetricIconBg, {backgroundColor: '#9966FF'}]} />
+                        </View>
+                        <Text style={styles.statsMetricValue}>${(monthlySpent / 30).toFixed(2)}</Text>
+                        <Text style={styles.statsMetricLabel}>Daily Average</Text>
+                      </View>
+                      
+                      <View style={styles.statsMetricItem}>
+                        <View style={styles.statsMetricIcon}>
+                          <Ionicons name="wallet" size={16} color="#FFFFFF" style={[styles.statsMetricIconBg, {backgroundColor: '#FF9F40'}]} />
+                        </View>
+                        <Text style={styles.statsMetricValue}>${(monthlyEarned - monthlySpent).toFixed(2)}</Text>
+                        <Text style={styles.statsMetricLabel}>Net Income</Text>
+                      </View>
+                    </View>
+                  </View>
+                  
+                  {/* Budget Progress */}
+                  <View style={styles.statsBudgetCard}>
+                    <Text style={styles.statsSectionTitle}>Budget Progress</Text>
+                    <View style={styles.budgetProgressContainer}>
+                      {/* Budget progress circles */}
+                      <View style={styles.budgetProgressItem}>
+                        <View style={styles.budgetCircleContainer}>
+                          <View style={styles.budgetCircleBackground}></View>
+                          <View style={[styles.budgetCircleProgress, {
+                            borderColor: '#FF6384',
+                            transform: [{ rotateZ: `${0.71 * Math.PI}rad` }],
+                          }]}></View>
+                          <View style={styles.budgetCircleContent}>
+                            <Text style={styles.budgetCirclePercentage}>71%</Text>
+                            <Text style={styles.budgetCircleLabel}>of budget</Text>
+                          </View>
+                        </View>
+                        <Text style={styles.budgetProgressLabel}>Total Spending</Text>
+                      </View>
+                      
+                      <View style={styles.budgetProgressItem}>
+                        <View style={styles.budgetCircleContainer}>
+                          <View style={styles.budgetCircleBackground}></View>
+                          <View style={[styles.budgetCircleProgress, {
+                            borderColor: '#4BC0C0',
+                            transform: [{ rotateZ: `${0.35 * Math.PI}rad` }],
+                          }]}></View>
+                          <View style={styles.budgetCircleContent}>
+                            <Text style={styles.budgetCirclePercentage}>35%</Text>
+                            <Text style={styles.budgetCircleLabel}>of month</Text>
+                          </View>
+                        </View>
+                        <Text style={styles.budgetProgressLabel}>Time Elapsed</Text>
+                      </View>
+                    </View>
+                  </View>
+                  
+                  {/* Expense Pie Chart */}
+                  <View style={styles.statsDetailCard}>
+                    <Text style={styles.statsSectionTitle}>Expenses by Category</Text>
+                    <View style={styles.statsPieContainer}>
+                      <View style={styles.chartContainer}>
+                        <Svg width={chartRadius * 2} height={chartRadius * 2}>
+                          <G>
+                            {formattedCategoryData.map((item, index) => (
+                              <Path
+                                key={index}
+                                d={generatePieChartPath(index, categoryData, chartRadius, innerRadius)}
+                                fill={item.color}
+                                stroke="#1a1a1a"
+                                strokeWidth={1}
+                              />
+                            ))}
+                            <Circle
+                              cx={centerX}
+                              cy={centerY}
+                              r={innerRadius}
+                              fill="#1a1a1a"
+                              stroke="#333333"
+                              strokeWidth={2}
+                            />
+                          </G>
+                        </Svg>
+                        
+                        <View style={styles.chartCenterView}>
+                          <View style={styles.chartCenterContent}>
+                            <Text style={styles.chartCenterValue} numberOfLines={1} adjustsFontSizeToFit>
+                              ${total.toFixed(2)}
+                            </Text>
+                            <Text style={styles.chartCenterLabel} numberOfLines={1}>
+                              Total Spent
+                            </Text>
+                          </View>
+                        </View>
+                      </View>
+                    </View>
+                    
+                    {/* Category List */}
+                    <View style={styles.statsBarContainer}>
+                      {formattedCategoryData.map((category, index) => (
+                        <View key={index} style={styles.statsBarItemEnhanced}>
+                          <View style={styles.statsBarHeader}>
+                            <View style={styles.statsBarLabelContainer}>
+                              <View style={[styles.categoryDot, {backgroundColor: category.color}]} />
+                              <Text style={styles.statsBarLabel}>{category.name}</Text>
+                            </View>
+                            <View style={styles.statsBarValueContainer}>
+                              <Text style={styles.statsBarValue}>${category.amount.toFixed(2)}</Text>
+                              <Text style={styles.statsBarPercentage}>{category.percentage}%</Text>
+                            </View>
+                          </View>
+                          <View style={styles.statsBarBackground}>
+                            <View style={[styles.statsBar, {
+                              backgroundColor: category.color,
+                              width: `${Math.max(5, category.percentage)}%`
+                            }]} />
+                          </View>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                  
+                  {/* Payment Methods */}
+                  <View style={styles.statsDetailCard}>
+                    <Text style={styles.statsSectionTitle}>Payment Methods</Text>
+                    <View style={styles.statsSourceList}>
+                      {paymentMethods.map((method, index) => (
+                        <View key={index} style={styles.statsSourceItem}>
+                          <View style={[styles.statsSourceIcon, {backgroundColor: method.color}]}>
+                            <Ionicons name={method.icon} size={20} color="#FFFFFF" />
+                          </View>
+                          <View style={styles.statsSourceInfo}>
+                            <Text style={styles.statsSourceName}>{method.name}</Text>
+                            <Text style={styles.statsSourceCount}>{3 - index} transactions</Text>
+                          </View>
+                          <Text style={styles.statsSourceAmount}>${(monthlySpent * (0.5 - index * 0.15)).toFixed(2)}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                </>
+              )}
             </ScrollView>
           </View>
         </View>
@@ -2246,6 +2292,37 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '600',
     marginLeft: 8,
+  },
+  // Styles for stats tabs
+  statsTabSelector: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    backgroundColor: '#1A1A1A',
+    borderRadius: 15,
+    padding: 5,
+    marginBottom: 20,
+  },
+  statsTab: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 12,
+    flex: 1,
+    marginHorizontal: 5,
+  },
+  statsTabActive: {
+    backgroundColor: '#252525',
+  },
+  statsTabText: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#999999',
+    marginLeft: 8,
+  },
+  statsTabTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '600',
   },
 });
 

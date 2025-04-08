@@ -115,6 +115,109 @@ const statisticsData = {
   }
 };
 
+// Add income statistics mock data
+const incomeStatisticsData = {
+  weekly: {
+    totalEarned: 750.00,
+    previousPeriodEarned: 725.00,
+    growthPercentage: 3.4,
+    topCategories: [
+      { name: 'Salary', amount: 580.00, percentage: 77, color: '#4BC0C0', icon: 'cash' },
+      { name: 'Freelance', amount: 120.00, percentage: 16, color: '#36A2EB', icon: 'laptop' },
+      { name: 'Other', amount: 50.00, percentage: 7, color: '#9966FF', icon: 'add-circle' },
+    ],
+    incomeSources: [
+      { name: 'Employer', amount: 580.00, percentage: 77, color: '#4BC0C0', icon: 'business' },
+      { name: 'Clients', amount: 120.00, percentage: 16, color: '#36A2EB', icon: 'person' },
+      { name: 'Investments', amount: 50.00, percentage: 7, color: '#FFCE56', icon: 'stats-chart' },
+    ],
+    trend: {
+      labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+      datasets: [
+        {
+          data: [120, 0, 0, 0, 580, 50, 0],
+          color: (opacity = 1) => `rgba(75, 192, 192, ${opacity})`,
+        }
+      ]
+    },
+    monthComparison: {
+      currentMonth: 'May',
+      previousMonth: 'April',
+      categories: [
+        { name: 'Salary', current: 580.00, previous: 580.00, improvement: 0 },
+        { name: 'Freelance', current: 120.00, previous: 95.00, improvement: -26.3 },
+        { name: 'Other', current: 50.00, previous: 50.00, improvement: 0 },
+      ]
+    }
+  },
+  monthly: {
+    totalEarned: 3180.00,
+    previousPeriodEarned: 3050.00,
+    growthPercentage: 4.3,
+    topCategories: [
+      { name: 'Salary', amount: 2500.00, percentage: 79, color: '#4BC0C0', icon: 'cash' },
+      { name: 'Freelance', amount: 550.00, percentage: 17, color: '#36A2EB', icon: 'laptop' },
+      { name: 'Investments', amount: 130.00, percentage: 4, color: '#FFCE56', icon: 'trending-up' },
+    ],
+    incomeSources: [
+      { name: 'Employer', amount: 2500.00, percentage: 79, color: '#4BC0C0', icon: 'business' },
+      { name: 'Clients', amount: 550.00, percentage: 17, color: '#36A2EB', icon: 'person' },
+      { name: 'Investments', amount: 130.00, percentage: 4, color: '#FFCE56', icon: 'stats-chart' },
+    ],
+    trend: {
+      labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+      datasets: [
+        {
+          data: [750, 760, 870, 800],
+          color: (opacity = 1) => `rgba(75, 192, 192, ${opacity})`,
+        }
+      ]
+    },
+    monthComparison: {
+      currentMonth: 'May',
+      previousMonth: 'April',
+      categories: [
+        { name: 'Salary', current: 2500.00, previous: 2500.00, improvement: 0 },
+        { name: 'Freelance', current: 550.00, previous: 430.00, improvement: -27.9 },
+        { name: 'Investments', current: 130.00, previous: 120.00, improvement: -8.3 },
+      ]
+    }
+  },
+  yearly: {
+    totalEarned: 38150.00,
+    previousPeriodEarned: 36500.00,
+    growthPercentage: 4.5,
+    topCategories: [
+      { name: 'Salary', amount: 30000.00, percentage: 79, color: '#4BC0C0', icon: 'cash' },
+      { name: 'Freelance', amount: 6450.00, percentage: 17, color: '#36A2EB', icon: 'laptop' },
+      { name: 'Investments', amount: 1700.00, percentage: 4, color: '#FFCE56', icon: 'trending-up' },
+    ],
+    incomeSources: [
+      { name: 'Employer', amount: 30000.00, percentage: 79, color: '#4BC0C0', icon: 'business' },
+      { name: 'Clients', amount: 6450.00, percentage: 17, color: '#36A2EB', icon: 'person' },
+      { name: 'Investments', amount: 1700.00, percentage: 4, color: '#FFCE56', icon: 'stats-chart' },
+    ],
+    trend: {
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+      datasets: [
+        {
+          data: [3050, 3050, 3100, 3050, 3180, 3200, 3150, 3200, 3250, 3300, 3320, 3300],
+          color: (opacity = 1) => `rgba(75, 192, 192, ${opacity})`,
+        }
+      ]
+    },
+    monthComparison: {
+      currentMonth: 'This Year',
+      previousMonth: 'Last Year',
+      categories: [
+        { name: 'Salary', current: 30000.00, previous: 29000.00, improvement: -3.4 },
+        { name: 'Freelance', current: 6450.00, previous: 5800.00, improvement: -11.2 },
+        { name: 'Investments', current: 1700.00, previous: 1700.00, improvement: 0 },
+      ]
+    }
+  }
+};
+
 // Simple Line Chart Component
 const SimpleLineChart = ({ data, labels, width, height }) => {
   const [activePointIndex, setActivePointIndex] = useState(null);
@@ -779,7 +882,11 @@ const MonthComparisonChart = ({ data, width, height }) => {
 
 const StatisticsScreen = () => {
   const [timeframe, setTimeframe] = useState('weekly');
-  const data = statisticsData[timeframe];
+  const [statType, setStatType] = useState('expense'); // 'expense' or 'income'
+  
+  const data = statType === 'expense' 
+    ? statisticsData[timeframe] 
+    : incomeStatisticsData[timeframe];
 
   // Chart colors
   const barChartColors = ['#FF6384', '#4BC0C0', '#FFCE56', '#36A2EB', '#9966FF', '#FF9F40'];
@@ -803,6 +910,26 @@ const StatisticsScreen = () => {
     </TouchableOpacity>
   );
 
+  const renderStatTypeButton = (label, value) => (
+    <TouchableOpacity 
+      style={[
+        styles.statTypeButton, 
+        statType === value && styles.activeStatTypeButton,
+        { backgroundColor: statType === value 
+          ? value === 'expense' ? '#FF6384' : '#4BC0C0' 
+          : '#252525' }
+      ]}
+      onPress={() => setStatType(value)}
+    >
+      <Ionicons 
+        name={value === 'expense' ? 'trending-down' : 'trending-up'} 
+        size={18} 
+        color="#FFFFFF" 
+      />
+      <Text style={styles.statTypeText}>{label}</Text>
+    </TouchableOpacity>
+  );
+
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.container} edges={['top']}>
@@ -813,7 +940,13 @@ const StatisticsScreen = () => {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.screenPadding}>
-          {/* Timeframe buttons - now at the top */}
+          {/* Type Selector (Expense/Income) */}
+          <View style={styles.statTypeSelector}>
+            {renderStatTypeButton('Expenses', 'expense')}
+            {renderStatTypeButton('Income', 'income')}
+          </View>
+          
+          {/* Timeframe buttons */}
           <View style={styles.timeframeButtons}>
             {renderTimeframeButton('Weekly', 'weekly')}
             {renderTimeframeButton('Monthly', 'monthly')}
@@ -823,30 +956,52 @@ const StatisticsScreen = () => {
           {/* Overview Card with integrated heading */}
           <View style={styles.card}>
             <View style={styles.cardHeader}>
-              <Text style={styles.sectionTitle}>Statistics</Text>
-              <Ionicons name="stats-chart" size={24} color="#276EF1" />
+              <Text style={styles.sectionTitle}>
+                {statType === 'expense' ? 'Expense Statistics' : 'Income Statistics'}
+              </Text>
+              <Ionicons 
+                name="stats-chart" 
+                size={24} 
+                color={statType === 'expense' ? '#FF6384' : '#4BC0C0'} 
+              />
             </View>
             <Text style={styles.cardLabel}>
               {timeframe === 'weekly' ? 'This Week' : timeframe === 'monthly' ? 'This Month' : 'This Year'}
             </Text>
-            <Text style={styles.totalAmount}>${data.totalSpent.toFixed(2)}</Text>
-            <Text style={styles.totalLabel}>Total Expenses</Text>
+            <Text style={[
+              styles.totalAmount,
+              {color: statType === 'expense' ? '#FF6384' : '#4BC0C0'}
+            ]}>
+              ${statType === 'expense' ? data.totalSpent.toFixed(2) : data.totalEarned.toFixed(2)}
+            </Text>
+            <Text style={styles.totalLabel}>
+              {statType === 'expense' ? 'Total Expenses' : 'Total Income'}
+            </Text>
             
             {/* Adding improvement indicator */}
             <View style={styles.improvementContainer}>
               <Text style={[
                 styles.improvementText, 
-                {color: data.improvementPercentage > 0 ? '#4BC0C0' : '#FF6384'}
+                {
+                  color: statType === 'expense'
+                    ? (data.improvementPercentage > 0 ? '#4BC0C0' : '#FF6384')
+                    : (data.growthPercentage > 0 ? '#4BC0C0' : '#FF6384')
+                }
               ]}>
-                {data.improvementPercentage > 0 ? '↓' : '↑'} {Math.abs(data.improvementPercentage).toFixed(1)}% from previous {timeframe.slice(0, -2)}
+                {statType === 'expense' 
+                  ? `${data.improvementPercentage > 0 ? '↓' : '↑'} ${Math.abs(data.improvementPercentage).toFixed(1)}% from previous ${timeframe.slice(0, -2)}`
+                  : `${data.growthPercentage > 0 ? '↑' : '↓'} ${Math.abs(data.growthPercentage).toFixed(1)}% from previous ${timeframe.slice(0, -2)}`
+                }
               </Text>
             </View>
           </View>
           
-          {/* Spending Trend Section */}
+          {/* Trend Section */}
           <View style={styles.sectionCard}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Spending Trend</Text>
+              <Text style={styles.sectionTitle}>
+                {statType === 'expense' ? 'Spending Trend' : 'Income Trend'}
+              </Text>
               <Text style={styles.sectionSubtitle}>
                 {timeframe === 'weekly' ? 'Last 7 days' : timeframe === 'monthly' ? 'Last 4 weeks' : 'Last 12 months'}
               </Text>
@@ -854,13 +1009,23 @@ const StatisticsScreen = () => {
             
             <View style={styles.chartLegend}>
               <View style={styles.legendItem}>
-                <View style={[styles.legendDot, { backgroundColor: '#276EF1' }]} />
+                <View style={[
+                  styles.legendDot, 
+                  { backgroundColor: statType === 'expense' ? '#276EF1' : '#4BC0C0' }
+                ]} />
                 <Text style={styles.legendText}>
-                  {timeframe === 'weekly' 
-                    ? 'Daily Spending' 
-                    : timeframe === 'monthly' 
-                      ? 'Weekly Spending' 
-                      : 'Monthly Spending'}
+                  {statType === 'expense'
+                    ? timeframe === 'weekly' 
+                      ? 'Daily Spending' 
+                      : timeframe === 'monthly' 
+                        ? 'Weekly Spending' 
+                        : 'Monthly Spending'
+                    : timeframe === 'weekly' 
+                      ? 'Daily Income' 
+                      : timeframe === 'monthly' 
+                        ? 'Weekly Income' 
+                        : 'Monthly Income'
+                  }
                 </Text>
               </View>
             </View>
@@ -878,8 +1043,15 @@ const StatisticsScreen = () => {
           {/* Top Categories Section */}
           <View style={styles.sectionCard}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Top Categories</Text>
-              <Text style={styles.sectionSubtitle}>Where you spend the most</Text>
+              <Text style={styles.sectionTitle}>
+                {statType === 'expense' ? 'Top Categories' : 'Income Categories'}
+              </Text>
+              <Text style={styles.sectionSubtitle}>
+                {statType === 'expense' 
+                  ? 'Where you spend the most' 
+                  : 'Sources of your income'
+                }
+              </Text>
             </View>
             
             {data.topCategories.map((category, index) => (
@@ -909,45 +1081,59 @@ const StatisticsScreen = () => {
             ))}
           </View>
           
-          {/* Payment Methods */}
+          {/* Payment Methods or Income Sources */}
           <View style={styles.sectionCard}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Payment Methods</Text>
-              <Text style={styles.sectionSubtitle}>How you pay for expenses</Text>
+              <Text style={styles.sectionTitle}>
+                {statType === 'expense' ? 'Payment Methods' : 'Income Sources'}
+              </Text>
+              <Text style={styles.sectionSubtitle}>
+                {statType === 'expense'
+                  ? 'How you pay for expenses'
+                  : 'Where your income comes from'
+                }
+              </Text>
             </View>
             
-            {data.paymentMethods.map((method, index) => (
+            {(statType === 'expense' ? data.paymentMethods : data.incomeSources).map((item, index) => (
               <View key={index} style={styles.categoryItem}>
-                <View style={[styles.categoryIcon, { backgroundColor: method.color }]}>
-                  <Ionicons name={method.icon} size={20} color="#FFFFFF" />
+                <View style={[styles.categoryIcon, { backgroundColor: item.color }]}>
+                  <Ionicons name={item.icon} size={20} color="#FFFFFF" />
                 </View>
                 
                 <View style={styles.categoryInfo}>
                   <View style={styles.categoryNameRow}>
-                    <Text style={styles.categoryName}>{method.name}</Text>
-                    <Text style={styles.categoryAmount}>${method.amount.toFixed(2)}</Text>
+                    <Text style={styles.categoryName}>{item.name}</Text>
+                    <Text style={styles.categoryAmount}>${item.amount.toFixed(2)}</Text>
                   </View>
                   
                   <View style={styles.progressBarContainer}>
                     <View 
                       style={[
                         styles.progressBar, 
-                        { width: `${method.percentage}%`, backgroundColor: method.color }
+                        { width: `${item.percentage}%`, backgroundColor: item.color }
                       ]} 
                     />
                   </View>
                   
-                  <Text style={styles.categoryPercentage}>{method.percentage}% of total</Text>
+                  <Text style={styles.categoryPercentage}>{item.percentage}% of total</Text>
                 </View>
               </View>
             ))}
           </View>
           
-          {/* Month-to-Month Comparison - COMPLETELY OVERHAULED */}
+          {/* Month-to-Month Comparison */}
           <View style={[styles.sectionCard, { padding: 0, overflow: 'hidden' }]}>
             <View style={{ padding: 15, paddingBottom: 10 }}>
-              <Text style={styles.sectionTitle}>Spending Comparison</Text>
-              <Text style={styles.sectionSubtitle}>How you're improving over time</Text>
+              <Text style={styles.sectionTitle}>
+                {statType === 'expense' ? 'Spending Comparison' : 'Income Comparison'}
+              </Text>
+              <Text style={styles.sectionSubtitle}>
+                {statType === 'expense' 
+                  ? 'How you\'re improving over time' 
+                  : 'How your income is changing'
+                }
+              </Text>
             </View>
             
             <View>
@@ -958,18 +1144,27 @@ const StatisticsScreen = () => {
             </View>
           </View>
           
-          {/* Money-Saving Tips */}
+          {/* Tips Card */}
           <View style={styles.tipsCard}>
             <View style={styles.tipsHeader}>
               <Ionicons name="bulb" size={24} color="#FFCE56" />
-              <Text style={styles.tipsTitle}>Smart Saving Tip</Text>
+              <Text style={styles.tipsTitle}>
+                {statType === 'expense' ? 'Smart Saving Tip' : 'Income Growth Tip'}
+              </Text>
             </View>
             <Text style={styles.tipsText}>
-              {timeframe === 'weekly' 
-                ? "Try meal prepping on weekends to reduce food expenses on weekdays!"
-                : timeframe === 'monthly'
-                ? "Consider reviewing your subscription services - you might be paying for services you rarely use."
-                : "Set up automatic transfers to a savings account to build your emergency fund over the year."}
+              {statType === 'expense'
+                ? timeframe === 'weekly' 
+                  ? "Try meal prepping on weekends to reduce food expenses on weekdays!"
+                  : timeframe === 'monthly'
+                  ? "Consider reviewing your subscription services - you might be paying for services you rarely use."
+                  : "Set up automatic transfers to a savings account to build your emergency fund over the year."
+                : timeframe === 'weekly'
+                  ? "Consider offering quick services on freelancing platforms to boost your weekly income."
+                  : timeframe === 'monthly'
+                  ? "Diversify your income sources to reduce risk and increase overall earnings."
+                  : "Look into passive income opportunities that can grow steadily over time."
+              }
             </Text>
           </View>
         </View>
@@ -1178,6 +1373,39 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#ffffff',
     lineHeight: 20,
+  },
+  statTypeSelector: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+    borderRadius: 12,
+    backgroundColor: '#1A1A1A',
+    padding: 4,
+  },
+  statTypeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 10,
+    paddingVertical: 12,
+    flex: 1,
+    marginHorizontal: 4,
+  },
+  activeStatTypeButton: {
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 1.41,
+  },
+  statTypeText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '600',
+    marginLeft: 8,
   },
 });
 
