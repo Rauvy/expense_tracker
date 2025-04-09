@@ -1390,81 +1390,75 @@ const HomeScreen = () => {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Transaction Details</Text>
               <TouchableOpacity onPress={() => setTransactionDetailsVisible(false)}>
-                <Ionicons name="close" size={24} color="#ffffff" />
+                <Ionicons name="close" size={24} color="#FFFFFF" />
               </TouchableOpacity>
             </View>
             
             {selectedTransaction && (
-              <View style={styles.transactionDetailsContainer}>
-                {/* Transaction Header */}
-                <View style={styles.transactionHeaderContainer}>
-                  <View style={[styles.transactionDetailIcon, { backgroundColor: selectedTransaction.color }]}>
-                    <Ionicons name={selectedTransaction.icon} size={30} color="#FFFFFF" />
-                  </View>
-                  
-                  <View style={styles.transactionHeaderInfo}>
-                    <Text style={styles.transactionTitle}>{selectedTransaction.title}</Text>
-                    <Text style={styles.transactionCategory}>{selectedTransaction.category}</Text>
-                  </View>
-                  
-                  <Text style={styles.transactionAmount}>-${selectedTransaction.amount.toFixed(2)}</Text>
+              <View style={styles.transactionDetailsContent}>
+                <View style={[styles.transactionIcon, { backgroundColor: selectedTransaction.color }]}>
+                  <Ionicons name={selectedTransaction.icon} size={24} color="#FFFFFF" />
                 </View>
                 
-                {/* Transaction Details */}
-                <View style={styles.transactionInfoSection}>
-                  <View style={styles.transactionInfoRow}>
-                    <Text style={styles.transactionInfoLabel}>Date</Text>
-                    <Text style={styles.transactionInfoValue}>{selectedTransaction.date}, 2023</Text>
-                  </View>
-                  
-                  <View style={styles.transactionInfoRow}>
-                    <Text style={styles.transactionInfoLabel}>Category</Text>
-                    <View style={styles.transactionCategoryTag}>
-                      <View style={[styles.miniCategoryDot, { backgroundColor: selectedTransaction.color }]} />
-                      <Text style={styles.transactionCategoryText}>{selectedTransaction.category}</Text>
-                    </View>
-                  </View>
-                  
-                  <View style={styles.transactionInfoRow}>
-                    <Text style={styles.transactionInfoLabel}>Payment Method</Text>
-                    <View style={styles.transactionCategoryTag}>
-                      <Ionicons name="card" size={14} color="#FF6384" />
-                      <Text style={styles.transactionCategoryText}>Credit Card</Text>
-                    </View>
-                  </View>
-                  
-                  <View style={styles.transactionInfoRow}>
-                    <Text style={styles.transactionInfoLabel}>Status</Text>
-                    <View style={styles.transactionStatusTag}>
-                      <Text style={styles.transactionStatusText}>Completed</Text>
-                    </View>
-                  </View>
-                  
-                  <View style={styles.transactionNotesContainer}>
-                    <Text style={styles.transactionInfoLabel}>Notes</Text>
-                    <View style={styles.transactionNotesCard}>
-                      <Text style={styles.transactionNotesText}>
-                        {selectedTransaction.title === 'Grocery Shopping' ? 'Weekly grocery run at Trader Joe\'s.' : 
-                         selectedTransaction.title === 'Uber Ride' ? 'Business trip to downtown meeting.' :
-                         selectedTransaction.title === 'New Headphones' ? 'Sony WH-1000XM4 noise cancelling headphones.' : 
-                         'No notes available.'}
-                      </Text>
-                    </View>
-                  </View>
+                <Text style={styles.transactionDetailsTitle}>{selectedTransaction.title}</Text>
+                <Text style={styles.transactionDetailsCategory}>{selectedTransaction.category}</Text>
+                
+                <Text style={styles.transactionDetailsAmount}>
+                  -${selectedTransaction.amount.toFixed(2)}
+                </Text>
+                
+                <View style={styles.transactionDetailsRow}>
+                  <Text style={styles.transactionDetailsLabel}>Date</Text>
+                  <Text style={styles.transactionDetailsValue}>{selectedTransaction.date}, 2023</Text>
+                </View>
+
+                <View style={styles.transactionDetailsRow}>
+                  <Text style={styles.transactionDetailsLabel}>Time</Text>
+                  <Text style={styles.transactionDetailsValue}>12:30 PM</Text>
                 </View>
                 
-                {/* Transaction Actions */}
-                <View style={styles.transactionActionsContainer}>
-                  <TouchableOpacity style={styles.transactionActionButton}>
-                    <Ionicons name="create-outline" size={18} color="#FFFFFF" />
-                    <Text style={styles.transactionActionText}>Edit</Text>
-                  </TouchableOpacity>
-                  
-                  <TouchableOpacity style={[styles.transactionActionButton, {backgroundColor: '#FF6384'}]}>
-                    <Ionicons name="trash-outline" size={18} color="#FFFFFF" />
-                    <Text style={styles.transactionActionText}>Delete</Text>
-                  </TouchableOpacity>
+                <View style={styles.transactionDetailsRow}>
+                  <Text style={styles.transactionDetailsLabel}>Transaction ID</Text>
+                  <Text style={styles.transactionDetailsValue}>#TRX{selectedTransaction.id.toString().padStart(4, '0')}</Text>
                 </View>
+                
+                <View style={styles.transactionDetailsRow}>
+                  <Text style={styles.transactionDetailsLabel}>Payment Method</Text>
+                  <View style={styles.transactionDetailsMethod}>
+                    <View style={[styles.transactionMethodIcon, { backgroundColor: '#FF6384' }]}>
+                      <Ionicons name="card" size={16} color="#FFFFFF" />
+                    </View>
+                    <Text style={styles.transactionDetailsValue}>Credit Card</Text>
+                  </View>
+                </View>
+
+                <View style={styles.transactionDetailsRow}>
+                  <Text style={styles.transactionDetailsLabel}>Status</Text>
+                  <View style={styles.statusContainer}>
+                    <View style={[styles.statusDot, { backgroundColor: '#4CAF50' }]} />
+                    <Text style={[styles.transactionDetailsValue, { color: '#4CAF50' }]}>Completed</Text>
+                  </View>
+                </View>
+
+                <View style={styles.transactionDetailsRow}>
+                  <Text style={styles.transactionDetailsLabel}>Notes</Text>
+                  <Text style={styles.transactionDetailsValue} numberOfLines={2}>
+                    {selectedTransaction.title === 'Grocery Shopping' ? 'Weekly grocery run at Trader Joe\'s.' : 
+                     selectedTransaction.title === 'Uber Ride' ? 'Business trip to downtown meeting.' :
+                     selectedTransaction.title === 'New Headphones' ? 'Sony WH-1000XM4 noise cancelling headphones.' : 
+                     'No notes available.'}
+                  </Text>
+                </View>
+
+                <TouchableOpacity
+                  style={styles.editTransactionButton}
+                  onPress={() => {
+                    // Handle edit action
+                    setTransactionDetailsVisible(false);
+                  }}
+                >
+                  <Text style={styles.editTransactionButtonText}>Edit Transaction</Text>
+                </TouchableOpacity>
               </View>
             )}
           </View>
@@ -1713,15 +1707,14 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
     justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
   },
   modalContent: {
     backgroundColor: '#1a1a1a',
-    padding: 20,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    width: '100%',
+    padding: 20,
     maxHeight: '90%',
   },
   modalHeader: {
@@ -1729,12 +1722,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 20,
-    paddingTop: 5,
-    paddingBottom: 5,
   },
   modalTitle: {
     fontSize: 20,
-    color: '#ffffff',
+    color: '#FFFFFF',
     fontWeight: 'bold',
   },
   amountInput: {
@@ -2177,121 +2168,88 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     marginTop: 5,
   },
-  transactionDetailsContainer: {
-    marginBottom: 20,
-  },
-  transactionHeaderContainer: {
-    flexDirection: 'row',
+  transactionDetailsContent: {
     alignItems: 'center',
-    backgroundColor: '#252525',
-    borderRadius: 15,
-    padding: 16,
-    marginBottom: 20,
+    paddingVertical: 20,
   },
-  transactionDetailIcon: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+  transactionIcon: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#FF6384',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginBottom: 15,
   },
-  transactionHeaderInfo: {
-    flex: 1,
-  },
-  transactionTitle: {
-    fontSize: 18,
+  transactionDetailsTitle: {
+    fontSize: 24,
     color: '#FFFFFF',
-    fontWeight: '600',
-  },
-  transactionCategory: {
-    fontSize: 14,
-    color: '#999999',
-    marginTop: 3,
-  },
-  transactionAmount: {
-    fontSize: 20,
-    color: '#FF6384',
     fontWeight: 'bold',
+    marginTop: 15,
+    marginBottom: 5,
   },
-  transactionInfoSection: {
-    backgroundColor: '#252525',
-    borderRadius: 15,
-    padding: 20,
+  transactionDetailsCategory: {
+    fontSize: 16,
+    color: '#888888',
     marginBottom: 20,
   },
-  transactionInfoRow: {
+  transactionDetailsAmount: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#FF6384',
+    marginBottom: 30,
+  },
+  transactionDetailsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    width: '100%',
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333333',
   },
-  transactionInfoLabel: {
-    fontSize: 15,
-    color: '#999999',
+  transactionDetailsLabel: {
+    fontSize: 16,
+    color: '#888888',
   },
-  transactionInfoValue: {
-    fontSize: 15,
+  transactionDetailsValue: {
+    fontSize: 16,
     color: '#FFFFFF',
-    fontWeight: '500',
   },
-  transactionCategoryTag: {
+  transactionDetailsMethod: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1A1A1A',
-    borderRadius: 12,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
   },
-  transactionCategoryText: {
-    fontSize: 14,
-    color: '#FFFFFF',
-    marginLeft: 6,
-  },
-  transactionStatusTag: {
-    backgroundColor: '#4BC0C0',
-    borderRadius: 12,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-  },
-  transactionStatusText: {
-    fontSize: 14,
-    color: '#FFFFFF',
-    fontWeight: '500',
-  },
-  transactionNotesContainer: {
-    marginTop: 10,
-  },
-  transactionNotesCard: {
-    backgroundColor: '#1A1A1A',
-    borderRadius: 12,
-    padding: 15,
-    marginTop: 8,
-  },
-  transactionNotesText: {
-    fontSize: 14,
-    color: '#FFFFFF',
-    lineHeight: 20,
-  },
-  transactionActionsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  transactionActionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  transactionMethodIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     justifyContent: 'center',
-    backgroundColor: '#333333',
-    borderRadius: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    width: '48%',
+    alignItems: 'center',
+    marginRight: 10,
   },
-  transactionActionText: {
-    fontSize: 14,
+  statusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 10,
+  },
+  editTransactionButton: {
+    backgroundColor: '#276EF1',
+    width: '100%',
+    paddingVertical: 15,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 30,
+  },
+  editTransactionButtonText: {
     color: '#FFFFFF',
+    fontSize: 16,
     fontWeight: '600',
-    marginLeft: 8,
   },
   // Styles for stats tabs
   statsTabSelector: {

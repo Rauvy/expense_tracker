@@ -159,6 +159,8 @@ const extractCategories = (transactions, type = null) => {
 const TransactionsScreen = () => {
   const [filterType, setFilterType] = useState('all'); // 'all', 'expense', 'income'
   const [showFilterModal, setShowFilterModal] = useState(false);
+  const [transactionDetailsVisible, setTransactionDetailsVisible] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
@@ -531,6 +533,118 @@ const TransactionsScreen = () => {
     toggleCategory
   ]);
 
+  // Handle transaction click
+  const handleTransactionClick = (transaction) => {
+    setSelectedTransaction(transaction);
+    setTransactionDetailsVisible(true);
+  };
+
+  const renderTransactionDetails = () => {
+    if (!selectedTransaction) return null;
+
+    return (
+      <Modal
+        visible={transactionDetailsVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setTransactionDetailsVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Transaction Details</Text>
+              <TouchableOpacity onPress={() => setTransactionDetailsVisible(false)}>
+                <Ionicons name="close" size={24} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
+
+            {selectedTransaction && (
+              <View style={styles.transactionDetailsContent}>
+                <View style={[styles.transactionIcon, { backgroundColor: selectedTransaction.color }]}>
+                  <Ionicons name={selectedTransaction.icon} size={24} color="#FFFFFF" />
+                </View>
+                
+                <Text style={styles.transactionDetailsTitle}>{selectedTransaction.title}</Text>
+                <Text style={styles.transactionDetailsCategory}>{selectedTransaction.category}</Text>
+                
+                <Text style={[
+                  styles.transactionDetailsAmount,
+                  selectedTransaction.type === 'income' ? styles.incomeAmount : styles.expenseAmount
+                ]}>
+                  {selectedTransaction.type === 'income' ? '+' : '-'}${selectedTransaction.amount.toFixed(2)}
+                </Text>
+                
+                <View style={styles.transactionDetailsRow}>
+                  <Text style={styles.transactionDetailsLabel}>Date</Text>
+                  <Text style={styles.transactionDetailsValue}>{selectedTransaction.date}</Text>
+                </View>
+
+                <View style={styles.transactionDetailsRow}>
+                  <Text style={styles.transactionDetailsLabel}>Time</Text>
+                  <Text style={styles.transactionDetailsValue}>12:30 PM</Text>
+                </View>
+                
+                <View style={styles.transactionDetailsRow}>
+                  <Text style={styles.transactionDetailsLabel}>Transaction ID</Text>
+                  <Text style={styles.transactionDetailsValue}>#TRX{selectedTransaction.id.toString().padStart(4, '0')}</Text>
+                </View>
+                
+                <View style={styles.transactionDetailsRow}>
+                  <Text style={styles.transactionDetailsLabel}>
+                    {selectedTransaction.type === 'income' ? 'Source' : 'Payment Method'}
+                  </Text>
+                  <View style={styles.transactionDetailsMethod}>
+                    <View 
+                      style={[
+                        styles.transactionMethodIcon, 
+                        { 
+                          backgroundColor: selectedTransaction.type === 'income' 
+                            ? selectedTransaction.sourceColor 
+                            : selectedTransaction.paymentColor 
+                        }
+                      ]}
+                    >
+                      <Ionicons 
+                        name={selectedTransaction.type === 'income' 
+                          ? selectedTransaction.sourceIcon 
+                          : selectedTransaction.paymentIcon} 
+                        size={16} 
+                        color="#FFFFFF" 
+                      />
+                    </View>
+                    <Text style={styles.transactionDetailsValue}>
+                      {selectedTransaction.type === 'income' 
+                        ? selectedTransaction.source 
+                        : selectedTransaction.paymentMethod}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.transactionDetailsRow}>
+                  <Text style={styles.transactionDetailsLabel}>Status</Text>
+                  <View style={styles.statusContainer}>
+                    <View style={[styles.statusDot, { backgroundColor: '#4CAF50' }]} />
+                    <Text style={[styles.transactionDetailsValue, { color: '#4CAF50' }]}>Completed</Text>
+                  </View>
+                </View>
+
+                <TouchableOpacity
+                  style={styles.editTransactionButton}
+                  onPress={() => {
+                    // Handle edit action
+                    setTransactionDetailsVisible(false);
+                  }}
+                >
+                  <Text style={styles.editTransactionButtonText}>Edit Transaction</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        </View>
+      </Modal>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
@@ -636,7 +750,12 @@ const TransactionsScreen = () => {
             <View style={styles.transactionsContainer}>
               {filteredTransactions.length > 0 ? (
                 filteredTransactions.map((transaction) => (
-                  <View key={transaction.id} style={styles.transactionItem}>
+                  <TouchableOpacity 
+                    key={transaction.id} 
+                    style={styles.transactionItem}
+                    activeOpacity={0.7}
+                    onPress={() => handleTransactionClick(transaction)}
+                  >
                     <View style={[styles.transactionIcon, { backgroundColor: transaction.color }]}>
                       <Ionicons name={transaction.icon} size={20} color="#FFFFFF" />
                     </View>
@@ -674,13 +793,11 @@ const TransactionsScreen = () => {
                         />
                       </View>
                     </View>
-                  </View>
+                  </TouchableOpacity>
                 ))
               ) : (
-                <View style={styles.noResultsContainer}>
-                  <Ionicons name="search-outline" size={50} color="#555555" />
-                  <Text style={styles.noResultsText}>No transactions found</Text>
-                  <Text style={styles.noResultsSubtext}>Try different filter settings</Text>
+                <View style={styles.noTransactionsContainer}>
+                  <Text style={styles.noTransactionsText}>No transactions found</Text>
                 </View>
               )}
             </View>
@@ -697,6 +814,9 @@ const TransactionsScreen = () => {
       >
         {renderModalContent()}
       </Modal>
+
+      {/* Transaction Details Modal */}
+      {renderTransactionDetails()}
     </SafeAreaView>
   );
 };
@@ -904,160 +1024,115 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 8,
   },
-  noResultsContainer: {
+  noTransactionsContainer: {
+    padding: 20,
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 40,
   },
-  noResultsText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '500',
-    marginTop: 15,
-  },
-  noResultsSubtext: {
+  noTransactionsText: {
     color: '#888888',
-    fontSize: 14,
-    marginTop: 5,
+    fontSize: 16,
   },
   modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.7)',
     justifyContent: 'flex-end',
   },
-  modalContainer: {
+  modalContent: {
     backgroundColor: '#1a1a1a',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    paddingBottom: Platform.OS === 'ios' ? 0 : 0,
-    height: '80%',
-    position: 'relative',
+    padding: 20,
+    maxHeight: '90%',
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 15, // Slightly reduced
-    borderBottomWidth: 1,
-    borderBottomColor: '#333333',
-    zIndex: 10,
+    marginBottom: 20,
   },
   modalTitle: {
+    fontSize: 20,
     color: '#FFFFFF',
-    fontSize: 18,
     fontWeight: 'bold',
   },
-  filterSection: {
-    marginBottom: 20, // Slightly reduced
+  transactionDetailsContent: {
+    alignItems: 'center',
+    paddingVertical: 20,
   },
-  filterSectionTitle: {
+  transactionDetailsTitle: {
+    fontSize: 24,
     color: '#FFFFFF',
+    fontWeight: 'bold',
+    marginTop: 15,
+    marginBottom: 5,
+  },
+  transactionDetailsCategory: {
     fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 15,
+    color: '#888888',
+    marginBottom: 20,
   },
-  searchInput: {
-    backgroundColor: '#252525',
-    color: '#FFFFFF',
-    borderRadius: 10,
-    padding: 12,
-    fontSize: 16,
+  transactionDetailsAmount: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    marginBottom: 30,
   },
-  categoriesContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  categoryChip: {
-    backgroundColor: '#252525',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 50,
-    margin: 5,
-  },
-  selectedCategoryChip: {
-    backgroundColor: COLORS.BLUE,
-  },
-  categoryChipText: {
-    color: '#AAAAAA',
-    fontSize: 14,
-  },
-  selectedCategoryChipText: {
-    color: '#FFFFFF',
-  },
-  rangeInputsContainer: {
+  transactionDetailsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-  },
-  dateInputContainer: {
-    flex: 1,
-    marginRight: 8, // Slightly reduced
-  },
-  dateInputLabel: {
-    color: '#AAAAAA',
-    fontSize: 14,
-    marginBottom: 5, // Slightly reduced
-  },
-  dateInput: {
-    backgroundColor: '#252525',
-    color: '#FFFFFF',
-    borderRadius: 10,
-    padding: 12,
-    fontSize: 16,
-  },
-  amountInputContainer: {
-    flex: 1,
-    marginRight: 10,
-  },
-  amountInputLabel: {
-    color: '#AAAAAA',
-    fontSize: 14,
-    marginBottom: 8,
-  },
-  amountInput: {
-    backgroundColor: '#252525',
-    color: '#FFFFFF',
-    borderRadius: 10,
-    padding: 12,
-    fontSize: 16,
-  },
-  resetButton: {
-    flex: 1,
-    backgroundColor: '#333333',
+    alignItems: 'center',
+    width: '100%',
     paddingVertical: 15,
-    borderRadius: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333333',
+  },
+  transactionDetailsLabel: {
+    fontSize: 16,
+    color: '#888888',
+  },
+  transactionDetailsValue: {
+    fontSize: 16,
+    color: '#FFFFFF',
+  },
+  transactionDetailsMethod: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  transactionMethodIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
   },
-  resetButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  applyButton: {
-    flex: 2,
-    backgroundColor: COLORS.BLUE,
-    paddingVertical: 15,
-    borderRadius: 10,
+  statusContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
-  applyButtonText: {
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 10,
+  },
+  editTransactionButton: {
+    backgroundColor: COLORS.BLUE,
+    width: '100%',
+    paddingVertical: 15,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 30,
+  },
+  editTransactionButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
-  },
-  fixedFilterFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: 15,
-    borderTopWidth: 1,
-    borderTopColor: '#333333',
-    backgroundColor: '#1a1a1a',
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    zIndex: 999,
-    paddingBottom: 50,
   },
 });
 
