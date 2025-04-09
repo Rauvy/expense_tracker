@@ -1,8 +1,19 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Platform, StatusBar, SafeAreaView } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Platform, StatusBar, SafeAreaView, Modal, TextInput, Switch, FlatList, KeyboardAvoidingView, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
+
+// Colors imported from HomeScreen.js
+const COLORS = {
+  EXPENSE: '#FF6384',
+  INCOME: '#4BC0C0',
+  TRANSPORT: '#36A2EB',
+  SHOPPING: '#FFCE56',
+  BILLS: '#4BC0C0',
+  ENTERTAINMENT: '#9966FF',
+  BLUE: '#276EF1'
+};
 
 // Mock data for all transactions (both expenses and income)
 const allTransactions = [
@@ -138,13 +149,72 @@ const allTransactions = [
   },
 ];
 
+// Extract unique categories from transactions, separated by type
+const extractCategories = (transactions, type = null) => {
+  const filtered = type ? transactions.filter(item => item.type === type) : transactions;
+  const categories = filtered.map(item => item.category);
+  return [...new Set(categories)];
+};
+
 const TransactionsScreen = () => {
   const [filterType, setFilterType] = useState('all'); // 'all', 'expense', 'income'
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [dateRange, setDateRange] = useState({ start: '', end: '' });
+  const [amountRange, setAmountRange] = useState({ min: '', max: '' });
+  const [appliedFilters, setAppliedFilters] = useState({
+    categories: [],
+    dateRange: { start: '', end: '' },
+    amountRange: { min: '', max: '' },
+    searchQuery: ''
+  });
   
-  // Filter transactions based on selected type
-  const filteredTransactions = filterType === 'all' 
-    ? allTransactions 
-    : allTransactions.filter(transaction => transaction.type === filterType);
+  // Get all categories, expense categories, and income categories
+  const allCategories = extractCategories(allTransactions);
+  const expenseCategories = extractCategories(allTransactions, 'expense');
+  const incomeCategories = extractCategories(allTransactions, 'income');
+  
+  // Determine which categories to show based on the filter type (memoized)
+  const categoriesToShow = useCallback(() => {
+    return filterType === 'expense' 
+      ? expenseCategories 
+      : filterType === 'income' 
+        ? incomeCategories 
+        : allCategories;
+  }, [filterType, expenseCategories, incomeCategories, allCategories]);
+  
+  // Filter transactions based on selected type and advanced filters
+  const filteredTransactions = allTransactions.filter(transaction => {
+    // Basic type filter
+    if (filterType !== 'all' && transaction.type !== filterType) return false;
+    
+    // Advanced filters
+    // Category filter
+    if (appliedFilters.categories.length > 0 && 
+        !appliedFilters.categories.includes(transaction.category)) {
+      return false;
+    }
+    
+    // Search query filter (name/title)
+    if (appliedFilters.searchQuery && 
+        !transaction.title.toLowerCase().includes(appliedFilters.searchQuery.toLowerCase())) {
+      return false;
+    }
+    
+    // Amount range filter
+    if (appliedFilters.amountRange.min && transaction.amount < parseFloat(appliedFilters.amountRange.min)) {
+      return false;
+    }
+    if (appliedFilters.amountRange.max && transaction.amount > parseFloat(appliedFilters.amountRange.max)) {
+      return false;
+    }
+    
+    // Date filter would go here if we had proper date objects
+    // For the mock data, we'd need to convert the string dates to Date objects
+    
+    return true;
+  });
   
   // Calculate total income and expenses
   const totalIncome = allTransactions
@@ -154,6 +224,41 @@ const TransactionsScreen = () => {
   const totalExpenses = allTransactions
     .filter(transaction => transaction.type === 'expense')
     .reduce((sum, transaction) => sum + transaction.amount, 0);
+  
+  // Initialize modal state when opening
+  useEffect(() => {
+    if (showFilterModal) {
+      setSearchQuery(appliedFilters.searchQuery);
+      setSelectedCategories([...appliedFilters.categories]);
+      setDateRange({...appliedFilters.dateRange});
+      setAmountRange({...appliedFilters.amountRange});
+    }
+  }, [showFilterModal]);
+  
+  // Reset selected categories when filter type changes
+  useEffect(() => {
+    if (showFilterModal) {
+      setSelectedCategories([]);
+    }
+  }, [filterType, showFilterModal]);
+  
+  // Добавим состояние для отслеживания видимости клавиатуры
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+
+  // Эффект для отслеживания появления/скрытия клавиатуры
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      'keyboardDidShow', () => setIsKeyboardVisible(true)
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      'keyboardDidHide', () => setIsKeyboardVisible(false)
+    );
+
+    return () => {
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
+    };
+  }, []);
   
   const renderFilterButton = (label, value) => (
     <TouchableOpacity 
@@ -175,6 +280,256 @@ const TransactionsScreen = () => {
       </Text>
     </TouchableOpacity>
   );
+  
+  const toggleCategory = useCallback((category) => {
+    setSelectedCategories(prevCategories => {
+      if (prevCategories.includes(category)) {
+        return prevCategories.filter(cat => cat !== category);
+      } else {
+        return [...prevCategories, category];
+      }
+    });
+  }, []);
+  
+  const applyFilters = () => {
+    setAppliedFilters({
+      categories: selectedCategories,
+      dateRange: dateRange,
+      amountRange: amountRange,
+      searchQuery: searchQuery
+    });
+    setShowFilterModal(false);
+  };
+  
+  const resetFilters = () => {
+    setSelectedCategories([]);
+    setDateRange({ start: '', end: '' });
+    setAmountRange({ min: '', max: '' });
+    setSearchQuery('');
+    setAppliedFilters({
+      categories: [],
+      dateRange: { start: '', end: '' },
+      amountRange: { min: '', max: '' },
+      searchQuery: ''
+    });
+  };
+  
+  // Get category color based on the category name
+  const getCategoryColor = useCallback((category) => {
+    const transaction = allTransactions.find(t => t.category === category);
+    return transaction ? transaction.color : COLORS.BLUE;
+  }, [allTransactions]);
+
+  // Render the filter modal content
+  const renderModalContent = useCallback(() => {
+    const currentCategories = categoriesToShow();
+    
+    const sections = [
+      { 
+        id: 'search',
+        type: 'search',
+        title: 'Search by name',
+        value: searchQuery,
+        onChangeText: setSearchQuery
+      },
+      {
+        id: 'categories',
+        type: 'categories',
+        title: filterType === 'all' ? 'Categories' : 
+               filterType === 'income' ? 'Income Categories' : 'Expense Categories',
+        data: currentCategories,
+        selected: selectedCategories,
+        onSelect: toggleCategory
+      },
+      {
+        id: 'date',
+        type: 'date',
+        title: 'Date Range',
+        startDate: dateRange.start,
+        endDate: dateRange.end,
+        onChangeStart: (text) => setDateRange({...dateRange, start: text}),
+        onChangeEnd: (text) => setDateRange({...dateRange, end: text})
+      },
+      {
+        id: 'amount',
+        type: 'amount',
+        title: 'Amount Range',
+        minAmount: amountRange.min,
+        maxAmount: amountRange.max,
+        onChangeMin: (text) => setAmountRange({...amountRange, min: text}),
+        onChangeMax: (text) => setAmountRange({...amountRange, max: text})
+      }
+    ];
+    
+    const renderItem = ({ item }) => {
+      switch (item.type) {
+        case 'search':
+          return (
+            <View style={styles.filterSection}>
+              <Text style={styles.filterSectionTitle}>{item.title}</Text>
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search transactions..."
+                placeholderTextColor="#888888"
+                value={item.value}
+                onChangeText={item.onChangeText}
+              />
+            </View>
+          );
+        
+        case 'categories':
+          return (
+            <View style={styles.filterSection}>
+              <Text style={styles.filterSectionTitle}>{item.title}</Text>
+              <View style={styles.categoriesContainer}>
+                {item.data.map((category) => {
+                  const categoryColor = getCategoryColor(category);
+                  const isSelected = item.selected.includes(category);
+                  
+                  return (
+                    <TouchableOpacity
+                      key={category}
+                      style={[
+                        styles.categoryChip,
+                        isSelected && { backgroundColor: categoryColor }
+                      ]}
+                      onPress={() => item.onSelect(category)}
+                    >
+                      <Text 
+                        style={[
+                          styles.categoryChipText,
+                          isSelected && styles.selectedCategoryChipText
+                        ]}
+                      >
+                        {category}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+          );
+          
+        case 'date':
+          return (
+            <View style={styles.filterSection}>
+              <Text style={styles.filterSectionTitle}>{item.title}</Text>
+              <View style={styles.rangeInputsContainer}>
+                <View style={styles.dateInputContainer}>
+                  <Text style={styles.dateInputLabel}>From</Text>
+                  <TextInput
+                    style={styles.dateInput}
+                    placeholder="DD/MM/YYYY"
+                    placeholderTextColor="#888888"
+                    value={item.startDate}
+                    onChangeText={item.onChangeStart}
+                  />
+                </View>
+                <View style={styles.dateInputContainer}>
+                  <Text style={styles.dateInputLabel}>To</Text>
+                  <TextInput
+                    style={styles.dateInput}
+                    placeholder="DD/MM/YYYY"
+                    placeholderTextColor="#888888"
+                    value={item.endDate}
+                    onChangeText={item.onChangeEnd}
+                  />
+                </View>
+              </View>
+            </View>
+          );
+          
+        case 'amount':
+          return (
+            <View style={styles.filterSection}>
+              <Text style={styles.filterSectionTitle}>{item.title}</Text>
+              <View style={styles.rangeInputsContainer}>
+                <View style={styles.amountInputContainer}>
+                  <Text style={styles.amountInputLabel}>Min $</Text>
+                  <TextInput
+                    style={styles.amountInput}
+                    placeholder="0.00"
+                    placeholderTextColor="#888888"
+                    keyboardType="numeric"
+                    value={item.minAmount}
+                    onChangeText={item.onChangeMin}
+                  />
+                </View>
+                <View style={styles.amountInputContainer}>
+                  <Text style={styles.amountInputLabel}>Max $</Text>
+                  <TextInput
+                    style={styles.amountInput}
+                    placeholder="9999.99"
+                    placeholderTextColor="#888888"
+                    keyboardType="numeric"
+                    value={item.maxAmount}
+                    onChangeText={item.onChangeMax}
+                  />
+                </View>
+              </View>
+            </View>
+          );
+          
+        default:
+          return null;
+      }
+    };
+    
+    return (
+      <View style={styles.modalOverlay}>
+        <View style={[
+          styles.modalContainer,
+          isKeyboardVisible && Platform.OS === 'ios' ? { height: '95%' } : null
+        ]}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Advanced Filters</Text>
+            <TouchableOpacity onPress={() => setShowFilterModal(false)}>
+              <Ionicons name="close" size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+          
+          {/* Container for the scrollable content */}
+          <View style={{ flex: 1, paddingBottom: 80 }}>
+            <FlatList
+              data={sections}
+              renderItem={renderItem}
+              keyExtractor={item => item.id}
+              contentContainerStyle={{ padding: 20 }}
+              showsVerticalScrollIndicator={true}
+              keyboardShouldPersistTaps="handled"
+              onScrollBeginDrag={() => Keyboard.dismiss()}
+              ListFooterComponent={<View style={{ height: 150 }} />}
+            />
+          </View>
+          
+          {/* Fixed footer */}
+          <View style={styles.fixedFilterFooter}>
+            <TouchableOpacity 
+              style={styles.resetButton}
+              onPress={resetFilters}
+            >
+              <Text style={styles.resetButtonText}>Reset</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.applyButton, { backgroundColor: COLORS.BLUE }]}
+              onPress={applyFilters}
+            >
+              <Text style={styles.applyButtonText}>Apply Filters</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    );
+  }, [
+    categoriesToShow, 
+    searchQuery, 
+    selectedCategories, 
+    dateRange, 
+    amountRange, 
+    filterType,
+    getCategoryColor,
+    toggleCategory
+  ]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -195,7 +550,7 @@ const TransactionsScreen = () => {
               <View style={styles.summaryRow}>
                 <View style={styles.summaryItem}>
                   <View style={styles.summaryIconContainer}>
-                    <Ionicons name="arrow-down" size={18} color="#4BC0C0" />
+                    <Ionicons name="arrow-down" size={18} color={COLORS.INCOME} />
                   </View>
                   <View>
                     <Text style={styles.summaryLabel}>Income</Text>
@@ -207,7 +562,7 @@ const TransactionsScreen = () => {
                 
                 <View style={styles.summaryItem}>
                   <View style={styles.summaryIconContainer}>
-                    <Ionicons name="arrow-up" size={18} color="#FF6384" />
+                    <Ionicons name="arrow-up" size={18} color={COLORS.EXPENSE} />
                   </View>
                   <View>
                     <Text style={styles.summaryLabel}>Expenses</Text>
@@ -222,55 +577,126 @@ const TransactionsScreen = () => {
               {renderFilterButton('All', 'all')}
               {renderFilterButton('Income', 'income')}
               {renderFilterButton('Expenses', 'expense')}
+              <TouchableOpacity 
+                style={styles.advancedFilterButton}
+                onPress={() => setShowFilterModal(true)}
+              >
+                <Ionicons name="options" size={20} color="#FFFFFF" />
+              </TouchableOpacity>
             </View>
+            
+            {/* Active Filters Display */}
+            {(appliedFilters.categories.length > 0 || 
+              appliedFilters.searchQuery || 
+              appliedFilters.amountRange.min || 
+              appliedFilters.amountRange.max) && (
+              <View style={styles.activeFiltersContainer}>
+                <Text style={styles.activeFiltersTitle}>Active Filters:</Text>
+                <ScrollView 
+                  horizontal 
+                  showsHorizontalScrollIndicator={false}
+                  style={styles.activeFiltersScroll}
+                >
+                  {appliedFilters.categories.map(cat => {
+                    const categoryColor = getCategoryColor(cat);
+                    return (
+                      <View key={cat} style={[styles.activeFilterChip, { backgroundColor: categoryColor }]}>
+                        <Text style={styles.activeFilterChipText}>{cat}</Text>
+                      </View>
+                    );
+                  })}
+                  
+                  {appliedFilters.searchQuery && (
+                    <View style={styles.activeFilterChip}>
+                      <Text style={styles.activeFilterChipText}>
+                        "{appliedFilters.searchQuery}"
+                      </Text>
+                    </View>
+                  )}
+                  
+                  {(appliedFilters.amountRange.min || appliedFilters.amountRange.max) && (
+                    <View style={styles.activeFilterChip}>
+                      <Text style={styles.activeFilterChipText}>
+                        ${appliedFilters.amountRange.min || '0'} - ${appliedFilters.amountRange.max || '∞'}
+                      </Text>
+                    </View>
+                  )}
+                  
+                  <TouchableOpacity 
+                    style={[styles.clearFiltersButton, { backgroundColor: COLORS.EXPENSE }]}
+                    onPress={resetFilters}
+                  >
+                    <Text style={styles.clearFiltersText}>Clear All</Text>
+                  </TouchableOpacity>
+                </ScrollView>
+              </View>
+            )}
             
             {/* Transactions List */}
             <View style={styles.transactionsContainer}>
-              {filteredTransactions.map((transaction) => (
-                <View key={transaction.id} style={styles.transactionItem}>
-                  <View style={[styles.transactionIcon, { backgroundColor: transaction.color }]}>
-                    <Ionicons name={transaction.icon} size={20} color="#FFFFFF" />
-                  </View>
-                  
-                  <View style={styles.transactionInfo}>
-                    <Text style={styles.transactionTitle}>{transaction.title}</Text>
-                    <Text style={styles.transactionCategory}>{transaction.category}</Text>
-                  </View>
-                  
-                  <View style={styles.transactionDetails}>
-                    <Text 
-                      style={[
-                        styles.transactionAmount,
-                        transaction.type === 'income' ? styles.incomeAmount : styles.expenseAmount
-                      ]}
-                    >
-                      {transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)}
-                    </Text>
-                    <Text style={styles.transactionDate}>{transaction.date}</Text>
+              {filteredTransactions.length > 0 ? (
+                filteredTransactions.map((transaction) => (
+                  <View key={transaction.id} style={styles.transactionItem}>
+                    <View style={[styles.transactionIcon, { backgroundColor: transaction.color }]}>
+                      <Ionicons name={transaction.icon} size={20} color="#FFFFFF" />
+                    </View>
                     
-                    <View 
-                      style={[
-                        styles.transactionMethodIcon, 
-                        { 
-                          backgroundColor: transaction.type === 'income' 
-                            ? transaction.sourceColor 
-                            : transaction.paymentColor 
-                        }
-                      ]}
-                    >
-                      <Ionicons 
-                        name={transaction.type === 'income' ? transaction.sourceIcon : transaction.paymentIcon} 
-                        size={14} 
-                        color="#FFFFFF" 
-                      />
+                    <View style={styles.transactionInfo}>
+                      <Text style={styles.transactionTitle}>{transaction.title}</Text>
+                      <Text style={styles.transactionCategory}>{transaction.category}</Text>
+                    </View>
+                    
+                    <View style={styles.transactionDetails}>
+                      <Text 
+                        style={[
+                          styles.transactionAmount,
+                          transaction.type === 'income' ? styles.incomeAmount : styles.expenseAmount
+                        ]}
+                      >
+                        {transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)}
+                      </Text>
+                      <Text style={styles.transactionDate}>{transaction.date}</Text>
+                      
+                      <View 
+                        style={[
+                          styles.transactionMethodIcon, 
+                          { 
+                            backgroundColor: transaction.type === 'income' 
+                              ? transaction.sourceColor 
+                              : transaction.paymentColor 
+                          }
+                        ]}
+                      >
+                        <Ionicons 
+                          name={transaction.type === 'income' ? transaction.sourceIcon : transaction.paymentIcon} 
+                          size={14} 
+                          color="#FFFFFF" 
+                        />
+                      </View>
                     </View>
                   </View>
+                ))
+              ) : (
+                <View style={styles.noResultsContainer}>
+                  <Ionicons name="search-outline" size={50} color="#555555" />
+                  <Text style={styles.noResultsText}>No transactions found</Text>
+                  <Text style={styles.noResultsSubtext}>Try different filter settings</Text>
                 </View>
-              ))}
+              )}
             </View>
           </View>
         </ScrollView>
       </View>
+      
+      {/* Filter Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={showFilterModal}
+        onRequestClose={() => setShowFilterModal(false)}
+      >
+        {renderModalContent()}
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -341,10 +767,10 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   incomeAmount: {
-    color: '#4BC0C0',
+    color: COLORS.INCOME,
   },
   expenseAmount: {
-    color: '#FF6384',
+    color: COLORS.EXPENSE,
   },
   summaryDivider: {
     width: 1,
@@ -365,14 +791,23 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
     borderRadius: 10,
   },
+  advancedFilterButton: {
+    width: 44,
+    height: 44,
+    backgroundColor: '#555555',
+    marginLeft: 5,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   activeFilterButton: {
-    backgroundColor: '#276EF1',
+    backgroundColor: COLORS.BLUE,
   },
   activeIncomeButton: {
-    backgroundColor: '#4BC0C0',
+    backgroundColor: COLORS.INCOME,
   },
   activeExpenseButton: {
-    backgroundColor: '#FF6384',
+    backgroundColor: COLORS.EXPENSE,
   },
   filterText: {
     color: '#888888',
@@ -380,6 +815,39 @@ const styles = StyleSheet.create({
   },
   activeFilterText: {
     color: '#FFFFFF',
+  },
+  activeFiltersContainer: {
+    marginBottom: 15,
+  },
+  activeFiltersTitle: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    marginBottom: 8,
+  },
+  activeFiltersScroll: {
+    flexDirection: 'row',
+  },
+  activeFilterChip: {
+    backgroundColor: '#333333',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 50,
+    marginRight: 8,
+  },
+  activeFilterChipText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+  },
+  clearFiltersButton: {
+    backgroundColor: COLORS.EXPENSE,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 50,
+  },
+  clearFiltersText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '500',
   },
   transactionsContainer: {
     backgroundColor: '#1a1a1a',
@@ -435,6 +903,161 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 8,
+  },
+  noResultsContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+  },
+  noResultsText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '500',
+    marginTop: 15,
+  },
+  noResultsSubtext: {
+    color: '#888888',
+    fontSize: 14,
+    marginTop: 5,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'flex-end',
+  },
+  modalContainer: {
+    backgroundColor: '#1a1a1a',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: Platform.OS === 'ios' ? 0 : 0,
+    height: '80%',
+    position: 'relative',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 15, // Slightly reduced
+    borderBottomWidth: 1,
+    borderBottomColor: '#333333',
+    zIndex: 10,
+  },
+  modalTitle: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  filterSection: {
+    marginBottom: 20, // Slightly reduced
+  },
+  filterSectionTitle: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 15,
+  },
+  searchInput: {
+    backgroundColor: '#252525',
+    color: '#FFFFFF',
+    borderRadius: 10,
+    padding: 12,
+    fontSize: 16,
+  },
+  categoriesContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  categoryChip: {
+    backgroundColor: '#252525',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 50,
+    margin: 5,
+  },
+  selectedCategoryChip: {
+    backgroundColor: COLORS.BLUE,
+  },
+  categoryChipText: {
+    color: '#AAAAAA',
+    fontSize: 14,
+  },
+  selectedCategoryChipText: {
+    color: '#FFFFFF',
+  },
+  rangeInputsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  dateInputContainer: {
+    flex: 1,
+    marginRight: 8, // Slightly reduced
+  },
+  dateInputLabel: {
+    color: '#AAAAAA',
+    fontSize: 14,
+    marginBottom: 5, // Slightly reduced
+  },
+  dateInput: {
+    backgroundColor: '#252525',
+    color: '#FFFFFF',
+    borderRadius: 10,
+    padding: 12,
+    fontSize: 16,
+  },
+  amountInputContainer: {
+    flex: 1,
+    marginRight: 10,
+  },
+  amountInputLabel: {
+    color: '#AAAAAA',
+    fontSize: 14,
+    marginBottom: 8,
+  },
+  amountInput: {
+    backgroundColor: '#252525',
+    color: '#FFFFFF',
+    borderRadius: 10,
+    padding: 12,
+    fontSize: 16,
+  },
+  resetButton: {
+    flex: 1,
+    backgroundColor: '#333333',
+    paddingVertical: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  resetButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  applyButton: {
+    flex: 2,
+    backgroundColor: COLORS.BLUE,
+    paddingVertical: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  applyButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  fixedFilterFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 15,
+    borderTopWidth: 1,
+    borderTopColor: '#333333',
+    backgroundColor: '#1a1a1a',
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    zIndex: 999,
+    paddingBottom: 50,
   },
 });
 
