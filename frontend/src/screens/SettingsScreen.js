@@ -32,6 +32,24 @@ const SettingsScreen = () => {
   const [notificationSettingsVisible, setNotificationSettingsVisible] = useState(false);
   const [categoriesModalVisible, setCategoriesModalVisible] = useState(false);
   const [changePasswordModalVisible, setChangePasswordModalVisible] = useState(false);
+  const [languageModalVisible, setLanguageModalVisible] = useState(false);
+  const [themeModalVisible, setThemeModalVisible] = useState(false);
+  const [budgetPeriodModalVisible, setBudgetPeriodModalVisible] = useState(false);
+  
+  // Language and Theme states
+  const [currentLanguage, setCurrentLanguage] = useState('English');
+  const [currentTheme, setCurrentTheme] = useState('system');
+  
+  // Budget period state
+  const [budgetPeriod, setBudgetPeriod] = useState('month');
+  
+  // Available languages and themes
+  const availableLanguages = ['English'];
+  const availableThemes = [
+    { id: 'system', name: 'System Default', icon: 'phone-portrait-outline' },
+    { id: 'light', name: 'Light Mode', icon: 'sunny-outline' },
+    { id: 'dark', name: 'Dark Mode', icon: 'moon-outline' }
+  ];
   
   // Category Management States
   const [activeTab, setActiveTab] = useState('expense');
@@ -278,6 +296,58 @@ const SettingsScreen = () => {
     }, 1500);
   };
   
+  // Handle theme change
+  const handleThemeChange = (theme) => {
+    setCurrentTheme(theme);
+    // In a real app, you would apply the theme here
+    // and save the preference to AsyncStorage
+    AsyncStorage.setItem('theme', theme);
+    setThemeModalVisible(false);
+  };
+  
+  // Handle language change
+  const handleLanguageChange = (language) => {
+    setCurrentLanguage(language);
+    // In a real app, you would apply the language here
+    // and save the preference to AsyncStorage
+    AsyncStorage.setItem('language', language);
+    setLanguageModalVisible(false);
+  };
+
+  // Handle budget period change
+  const handleBudgetPeriodChange = async (period) => {
+    setBudgetPeriod(period);
+    await AsyncStorage.setItem('budgetPeriod', period);
+    setBudgetPeriodModalVisible(false);
+  };
+  
+  // Load preferences on component mount
+  useEffect(() => {
+    const loadPreferences = async () => {
+      try {
+        const savedTheme = await AsyncStorage.getItem('theme');
+        const savedLanguage = await AsyncStorage.getItem('language');
+        const savedBudgetPeriod = await AsyncStorage.getItem('budgetPeriod');
+        
+        if (savedTheme) {
+          setCurrentTheme(savedTheme);
+        }
+        
+        if (savedLanguage) {
+          setCurrentLanguage(savedLanguage);
+        }
+        
+        if (savedBudgetPeriod) {
+          setBudgetPeriod(savedBudgetPeriod);
+        }
+      } catch (error) {
+        console.error('Error loading preferences:', error);
+      }
+    };
+    
+    loadPreferences();
+  }, []);
+  
   // Render menu item
   const renderMenuItem = (icon, title, subtitle, action, rightElement) => (
     <TouchableOpacity style={styles.menuItem} onPress={action}>
@@ -315,19 +385,37 @@ const SettingsScreen = () => {
           {/* General Settings */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>General</Text>
-            {renderMenuItem('person-outline', 'Profile', 'Manage your profile information', () => navigation.navigate('Profile'))}
+            {renderMenuItem('person-outline', 'Profile', 'Manage your profile information', () => navigation.navigate('ProfileSettings'))}
             {renderMenuItem('notifications-outline', 'Notifications', 'Manage your notification preferences', () => setNotificationSettingsVisible(true))}
-            {renderMenuItem('language-outline', 'Language', 'Change app language', () => {})}
-            {renderMenuItem('moon-outline', 'Theme', 'Change app theme', () => {})}
+            {renderMenuItem('language-outline', 'Language', 'Change app language', () => setLanguageModalVisible(true), 
+              <View style={styles.menuItemValue}>
+                <Text style={styles.menuItemValueText}>{currentLanguage}</Text>
+              </View>
+            )}
+            {renderMenuItem('moon-outline', 'Theme', 'Change app theme', () => setThemeModalVisible(true), 
+              <View style={styles.menuItemValue}>
+                <Text style={styles.menuItemValueText}>
+                  {availableThemes.find(theme => theme.id === currentTheme)?.name || 'System Default'}
+                </Text>
+              </View>
+            )}
           </View>
 
           {/* Preferences */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Preferences</Text>
-            {renderMenuItem('card-outline', 'Payment Methods', 'Manage your payment methods', () => {})}
-            {renderMenuItem('pricetag-outline', 'Categories', 'Customize your expense categories', () => {})}
-            {renderMenuItem('wallet-outline', 'Income Sources', 'Manage your income sources', () => {})}
-            {renderMenuItem('calendar-outline', 'Budget Period', 'Set your budget period', () => {})}
+            {renderMenuItem('card-outline', 'Payment Methods', 'Manage your payment methods', () => navigation.navigate('PaymentSettings'))}
+            {renderMenuItem('pricetag-outline', 'Categories', 'Customize your expense categories', () => navigation.navigate('CategoriesSettings'))}
+            {renderMenuItem('wallet-outline', 'Income Sources', 'Manage your income sources', () => navigation.navigate('IncomeSource'))}
+            {renderMenuItem('calendar-outline', 'Budget Period', 'Set your budget period', () => setBudgetPeriodModalVisible(true),
+              <View style={styles.menuItemValue}>
+                <Text style={styles.menuItemValueText}>
+                  {budgetPeriod === 'week' ? 'Weekly' : 
+                   budgetPeriod === 'month' ? 'Monthly' : 
+                   budgetPeriod === 'quarter' ? 'Quarterly' : 'Yearly'}
+                </Text>
+              </View>
+            )}
           </View>
 
           {/* Data & Privacy */}
@@ -707,6 +795,181 @@ const SettingsScreen = () => {
           </View>
         </View>
       </Modal>
+      
+      {/* Language Selection Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={languageModalVisible}
+        onRequestClose={() => setLanguageModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Select Language</Text>
+              <TouchableOpacity onPress={() => setLanguageModalVisible(false)}>
+                <Ionicons name="close" size={24} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView>
+              {availableLanguages.map((language, index) => (
+                <TouchableOpacity 
+                  key={index}
+                  style={styles.optionItem}
+                  onPress={() => handleLanguageChange(language)}
+                >
+                  <Text style={styles.optionText}>{language}</Text>
+                  {currentLanguage === language && (
+                    <Ionicons name="checkmark-circle" size={22} color="#276EF1" />
+                  )}
+                </TouchableOpacity>
+              ))}
+              
+              <Text style={styles.comingSoonText}>More languages coming soon</Text>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+      
+      {/* Theme Selection Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={themeModalVisible}
+        onRequestClose={() => setThemeModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Choose Theme</Text>
+              <TouchableOpacity onPress={() => setThemeModalVisible(false)}>
+                <Ionicons name="close" size={24} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView>
+              {availableThemes.map((theme, index) => (
+                <TouchableOpacity 
+                  key={index}
+                  style={styles.themeOption}
+                  onPress={() => handleThemeChange(theme.id)}
+                >
+                  <View style={styles.themeOptionLeft}>
+                    <View style={styles.themeIconContainer}>
+                      <Ionicons name={theme.icon} size={22} color="#FFFFFF" />
+                    </View>
+                    <Text style={styles.themeOptionText}>{theme.name}</Text>
+                  </View>
+                  
+                  {currentTheme === theme.id && (
+                    <Ionicons name="checkmark-circle" size={22} color="#276EF1" />
+                  )}
+                </TouchableOpacity>
+              ))}
+              
+              <TouchableOpacity 
+                style={styles.saveButton}
+                onPress={() => setThemeModalVisible(false)}
+              >
+                <Text style={styles.saveButtonText}>Apply</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+      
+      {/* Budget Period Selection Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={budgetPeriodModalVisible}
+        onRequestClose={() => setBudgetPeriodModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Budget Period</Text>
+              <TouchableOpacity onPress={() => setBudgetPeriodModalVisible(false)}>
+                <Ionicons name="close" size={24} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView>
+              <TouchableOpacity 
+                style={styles.periodOption}
+                onPress={() => handleBudgetPeriodChange('week')}
+              >
+                <View style={styles.periodOptionLeft}>
+                  <View style={styles.periodIconContainer}>
+                    <Ionicons name="calendar-outline" size={22} color="#FFFFFF" />
+                  </View>
+                  <Text style={styles.periodOptionText}>Weekly</Text>
+                </View>
+                
+                {budgetPeriod === 'week' && (
+                  <Ionicons name="checkmark-circle" size={22} color="#276EF1" />
+                )}
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.periodOption}
+                onPress={() => handleBudgetPeriodChange('month')}
+              >
+                <View style={styles.periodOptionLeft}>
+                  <View style={styles.periodIconContainer}>
+                    <Ionicons name="calendar" size={22} color="#FFFFFF" />
+                  </View>
+                  <Text style={styles.periodOptionText}>Monthly</Text>
+                </View>
+                
+                {budgetPeriod === 'month' && (
+                  <Ionicons name="checkmark-circle" size={22} color="#276EF1" />
+                )}
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.periodOption}
+                onPress={() => handleBudgetPeriodChange('quarter')}
+              >
+                <View style={styles.periodOptionLeft}>
+                  <View style={styles.periodIconContainer}>
+                    <Ionicons name="apps" size={22} color="#FFFFFF" />
+                  </View>
+                  <Text style={styles.periodOptionText}>Quarterly</Text>
+                </View>
+                
+                {budgetPeriod === 'quarter' && (
+                  <Ionicons name="checkmark-circle" size={22} color="#276EF1" />
+                )}
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.periodOption}
+                onPress={() => handleBudgetPeriodChange('year')}
+              >
+                <View style={styles.periodOptionLeft}>
+                  <View style={styles.periodIconContainer}>
+                    <Ionicons name="today" size={22} color="#FFFFFF" />
+                  </View>
+                  <Text style={styles.periodOptionText}>Yearly</Text>
+                </View>
+                
+                {budgetPeriod === 'year' && (
+                  <Ionicons name="checkmark-circle" size={22} color="#276EF1" />
+                )}
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.saveButton}
+                onPress={() => setBudgetPeriodModalVisible(false)}
+              >
+                <Text style={styles.saveButtonText}>Apply</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -1049,6 +1312,87 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  menuItemValue: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  menuItemValueText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    marginRight: 5,
+  },
+  optionItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#252525',
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 8,
+  },
+  optionText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+  },
+  comingSoonText: {
+    color: '#888888',
+    fontSize: 12,
+    textAlign: 'center',
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  themeOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#252525',
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 8,
+  },
+  themeOptionLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  themeIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#333333',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 15,
+  },
+  themeOptionText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+  },
+  periodOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#252525',
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 8,
+  },
+  periodOptionLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  periodIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#333333',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 15,
+  },
+  periodOptionText: {
+    color: '#FFFFFF',
+    fontSize: 16,
   },
 });
 

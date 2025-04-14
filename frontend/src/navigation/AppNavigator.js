@@ -13,6 +13,10 @@ import LoginScreen from '../screens/LoginScreen';
 import SignupScreen from '../screens/SignupScreen';
 import AccountsScreen from '../screens/AccountsScreen';
 import SettingsScreen from '../screens/SettingsScreen';
+import ProfileSettings from '../screens/ProfileSettings';
+import PaymentSettings from '../screens/PaymentSettings';
+import CategoriesSettings from '../screens/CategoriesSettings';
+import IncomeSource from '../screens/IncomeSource';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -93,6 +97,11 @@ const AppNavigator = () => {
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Signup" component={SignupScreen} />
         <Stack.Screen name="Settings" component={SettingsScreen} />
+        <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
+        <Stack.Screen name="ProfileSettings" component={ProfileSettings} />
+        <Stack.Screen name="PaymentSettings" component={PaymentSettings} />
+        <Stack.Screen name="CategoriesSettings" component={CategoriesSettings} />
+        <Stack.Screen name="IncomeSource" component={IncomeSource} />
         <Stack.Screen name="MainApp" component={MainAppNavigator} options={{ gestureEnabled: false }} />
       </Stack.Navigator>
     </NavigationContainer>
