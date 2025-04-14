@@ -1,9 +1,14 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity, Animated, Modal, TextInput, SafeAreaView, Platform } from 'react-native';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity, Animated, Modal, TextInput, SafeAreaView, Platform, FlatList, PanResponder } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { G, Path, Circle, Text as SvgText } from 'react-native-svg';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width } = Dimensions.get('window');
+const screenWidth = Dimensions.get('window').width;
+
+// Create an animated version of FlatList
+const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 
 // Constants for the chart size
 const CHART_RADIUS = Math.min(width - 100, 240) / 2;
@@ -162,7 +167,7 @@ const recentExpenses = [
   },
 ];
 
-const HomeScreen = () => {
+const HomeScreen = ({ navigation }) => {
   const [activeIndex, setActiveIndex] = useState(null);
   const fadeAnim = useRef(new Animated.Value(1)).current;
   
@@ -203,9 +208,24 @@ const HomeScreen = () => {
   const [selectedSourceColor, setSelectedSourceColor] = useState('#276EF1');
   
   // State for categories and payment methods
-  const [categories, setCategories] = useState(initialCategories);
+  const [categories, setCategories] = useState([
+    { name: 'Food', icon: 'fast-food', color: '#FF9500' },
+    { name: 'Transport', icon: 'car', color: '#5856D6' },
+    { name: 'Shopping', icon: 'cart', color: '#FF2D55' },
+    { name: 'Bills', icon: 'receipt', color: '#4BC0C0' },
+    { name: 'Entertainment', icon: 'film', color: '#FF3B30' },
+    { name: 'Health', icon: 'medical', color: '#34C759' },
+    { name: 'Education', icon: 'school', color: '#007AFF' },
+    { name: 'Other', icon: 'ellipsis-horizontal', color: '#8E8E93' },
+  ]);
+  
   const [paymentMethods, setPaymentMethods] = useState(initialPaymentMethods);
-  const [incomeCategories, setIncomeCategories] = useState(initialIncomeCategories);
+  const [incomeCategories, setIncomeCategories] = useState([
+    { name: 'Salary', icon: 'cash', color: '#4CD964' },
+    { name: 'Freelance', icon: 'laptop', color: '#007AFF' },
+    { name: 'Investments', icon: 'trending-up', color: '#FFCC00' },
+    { name: 'Gifts', icon: 'gift', color: '#FF2D55' },
+  ]);
   const [incomeSources, setIncomeSources] = useState(initialIncomeSources);
   
   // Calculate percentages and prepare data
@@ -229,6 +249,79 @@ const HomeScreen = () => {
 
   // State for statistics screen
   const [activeStatsTab, setActiveStatsTab] = useState('expense');
+
+  // Add state for financial overview
+  const [activeCardIndex, setActiveCardIndex] = useState(0);
+  const financialCards = [
+    { title: 'Net Worth', value: 2450.00, trend: '+3.2%', color: '#276EF1' },
+    { title: 'Assets', value: 16750.00, trend: '+2.1%', color: '#4BC0C0' },
+    { title: 'Liabilities', value: 14300.00, trend: '-1.5%', color: '#FF6384' }
+  ];
+
+  // Set up refs for the carousel
+  const carouselRef = useRef(null);
+  const scrollX = useRef(new Animated.Value(0)).current;
+  
+  // Update active index based on scroll position
+  useEffect(() => {
+    const listener = scrollX.addListener(({ value }) => {
+      const index = Math.round(value / (screenWidth - 30));
+      if (index !== activeCardIndex && index >= 0 && index < financialCards.length) {
+        setActiveCardIndex(index);
+      }
+    });
+    
+    return () => {
+      scrollX.removeListener(listener);
+    };
+  }, [scrollX, activeCardIndex, financialCards.length]);
+
+  // Function to render financial card item
+  const renderFinancialCard = ({ item, index }) => (
+    <View style={[styles.tile, { width: screenWidth - 30 }]}>
+      <View style={styles.financialCardHeader}>
+        <Text style={[styles.tileLabel, { textAlign: 'center', flex: 1 }]}>{item.title}</Text>
+        <Ionicons 
+          name={
+            index === 0 ? "wallet-outline" : 
+            index === 1 ? "trending-up-outline" : "trending-down-outline"
+          } 
+          size={22} 
+          color={item.color} 
+        />
+      </View>
+      
+      <Text style={[styles.tileAmount, { color: item.color, textAlign: 'center' }]}>
+        ${item.value.toLocaleString()}
+      </Text>
+      <Text style={[styles.tileTrend, { textAlign: 'center' }]}>
+        {item.trend} this month
+      </Text>
+      
+      {/* Add Action Buttons - only on Net Worth tile */}
+      {index === 0 && (
+        <View style={styles.actionButtonsContainer}>
+          <TouchableOpacity 
+            style={styles.netWorthActionButton}
+            activeOpacity={0.7}
+            onPress={() => setIncomeModalVisible(true)}
+          >
+            <Ionicons name="add-circle" size={20} color="#FFFFFF" />
+            <Text style={styles.netWorthActionText}>Income</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[styles.netWorthActionButton, {backgroundColor: '#FF6384'}]}
+            activeOpacity={0.7}
+            onPress={() => setExpenseModalVisible(true)}
+          >
+            <Ionicons name="remove-circle" size={20} color="#FFFFFF" />
+            <Text style={styles.netWorthActionText}>Expense</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    </View>
+  );
 
   // Handle slice press with animation
   const handleSlicePress = (index) => {
@@ -289,6 +382,91 @@ const HomeScreen = () => {
     setActiveStatsTab(tab);
   };
 
+  // Add effect to load categories from AsyncStorage
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const storedExpenseCategories = await AsyncStorage.getItem('expenseCategories');
+        const storedIncomeCategories = await AsyncStorage.getItem('incomeCategories');
+        
+        if (storedExpenseCategories) {
+          setCategories(JSON.parse(storedExpenseCategories));
+        } else {
+          // Set default categories if none found
+          const defaultCategories = [
+            { name: 'Food', icon: 'fast-food', color: '#FF9500' },
+            { name: 'Transport', icon: 'car', color: '#5856D6' },
+            { name: 'Shopping', icon: 'cart', color: '#FF2D55' },
+            { name: 'Bills', icon: 'receipt', color: '#4BC0C0' },
+            { name: 'Entertainment', icon: 'film', color: '#FF3B30' },
+            { name: 'Health', icon: 'medical', color: '#34C759' },
+            { name: 'Education', icon: 'school', color: '#007AFF' },
+            { name: 'Other', icon: 'ellipsis-horizontal', color: '#8E8E93' },
+          ];
+          setCategories(defaultCategories);
+          await AsyncStorage.setItem('expenseCategories', JSON.stringify(defaultCategories));
+        }
+        
+        if (storedIncomeCategories) {
+          setIncomeCategories(JSON.parse(storedIncomeCategories));
+        } else {
+          // Set default income categories if none found
+          const defaultIncomeCategories = [
+            { name: 'Salary', icon: 'cash', color: '#4CD964' },
+            { name: 'Freelance', icon: 'laptop', color: '#007AFF' },
+            { name: 'Investments', icon: 'trending-up', color: '#FFCC00' },
+            { name: 'Gifts', icon: 'gift', color: '#FF2D55' },
+          ];
+          setIncomeCategories(defaultIncomeCategories);
+          await AsyncStorage.setItem('incomeCategories', JSON.stringify(defaultIncomeCategories));
+        }
+      } catch (error) {
+        console.log('Error loading categories from storage:', error);
+      }
+    };
+    
+    loadCategories();
+    
+    // Add a focus listener to reload categories when screen comes into focus
+    const unsubscribe = navigation.addListener('focus', loadCategories);
+    
+    return unsubscribe;
+  }, [navigation]);
+  
+  // Modify the Custom Category Modal to save to AsyncStorage
+  const saveCategory = useCallback(async (newCategory) => {
+    try {
+      const updatedCategories = [...categories, newCategory];
+      setCategories(updatedCategories);
+      await AsyncStorage.setItem('expenseCategories', JSON.stringify(updatedCategories));
+      setSelectedCategory(newCategory.name);
+      setCustomCategoryModalVisible(false);
+      
+      // Reset form
+      setCustomCategoryName('');
+      setSelectedIcon(null);
+    } catch (error) {
+      console.log('Error saving expense category:', error);
+    }
+  }, [categories]);
+  
+  // Modify the Custom Income Category Modal to save to AsyncStorage
+  const saveIncomeCategory = useCallback(async (newCategory) => {
+    try {
+      const updatedCategories = [...incomeCategories, newCategory];
+      setIncomeCategories(updatedCategories);
+      await AsyncStorage.setItem('incomeCategories', JSON.stringify(updatedCategories));
+      setSelectedIncomeCategory(newCategory.name);
+      setCustomIncomeCategoryModalVisible(false);
+      
+      // Reset form
+      setCustomIncomeCategoryName('');
+      setSelectedIncomeIcon(null);
+    } catch (error) {
+      console.log('Error saving income category:', error);
+    }
+  }, [incomeCategories]);
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView 
@@ -300,36 +478,44 @@ const HomeScreen = () => {
         nestedScrollEnabled={true}
       >
         <View style={styles.screenPadding}>
-          {/* Overview Section */}
-          <View style={styles.overviewContainer}>
-            <View style={styles.overviewHeader}>
-              <Text style={styles.sectionTitle}>Overview</Text>
-              <Ionicons name="wallet-outline" size={24} color="#276EF1" />
-            </View>
-            
-            <Text style={styles.balance}>$2,450.00</Text>
-            <Text style={styles.balanceLabel}>Total Balance</Text>
-            
-            {/* Add Action Buttons */}
-            <View style={styles.actionButtonsContainer}>
-              <TouchableOpacity 
-                style={[styles.actionButton, {backgroundColor: '#4BC0C0'}]}
-                activeOpacity={0.7}
-                onPress={() => setIncomeModalVisible(true)}
-              >
-                <Ionicons name="add-circle" size={18} color="#FFFFFF" />
-                <Text style={styles.actionButtonText}>Add Income</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity 
-                style={[styles.actionButton, {backgroundColor: '#FF6384'}]}
-                activeOpacity={0.7}
-                onPress={() => setExpenseModalVisible(true)}
-              >
-                <Ionicons name="remove-circle" size={18} color="#FFFFFF" />
-                <Text style={styles.actionButtonText}>Add Expense</Text>
-              </TouchableOpacity>
-            </View>
+          {/* Financial Cards Carousel */}
+          <View style={styles.monthlyStatsHeader}>
+            <Text style={styles.sectionTitle}>Financial Overview</Text>
+            <Ionicons name="wallet-outline" size={22} color="#276EF1" />
+          </View>
+          
+          <View style={styles.carouselWrapper}>
+            <AnimatedFlatList
+              ref={carouselRef}
+              data={financialCards}
+              renderItem={renderFinancialCard}
+              keyExtractor={(_, index) => index.toString()}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              snapToInterval={screenWidth - 30}
+              decelerationRate="fast"
+              snapToAlignment="center"
+              onScroll={Animated.event(
+                [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+                { useNativeDriver: true }
+              )}
+              scrollEventThrottle={16}
+              contentContainerStyle={styles.carouselContentContainer}
+            />
+          </View>
+          
+          {/* Pagination Indicators */}
+          <View style={styles.paginationDots}>
+            {financialCards.map((_, index) => (
+              <View 
+                key={index} 
+                style={[
+                  styles.paginationDot, 
+                  activeCardIndex === index ? styles.paginationDotActive : {}
+                ]} 
+              />
+            ))}
           </View>
           
           {/* Monthly Stats Section */}
@@ -722,7 +908,7 @@ const HomeScreen = () => {
           <View style={styles.modalContent}>
             <ScrollView showsVerticalScrollIndicator={false}>
               <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Create Custom Category</Text>
+                <Text style={styles.modalTitle}>Create Category</Text>
                 <TouchableOpacity onPress={() => setCustomCategoryModalVisible(false)}>
                   <Ionicons name="close" size={24} color="#ffffff" />
                 </TouchableOpacity>
@@ -738,7 +924,7 @@ const HomeScreen = () => {
               
               <Text style={styles.categoryLabel}>Select Icon</Text>
               <View style={styles.iconGrid}>
-                {availableIcons.map((icon) => (
+                {['fast-food', 'car', 'cart', 'receipt', 'film', 'medical', 'school', 'basket', 'home', 'fitness', 'briefcase', 'game-controller', 'gift'].map((icon) => (
                   <TouchableOpacity 
                     key={icon}
                     style={[
@@ -771,19 +957,11 @@ const HomeScreen = () => {
                 style={[styles.addButton, { backgroundColor: selectedColor || '#276EF1' }]}
                 onPress={() => {
                   if (customCategoryName.trim() && selectedIcon) {
-                    const newCategory = {
+                    saveCategory({
                       name: customCategoryName.trim(),
                       icon: selectedIcon,
                       color: selectedColor || '#276EF1'
-                    };
-                    
-                    setCategories([...categories, newCategory]);
-                    setSelectedCategory(newCategory.name);
-                    setCustomCategoryModalVisible(false);
-                    
-                    // Reset form
-                    setCustomCategoryName('');
-                    setSelectedIcon(null);
+                    });
                   }
                 }}
               >
@@ -937,23 +1115,15 @@ const HomeScreen = () => {
                 style={[styles.addButton, { backgroundColor: selectedIncomeColor || '#4BC0C0' }]}
                 onPress={() => {
                   if (customIncomeCategoryName.trim() && selectedIncomeIcon) {
-                    const newCategory = {
+                    saveIncomeCategory({
                       name: customIncomeCategoryName.trim(),
                       icon: selectedIncomeIcon,
                       color: selectedIncomeColor || '#4BC0C0'
-                    };
-                    
-                    setIncomeCategories([...incomeCategories, newCategory]);
-                    setSelectedIncomeCategory(newCategory.name);
-                    setCustomIncomeCategoryModalVisible(false);
-                    
-                    // Reset form
-                    setCustomIncomeCategoryName('');
-                    setSelectedIncomeIcon(null);
+                    });
                   }
                 }}
               >
-                <Text style={styles.buttonText}>Create Category</Text>
+                <Text style={styles.buttonText}>Create Income Category</Text>
               </TouchableOpacity>
             </ScrollView>
           </View>
@@ -1850,30 +2020,31 @@ const styles = StyleSheet.create({
   },
   actionButtonsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'space-evenly',
     width: '100%',
     marginTop: 20,
   },
-  actionButton: {
+  netWorthActionButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
+    backgroundColor: '#4BC0C0',
+    borderRadius: 10,
+    paddingVertical: 10,
     paddingHorizontal: 16,
-    borderRadius: 25,
-    width: '48%',
+    width: '42%',
     elevation: 3,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 1,
+      height: 2,
     },
     shadowOpacity: 0.3,
-    shadowRadius: 2,
+    shadowRadius: 3,
   },
-  actionButtonText: {
+  netWorthActionText: {
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
     marginLeft: 8,
   },
@@ -2281,6 +2452,69 @@ const styles = StyleSheet.create({
   statsTabTextActive: {
     color: '#FFFFFF',
     fontWeight: '600',
+  },
+  paginationDots: {
+    flexDirection: 'row',
+    marginTop: 15,
+    marginBottom: 15,
+    justifyContent: 'center',
+    height: 8,
+  },
+  paginationDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#333333',
+    marginHorizontal: 4,
+  },
+  paginationDotActive: {
+    backgroundColor: '#276EF1',
+    width: 16,
+  },
+  carouselContainer: {
+    marginBottom: 20,
+  },
+  carouselContentContainer: {
+    paddingHorizontal: 0,
+  },
+  overviewContainer: {
+    backgroundColor: '#1a1a1a',
+    borderRadius: 15,
+    padding: 20,
+    width: screenWidth - 30, // Full width minus padding
+    alignItems: 'center',
+  },
+  financialCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: 8,
+  },
+  tileTrend: {
+    fontSize: 12,
+    color: '#666666',
+    marginTop: 3,
+  },
+  miniActionButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginHorizontal: 5,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 1.41,
+    elevation: 2,
+  },
+  carouselWrapper: {
+    width: screenWidth - 30,
+    alignSelf: 'center',
   },
 });
 

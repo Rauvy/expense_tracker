@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Platform, StatusBar, SafeAreaView, Modal, TextInput, Switch, FlatList, KeyboardAvoidingView, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width } = Dimensions.get('window');
 
@@ -149,14 +150,7 @@ const allTransactions = [
   },
 ];
 
-// Extract unique categories from transactions, separated by type
-const extractCategories = (transactions, type = null) => {
-  const filtered = type ? transactions.filter(item => item.type === type) : transactions;
-  const categories = filtered.map(item => item.category);
-  return [...new Set(categories)];
-};
-
-const TransactionsScreen = () => {
+const AddExpenseScreen = ({ navigation }) => {
   const [filterType, setFilterType] = useState('all'); // 'all', 'expense', 'income'
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [transactionDetailsVisible, setTransactionDetailsVisible] = useState(false);
@@ -172,19 +166,77 @@ const TransactionsScreen = () => {
     searchQuery: ''
   });
   
-  // Get all categories, expense categories, and income categories
-  const allCategories = extractCategories(allTransactions);
-  const expenseCategories = extractCategories(allTransactions, 'expense');
-  const incomeCategories = extractCategories(allTransactions, 'income');
+  // Using state for categories
+  const [categories, setCategories] = useState([]);
+  const [incomeCategories, setIncomeCategories] = useState([]);
   
-  // Determine which categories to show based on the filter type (memoized)
+  // Load categories from AsyncStorage
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const storedExpenseCategories = await AsyncStorage.getItem('expenseCategories');
+        const storedIncomeCategories = await AsyncStorage.getItem('incomeCategories');
+        
+        if (storedExpenseCategories) {
+          setCategories(JSON.parse(storedExpenseCategories));
+        } else {
+          // Set default categories if none found
+          const defaultCategories = [
+            { name: 'Food', icon: 'fast-food', color: '#FF9500' },
+            { name: 'Transport', icon: 'car', color: '#5856D6' },
+            { name: 'Shopping', icon: 'cart', color: '#FF2D55' },
+            { name: 'Bills', icon: 'receipt', color: '#4BC0C0' },
+            { name: 'Entertainment', icon: 'film', color: '#FF3B30' },
+            { name: 'Health', icon: 'medical', color: '#34C759' },
+            { name: 'Education', icon: 'school', color: '#007AFF' },
+            { name: 'Other', icon: 'ellipsis-horizontal', color: '#8E8E93' },
+          ];
+          setCategories(defaultCategories);
+          await AsyncStorage.setItem('expenseCategories', JSON.stringify(defaultCategories));
+        }
+        
+        if (storedIncomeCategories) {
+          setIncomeCategories(JSON.parse(storedIncomeCategories));
+        } else {
+          // Set default income categories if none found
+          const defaultIncomeCategories = [
+            { name: 'Salary', icon: 'cash', color: '#4CD964' },
+            { name: 'Freelance', icon: 'laptop', color: '#007AFF' },
+            { name: 'Investments', icon: 'trending-up', color: '#FFCC00' },
+            { name: 'Gifts', icon: 'gift', color: '#FF2D55' },
+          ];
+          setIncomeCategories(defaultIncomeCategories);
+          await AsyncStorage.setItem('incomeCategories', JSON.stringify(defaultIncomeCategories));
+        }
+      } catch (error) {
+        console.log('Error loading categories from storage:', error);
+      }
+    };
+    
+    loadCategories();
+    
+    // Add a focus listener to reload categories when screen comes into focus
+    const unsubscribe = navigation.addListener('focus', loadCategories);
+    
+    return unsubscribe;
+  }, [navigation]);
+  
+  // Get current categories based on filter type
   const categoriesToShow = useCallback(() => {
-    return filterType === 'expense' 
-      ? expenseCategories 
-      : filterType === 'income' 
-        ? incomeCategories 
-        : allCategories;
-  }, [filterType, expenseCategories, incomeCategories, allCategories]);
+    if (filterType === 'income') {
+      return incomeCategories.map(cat => cat.name);
+    } else {
+      return categories.map(cat => cat.name);
+    }
+  }, [categories, incomeCategories, filterType]);
+  
+  // Get category color and icon
+  const getCategoryDetails = useCallback((categoryName) => {
+    const categoryList = filterType === 'income' ? incomeCategories : categories;
+    const category = categoryList.find(cat => cat.name === categoryName);
+    
+    return category || { color: '#276EF1', icon: 'ellipsis-horizontal' };
+  }, [categories, incomeCategories, filterType]);
   
   // Filter transactions based on selected type and advanced filters
   const filteredTransactions = allTransactions.filter(transaction => {
@@ -316,207 +368,173 @@ const TransactionsScreen = () => {
     });
   };
   
-  // Get category color based on the category name
-  const getCategoryColor = useCallback((category) => {
-    const transaction = allTransactions.find(t => t.category === category);
-    return transaction ? transaction.color : COLORS.BLUE;
-  }, [allTransactions]);
-
-  // Render the filter modal content
+  // Completely rewrite the renderModalContent function to implement a better design
   const renderModalContent = useCallback(() => {
     const currentCategories = categoriesToShow();
     
-    const sections = [
-      { 
-        id: 'search',
-        type: 'search',
-        title: 'Search by name',
-        value: searchQuery,
-        onChangeText: setSearchQuery
-      },
-      {
-        id: 'categories',
-        type: 'categories',
-        title: filterType === 'all' ? 'Categories' : 
-               filterType === 'income' ? 'Income Categories' : 'Expense Categories',
-        data: currentCategories,
-        selected: selectedCategories,
-        onSelect: toggleCategory
-      },
-      {
-        id: 'date',
-        type: 'date',
-        title: 'Date Range',
-        startDate: dateRange.start,
-        endDate: dateRange.end,
-        onChangeStart: (text) => setDateRange({...dateRange, start: text}),
-        onChangeEnd: (text) => setDateRange({...dateRange, end: text})
-      },
-      {
-        id: 'amount',
-        type: 'amount',
-        title: 'Amount Range',
-        minAmount: amountRange.min,
-        maxAmount: amountRange.max,
-        onChangeMin: (text) => setAmountRange({...amountRange, min: text}),
-        onChangeMax: (text) => setAmountRange({...amountRange, max: text})
-      }
-    ];
-    
-    const renderItem = ({ item }) => {
-      switch (item.type) {
-        case 'search':
-          return (
+    return (
+      <View style={styles.filterModalContainer}>
+        <View style={styles.filterModalContent}>
+          <View style={styles.filterModalHeader}>
+            <TouchableOpacity 
+              style={styles.filterModalCloseButton} 
+              onPress={() => setShowFilterModal(false)}
+            >
+              <Ionicons name="chevron-down" size={26} color="#FFFFFF" />
+            </TouchableOpacity>
+            <Text style={styles.filterModalTitle}>Filters</Text>
+            <TouchableOpacity 
+              style={styles.filterModalResetButton}
+              onPress={resetFilters}
+            >
+              <Text style={styles.filterModalResetText}>Reset</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <ScrollView
+            style={styles.filterModalScrollView}
+            contentContainerStyle={styles.filterModalScrollContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            {/* Search Section */}
             <View style={styles.filterSection}>
-              <Text style={styles.filterSectionTitle}>{item.title}</Text>
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Search transactions..."
-                placeholderTextColor="#888888"
-                value={item.value}
-                onChangeText={item.onChangeText}
-              />
+              <Text style={styles.filterSectionTitle}>Search</Text>
+              <View style={styles.searchInputContainer}>
+                <Ionicons name="search" size={20} color="#999999" style={styles.searchInputIcon} />
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder="Search transactions..."
+                  placeholderTextColor="#999999"
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                />
+                {searchQuery.length > 0 && (
+                  <TouchableOpacity onPress={() => setSearchQuery('')}>
+                    <Ionicons name="close-circle" size={20} color="#999999" />
+                  </TouchableOpacity>
+                )}
+              </View>
             </View>
-          );
-        
-        case 'categories':
-          return (
+            
+            <View style={styles.filterDivider} />
+            
+            {/* Categories Section */}
             <View style={styles.filterSection}>
-              <Text style={styles.filterSectionTitle}>{item.title}</Text>
+              <Text style={styles.filterSectionTitle}>
+                {filterType === 'all' ? 'Categories' : 
+                 filterType === 'income' ? 'Income Categories' : 'Expense Categories'}
+              </Text>
               <View style={styles.categoriesContainer}>
-                {item.data.map((category) => {
-                  const categoryColor = getCategoryColor(category);
-                  const isSelected = item.selected.includes(category);
+                {currentCategories.map((category) => {
+                  const { color } = getCategoryDetails(category);
+                  const isSelected = selectedCategories.includes(category);
                   
                   return (
                     <TouchableOpacity
                       key={category}
                       style={[
                         styles.categoryChip,
-                        isSelected && { backgroundColor: categoryColor }
+                        isSelected && { backgroundColor: color, borderColor: color }
                       ]}
-                      onPress={() => item.onSelect(category)}
+                      onPress={() => toggleCategory(category)}
                     >
-                      <Text 
-                        style={[
-                          styles.categoryChipText,
-                          isSelected && styles.selectedCategoryChipText
-                        ]}
-                      >
+                      <Text style={[
+                        styles.categoryChipText,
+                        isSelected && styles.selectedCategoryChipText
+                      ]}>
                         {category}
                       </Text>
+                      {isSelected && (
+                        <Ionicons name="checkmark" size={16} color="#FFFFFF" style={styles.categoryCheckmark} />
+                      )}
                     </TouchableOpacity>
                   );
                 })}
               </View>
             </View>
-          );
-          
-        case 'date':
-          return (
+            
+            <View style={styles.filterDivider} />
+            
+            {/* Date Range Section */}
             <View style={styles.filterSection}>
-              <Text style={styles.filterSectionTitle}>{item.title}</Text>
+              <Text style={styles.filterSectionTitle}>Date Range</Text>
               <View style={styles.rangeInputsContainer}>
-                <View style={styles.dateInputContainer}>
+                <View style={styles.dateInputWrapper}>
                   <Text style={styles.dateInputLabel}>From</Text>
-                  <TextInput
-                    style={styles.dateInput}
-                    placeholder="DD/MM/YYYY"
-                    placeholderTextColor="#888888"
-                    value={item.startDate}
-                    onChangeText={item.onChangeStart}
-                  />
+                  <View style={styles.dateInputContainer}>
+                    <TextInput
+                      style={styles.dateInput}
+                      placeholder="DD/MM/YYYY"
+                      placeholderTextColor="#999999"
+                      value={dateRange.start}
+                      onChangeText={(text) => setDateRange({...dateRange, start: text})}
+                    />
+                    <Ionicons name="calendar" size={20} color="#999999" style={styles.dateInputIcon} />
+                  </View>
                 </View>
-                <View style={styles.dateInputContainer}>
+                
+                <View style={styles.dateInputWrapper}>
                   <Text style={styles.dateInputLabel}>To</Text>
-                  <TextInput
-                    style={styles.dateInput}
-                    placeholder="DD/MM/YYYY"
-                    placeholderTextColor="#888888"
-                    value={item.endDate}
-                    onChangeText={item.onChangeEnd}
-                  />
+                  <View style={styles.dateInputContainer}>
+                    <TextInput
+                      style={styles.dateInput}
+                      placeholder="DD/MM/YYYY"
+                      placeholderTextColor="#999999"
+                      value={dateRange.end}
+                      onChangeText={(text) => setDateRange({...dateRange, end: text})}
+                    />
+                    <Ionicons name="calendar" size={20} color="#999999" style={styles.dateInputIcon} />
+                  </View>
                 </View>
               </View>
             </View>
-          );
-          
-        case 'amount':
-          return (
+            
+            <View style={styles.filterDivider} />
+            
+            {/* Amount Range Section */}
             <View style={styles.filterSection}>
-              <Text style={styles.filterSectionTitle}>{item.title}</Text>
+              <Text style={styles.filterSectionTitle}>Amount Range</Text>
               <View style={styles.rangeInputsContainer}>
-                <View style={styles.amountInputContainer}>
-                  <Text style={styles.amountInputLabel}>Min $</Text>
-                  <TextInput
-                    style={styles.amountInput}
-                    placeholder="0.00"
-                    placeholderTextColor="#888888"
-                    keyboardType="numeric"
-                    value={item.minAmount}
-                    onChangeText={item.onChangeMin}
-                  />
+                <View style={styles.amountInputWrapper}>
+                  <Text style={styles.amountInputLabel}>Minimum</Text>
+                  <View style={styles.amountInputContainer}>
+                    <Text style={styles.amountInputPrefix}>$</Text>
+                    <TextInput
+                      style={styles.amountInput}
+                      placeholder="0.00"
+                      placeholderTextColor="#999999"
+                      keyboardType="numeric"
+                      value={amountRange.min}
+                      onChangeText={(text) => setAmountRange({...amountRange, min: text})}
+                    />
+                  </View>
                 </View>
-                <View style={styles.amountInputContainer}>
-                  <Text style={styles.amountInputLabel}>Max $</Text>
-                  <TextInput
-                    style={styles.amountInput}
-                    placeholder="9999.99"
-                    placeholderTextColor="#888888"
-                    keyboardType="numeric"
-                    value={item.maxAmount}
-                    onChangeText={item.onChangeMax}
-                  />
+                
+                <View style={styles.amountInputWrapper}>
+                  <Text style={styles.amountInputLabel}>Maximum</Text>
+                  <View style={styles.amountInputContainer}>
+                    <Text style={styles.amountInputPrefix}>$</Text>
+                    <TextInput
+                      style={styles.amountInput}
+                      placeholder="Any"
+                      placeholderTextColor="#999999"
+                      keyboardType="numeric"
+                      value={amountRange.max}
+                      onChangeText={(text) => setAmountRange({...amountRange, max: text})}
+                    />
+                  </View>
                 </View>
               </View>
             </View>
-          );
+          </ScrollView>
           
-        default:
-          return null;
-      }
-    };
-    
-    return (
-      <View style={styles.modalOverlay}>
-        <View style={[
-          styles.modalContainer,
-          isKeyboardVisible && Platform.OS === 'ios' ? { height: '95%' } : null
-        ]}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Advanced Filters</Text>
-            <TouchableOpacity onPress={() => setShowFilterModal(false)}>
-              <Ionicons name="close" size={24} color="#FFFFFF" />
-            </TouchableOpacity>
-          </View>
-          
-          {/* Container for the scrollable content */}
-          <View style={{ flex: 1, paddingBottom: 80 }}>
-            <FlatList
-              data={sections}
-              renderItem={renderItem}
-              keyExtractor={item => item.id}
-              contentContainerStyle={{ padding: 20 }}
-              showsVerticalScrollIndicator={true}
-              keyboardShouldPersistTaps="handled"
-              onScrollBeginDrag={() => Keyboard.dismiss()}
-              ListFooterComponent={<View style={{ height: 150 }} />}
-            />
-          </View>
-          
-          {/* Fixed footer */}
-          <View style={styles.fixedFilterFooter}>
+          <View style={styles.filterModalFooter}>
             <TouchableOpacity 
-              style={styles.resetButton}
-              onPress={resetFilters}
-            >
-              <Text style={styles.resetButtonText}>Reset</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.applyButton, { backgroundColor: COLORS.BLUE }]}
+              style={styles.filterApplyButton}
               onPress={applyFilters}
             >
-              <Text style={styles.applyButtonText}>Apply Filters</Text>
+              <Text style={styles.filterApplyButtonText}>Apply Filters</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -529,8 +547,10 @@ const TransactionsScreen = () => {
     dateRange, 
     amountRange, 
     filterType,
-    getCategoryColor,
-    toggleCategory
+    getCategoryDetails,
+    toggleCategory,
+    resetFilters,
+    applyFilters
   ]);
 
   // Handle transaction click
@@ -712,7 +732,7 @@ const TransactionsScreen = () => {
                   style={styles.activeFiltersScroll}
                 >
                   {appliedFilters.categories.map(cat => {
-                    const categoryColor = getCategoryColor(cat);
+                    const categoryColor = getCategoryDetails(cat).color;
                     return (
                       <View key={cat} style={[styles.activeFilterChip, { backgroundColor: categoryColor }]}>
                         <Text style={styles.activeFilterChipText}>{cat}</Text>
@@ -1103,14 +1123,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  transactionMethodIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 10,
-  },
   statusContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1134,6 +1146,182 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  // Filter Modal Styles
+  filterModalContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  filterModalContent: {
+    flex: 1,
+    backgroundColor: '#1a1a1a',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    marginTop: 60,
+  },
+  filterModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333333',
+  },
+  filterModalCloseButton: {
+    padding: 4,
+  },
+  filterModalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  filterModalResetButton: {
+    padding: 4,
+  },
+  filterModalResetText: {
+    fontSize: 16,
+    color: COLORS.BLUE,
+    fontWeight: '500',
+  },
+  filterModalScrollView: {
+    flex: 1,
+  },
+  filterModalScrollContent: {
+    paddingBottom: 30,
+  },
+  filterModalFooter: {
+    padding: 20,
+    paddingBottom: Platform.OS === 'ios' ? 35 : 20,
+    borderTopWidth: 1,
+    borderTopColor: '#333333',
+  },
+  filterSection: {
+    padding: 20,
+  },
+  filterDivider: {
+    height: 8,
+    backgroundColor: '#121212',
+  },
+  filterSectionTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginBottom: 18,
+  },
+  searchInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#252525',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+  },
+  searchInputIcon: {
+    marginRight: 10,
+  },
+  searchInput: {
+    flex: 1,
+    color: '#FFFFFF',
+    fontSize: 16,
+    padding: 0,
+  },
+  categoriesContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginHorizontal: -5,
+  },
+  categoryChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#252525',
+    borderWidth: 1,
+    borderColor: '#333333',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 20,
+    margin: 5,
+  },
+  categoryChipText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+  },
+  selectedCategoryChipText: {
+    color: '#FFFFFF',
+    fontWeight: '500',
+  },
+  categoryCheckmark: {
+    marginLeft: 6,
+  },
+  rangeInputsContainer: {
+    flexDirection: 'row',
+    marginHorizontal: -6,
+  },
+  dateInputWrapper: {
+    flex: 1,
+    marginHorizontal: 6,
+  },
+  dateInputLabel: {
+    fontSize: 15,
+    color: '#FFFFFF',
+    marginBottom: 8,
+  },
+  dateInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#252525',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+  },
+  dateInput: {
+    flex: 1,
+    color: '#FFFFFF',
+    fontSize: 16,
+    padding: 0,
+  },
+  dateInputIcon: {
+    marginLeft: 10,
+  },
+  amountInputWrapper: {
+    flex: 1,
+    marginHorizontal: 6,
+  },
+  amountInputLabel: {
+    fontSize: 15,
+    color: '#FFFFFF',
+    marginBottom: 8,
+  },
+  amountInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#252525',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+  },
+  amountInputPrefix: {
+    color: '#999999',
+    fontSize: 16,
+    marginRight: 5,
+  },
+  amountInput: {
+    flex: 1,
+    color: '#FFFFFF',
+    fontSize: 16,
+    padding: 0,
+  },
+  filterApplyButton: {
+    backgroundColor: COLORS.BLUE,
+    borderRadius: 12,
+    height: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  filterApplyButtonText: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
 });
 
-export default TransactionsScreen; 
+export default AddExpenseScreen; 

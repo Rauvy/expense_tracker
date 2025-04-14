@@ -11,6 +11,8 @@ import StatisticsScreen from '../screens/StatisticsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import LoginScreen from '../screens/LoginScreen';
 import SignupScreen from '../screens/SignupScreen';
+import AccountsScreen from '../screens/AccountsScreen';
+import SettingsScreen from '../screens/SettingsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -54,6 +56,15 @@ const MainAppNavigator = () => {
         }}
       />
       <Tab.Screen 
+        name="Accounts" 
+        component={AccountsScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="wallet" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tab.Screen 
         name="Statistics" 
         component={StatisticsScreen}
         options={{
@@ -81,6 +92,7 @@ const AppNavigator = () => {
       <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="MainApp">
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Signup" component={SignupScreen} />
+        <Stack.Screen name="Settings" component={SettingsScreen} />
         <Stack.Screen name="MainApp" component={MainAppNavigator} options={{ gestureEnabled: false }} />
       </Stack.Navigator>
     </NavigationContainer>
