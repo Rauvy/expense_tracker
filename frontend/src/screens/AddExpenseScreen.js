@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Platform, StatusBar, SafeAreaView, Modal, TextInput, Switch, FlatList, KeyboardAvoidingView, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import TransactionsDetail from '../components/TransactionsDetail';
 
 const { width } = Dimensions.get('window');
 
@@ -559,110 +560,18 @@ const AddExpenseScreen = ({ navigation }) => {
     setTransactionDetailsVisible(true);
   };
 
-  const renderTransactionDetails = () => {
-    if (!selectedTransaction) return null;
+  // Handle edit transaction
+  const handleEditTransaction = (updatedTransaction) => {
+    // In a real app, you would update the transaction in your data source
+    console.log('Updated transaction:', updatedTransaction);
+    setTransactionDetailsVisible(false);
+  };
 
-    return (
-      <Modal
-        visible={transactionDetailsVisible}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setTransactionDetailsVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Transaction Details</Text>
-              <TouchableOpacity onPress={() => setTransactionDetailsVisible(false)}>
-                <Ionicons name="close" size={24} color="#FFFFFF" />
-              </TouchableOpacity>
-            </View>
-
-            {selectedTransaction && (
-              <View style={styles.transactionDetailsContent}>
-                <View style={[styles.transactionIcon, { backgroundColor: selectedTransaction.color }]}>
-                  <Ionicons name={selectedTransaction.icon} size={24} color="#FFFFFF" />
-                </View>
-
-                <Text style={styles.transactionDetailsTitle}>{selectedTransaction.title}</Text>
-                <Text style={styles.transactionDetailsCategory}>{selectedTransaction.category}</Text>
-
-                <Text style={[
-                  styles.transactionDetailsAmount,
-                  selectedTransaction.type === 'income' ? styles.incomeAmount : styles.expenseAmount
-                ]}>
-                  {selectedTransaction.type === 'income' ? '+' : '-'}${selectedTransaction.amount.toFixed(2)}
-                </Text>
-
-                <View style={styles.transactionDetailsRow}>
-                  <Text style={styles.transactionDetailsLabel}>Date</Text>
-                  <Text style={styles.transactionDetailsValue}>{selectedTransaction.date}</Text>
-                </View>
-
-                <View style={styles.transactionDetailsRow}>
-                  <Text style={styles.transactionDetailsLabel}>Time</Text>
-                  <Text style={styles.transactionDetailsValue}>12:30 PM</Text>
-                </View>
-
-                <View style={styles.transactionDetailsRow}>
-                  <Text style={styles.transactionDetailsLabel}>Transaction ID</Text>
-                  <Text style={styles.transactionDetailsValue}>#TRX{selectedTransaction.id.toString().padStart(4, '0')}</Text>
-                </View>
-
-                <View style={styles.transactionDetailsRow}>
-                  <Text style={styles.transactionDetailsLabel}>
-                    {selectedTransaction.type === 'income' ? 'Source' : 'Payment Method'}
-                  </Text>
-                  <View style={styles.transactionDetailsMethod}>
-                    <View
-                      style={[
-                        styles.transactionMethodIcon,
-                        {
-                          backgroundColor: selectedTransaction.type === 'income'
-                            ? selectedTransaction.sourceColor
-                            : selectedTransaction.paymentColor
-                        }
-                      ]}
-                    >
-                      <Ionicons
-                        name={selectedTransaction.type === 'income'
-                          ? selectedTransaction.sourceIcon
-                          : selectedTransaction.paymentIcon}
-                        size={16}
-                        color="#FFFFFF"
-                      />
-                    </View>
-                    <Text style={styles.transactionDetailsValue}>
-                      {selectedTransaction.type === 'income'
-                        ? selectedTransaction.source
-                        : selectedTransaction.paymentMethod}
-                    </Text>
-                  </View>
-                </View>
-
-                <View style={styles.transactionDetailsRow}>
-                  <Text style={styles.transactionDetailsLabel}>Status</Text>
-                  <View style={styles.statusContainer}>
-                    <View style={[styles.statusDot, { backgroundColor: '#4CAF50' }]} />
-                    <Text style={[styles.transactionDetailsValue, { color: '#4CAF50' }]}>Completed</Text>
-                  </View>
-                </View>
-
-                <TouchableOpacity
-                  style={styles.editTransactionButton}
-                  onPress={() => {
-                    // Handle edit action
-                    setTransactionDetailsVisible(false);
-                  }}
-                >
-                  <Text style={styles.editTransactionButtonText}>Edit Transaction</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
-        </View>
-      </Modal>
-    );
+  // Handle delete transaction
+  const handleDeleteTransaction = (transactionId) => {
+    // In a real app, you would delete the transaction from your data source
+    console.log('Delete transaction with ID:', transactionId);
+    setTransactionDetailsVisible(false);
   };
 
   return (
@@ -835,11 +744,26 @@ const AddExpenseScreen = ({ navigation }) => {
         {renderModalContent()}
       </Modal>
 
-      {/* Transaction Details Modal */}
-      {renderTransactionDetails()}
+      {/* Transaction Details Modal using the TransactionsDetail component */}
+      <TransactionsDetail
+        visible={transactionDetailsVisible}
+        transaction={selectedTransaction}
+        categories={categories}
+        paymentMethods={initialPaymentMethods}
+        onClose={() => setTransactionDetailsVisible(false)}
+        onSave={handleEditTransaction}
+        onDelete={handleDeleteTransaction}
+      />
     </SafeAreaView>
   );
 };
+
+// Add paymentMethods data
+const initialPaymentMethods = [
+  { name: 'Credit Card', icon: 'card', color: '#FF6384' },
+  { name: 'Cash', icon: 'cash', color: '#4BC0C0' },
+  { name: 'Mobile Pay', icon: 'phone-portrait', color: '#9966FF' },
+];
 
 const styles = StyleSheet.create({
   safeArea: {
