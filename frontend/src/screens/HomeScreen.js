@@ -2729,9 +2729,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 2,
   },
-  categoryIcon: {
-    marginRight: 8,
-  },
   categoryText: {
     color: '#FFFFFF',
     fontSize: 13,
