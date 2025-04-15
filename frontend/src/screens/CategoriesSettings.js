@@ -82,6 +82,9 @@ const CategoriesSettings = () => {
     category.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
   
+  // Prepare data with add button as last item
+  const dataWithAddButton = searchQuery ? filteredCategories : [...filteredCategories, { id: 'add-button', isAddButton: true }];
+  
   // Reset new category form
   const resetNewCategoryForm = () => {
     setNewCategoryName('');
@@ -194,23 +197,40 @@ const CategoriesSettings = () => {
   };
   
   // Render category item
-  const renderCategoryItem = ({ item }) => (
-    <View style={styles.categoryItem}>
-      <View style={styles.categoryInfo}>
-        <View style={[styles.categoryIcon, { backgroundColor: item.color }]}>
-          <Ionicons name={item.icon} size={24} color="#FFFFFF" />
+  const renderCategoryItem = ({ item }) => {
+    // Special case for add button
+    if (item.isAddButton) {
+      return (
+        <TouchableOpacity 
+          style={styles.addButton}
+          onPress={openAddCategoryModal}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="add" size={24} color="#FFFFFF" />
+          <Text style={styles.addButtonText}>Add Category</Text>
+        </TouchableOpacity>
+      );
+    }
+    
+    // Normal category item
+    return (
+      <View style={styles.categoryItem}>
+        <View style={styles.categoryInfo}>
+          <View style={[styles.categoryIcon, { backgroundColor: item.color }]}>
+            <Ionicons name={item.icon} size={24} color="#FFFFFF" />
+          </View>
+          <Text style={styles.categoryName}>{item.name}</Text>
         </View>
-        <Text style={styles.categoryName}>{item.name}</Text>
+        
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={() => handleDeleteCategory(item.id)}
+        >
+          <Ionicons name="trash-outline" size={22} color="#FF3B30" />
+        </TouchableOpacity>
       </View>
-      
-      <TouchableOpacity
-        style={styles.deleteButton}
-        onPress={() => handleDeleteCategory(item.id)}
-      >
-        <Ionicons name="trash-outline" size={22} color="#FF3B30" />
-      </TouchableOpacity>
-    </View>
-  );
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -225,13 +245,7 @@ const CategoriesSettings = () => {
         
         <Text style={styles.screenTitle}>Categories</Text>
         
-        <TouchableOpacity 
-          style={styles.addButton}
-          onPress={openAddCategoryModal}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="add" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
+        <View style={{width: 40}} />
       </View>
       
       <View style={styles.searchContainer}>
@@ -254,26 +268,37 @@ const CategoriesSettings = () => {
         )}
       </View>
       
-      {filteredCategories.length === 0 ? (
+      {filteredCategories.length === 0 && !searchQuery ? (
         <View style={styles.emptyContainer}>
           <Ionicons name="folder-open-outline" size={80} color="#333333" />
           <Text style={styles.emptyText}>
-            {searchQuery
-              ? `No categories found for "${searchQuery}"`
-              : 'No categories added yet'}
+            No categories added yet
           </Text>
-          {searchQuery && (
-            <TouchableOpacity
-              style={styles.clearSearchButton}
-              onPress={() => setSearchQuery('')}
-            >
-              <Text style={styles.clearSearchText}>Clear Search</Text>
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={openAddCategoryModal}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="add" size={24} color="#FFFFFF" />
+            <Text style={styles.addButtonText}>Add Category</Text>
+          </TouchableOpacity>
+        </View>
+      ) : filteredCategories.length === 0 && searchQuery ? (
+        <View style={styles.emptyContainer}>
+          <Ionicons name="folder-open-outline" size={80} color="#333333" />
+          <Text style={styles.emptyText}>
+            No categories found for "{searchQuery}"
+          </Text>
+          <TouchableOpacity
+            style={styles.clearSearchButton}
+            onPress={() => setSearchQuery('')}
+          >
+            <Text style={styles.clearSearchText}>Clear Search</Text>
+          </TouchableOpacity>
         </View>
       ) : (
         <FlatList
-          data={filteredCategories}
+          data={dataWithAddButton}
           renderItem={renderCategoryItem}
           keyExtractor={item => item.id}
           contentContainerStyle={styles.categoriesList}
@@ -339,7 +364,8 @@ const CategoriesSettings = () => {
                       key={index}
                       style={[
                         styles.iconOption,
-                        selectedIcon === icon && styles.selectedIconOption
+                        selectedIcon === icon && styles.selectedIconOption,
+                        selectedIcon === icon && selectedColor ? { backgroundColor: selectedColor } : {}
                       ]}
                       onPress={() => setSelectedIcon(icon)}
                     >
@@ -372,7 +398,10 @@ const CategoriesSettings = () => {
               </View>
               
               <TouchableOpacity 
-                style={styles.addCategoryButton}
+                style={[
+                  styles.addCategoryButton,
+                  selectedColor ? { backgroundColor: selectedColor } : {}
+                ]}
                 onPress={handleAddCategory}
               >
                 <Text style={styles.addCategoryButtonText}>Add Category</Text>
@@ -411,12 +440,15 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   addButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#276EF1',
-    justifyContent: 'center',
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: '#bdc3c7',
+    borderRadius: 8,
+    backgroundColor: 'rgba(189, 195, 199, 0.1)',
   },
   searchContainer: {
     flexDirection: 'row',
@@ -595,6 +627,11 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  addButtonText: {color: '#bdc3c7',
+    fontSize: 14,
+    marginLeft: 8,
+    fontWeight: '500',
   },
 });
 

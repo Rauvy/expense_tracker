@@ -105,8 +105,8 @@ const AppNavigator = () => {
         <Stack.Screen name="ProfileSettings" component={ProfileSettings} />
         <Stack.Screen name="SecuritySettings" component={SecuritySettings} />
         <Stack.Screen name="BackUpSettings" component={BackUpSettings} />
-        <Stack.Screen name="CategoriesSettings" component={CategoriesSettings} />
-        <Stack.Screen name="Categories" component={CategoriesScreen} />
+        <Stack.Screen name="Categories" component={CategoriesSettings} />
+        {/* <Stack.Screen name="Categories" component={CategoriesScreen} /> */}
         <Stack.Screen name="IncomeSource" component={IncomeSource} />
         <Stack.Screen name="PaymentSettings" component={PaymentSettings} />
         <Stack.Screen name="Subscription" component={SubscriptionScreen} />
