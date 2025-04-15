@@ -87,8 +87,10 @@ const AccountsScreen = ({ navigation }) => {
   const [expanded, setExpanded] = useState(false);
   const [selectedTimeline, setSelectedTimeline] = useState('1M');
   const [selectedTopButton, setSelectedTopButton] = useState('netWorth');
-  const [selectedIndex, setSelectedIndex] = useState(null);
+  const [selectedIndex, setSelectedIndex] = useState(0);
   const [expandedTile, setExpandedTile] = useState(null);
+  const [isCashExpanded, setIsCashExpanded] = useState(false);
+  const [isCreditCardsExpanded, setIsCreditCardsExpanded] = useState(false);
 
   // Calculate net worth and change
   const netWorth = accounts.reduce((sum, account) => sum + account.balance, 0);
@@ -103,7 +105,7 @@ const AccountsScreen = ({ navigation }) => {
   const getAccountIcon = (type) => {
     switch (type) {
       case 'bank':
-        return 'business';
+        return 'cash';
       case 'card':
         return 'card';
       case 'paypal':
@@ -253,9 +255,9 @@ const AccountsScreen = ({ navigation }) => {
     return (
       <View style={styles.accountTilesContainer}>
         <View>
-          <TouchableOpacity
-            style={[styles.accountTile, expandedTile === 'cash' && styles.accountTileActive]}
-            onPress={() => setExpandedTile(expandedTile === 'cash' ? null : 'cash')}
+          <TouchableOpacity 
+            style={[styles.accountTile, isCashExpanded && styles.accountTileActive]}
+            onPress={() => setIsCashExpanded(!isCashExpanded)}
           >
             <View style={styles.tileContent}>
               <View style={styles.tileLeft}>
@@ -276,10 +278,10 @@ const AccountsScreen = ({ navigation }) => {
               </View>
             </View>
           </TouchableOpacity>
-          {expandedTile === 'cash' && (
+          {isCashExpanded && (
             <View style={styles.expandedAccounts}>
               {cashAccounts.map(account => (
-                <TouchableOpacity
+                <TouchableOpacity 
                   key={account.id}
                   style={styles.expandedAccount}
                   onPress={() => handleAccountPress(account)}
@@ -312,9 +314,9 @@ const AccountsScreen = ({ navigation }) => {
         </View>
 
         <View>
-          <TouchableOpacity
-            style={[styles.accountTile, expandedTile === 'creditCards' && styles.accountTileActive]}
-            onPress={() => setExpandedTile(expandedTile === 'creditCards' ? null : 'creditCards')}
+          <TouchableOpacity 
+            style={[styles.accountTile, isCreditCardsExpanded && styles.accountTileActive]}
+            onPress={() => setIsCreditCardsExpanded(!isCreditCardsExpanded)}
           >
             <View style={styles.tileContent}>
               <View style={styles.tileLeft}>
@@ -335,10 +337,10 @@ const AccountsScreen = ({ navigation }) => {
               </View>
             </View>
           </TouchableOpacity>
-          {expandedTile === 'creditCards' && (
+          {isCreditCardsExpanded && (
             <View style={styles.expandedAccounts}>
               {creditCardAccounts.map(account => (
-                <TouchableOpacity
+                <TouchableOpacity 
                   key={account.id}
                   style={styles.expandedAccount}
                   onPress={() => handleAccountPress(account)}
@@ -370,7 +372,7 @@ const AccountsScreen = ({ navigation }) => {
           )}
         </View>
 
-        <TouchableOpacity
+        <TouchableOpacity 
           style={styles.addAccountButton}
           onPress={() => navigation.navigate('AddAccount')}
         >

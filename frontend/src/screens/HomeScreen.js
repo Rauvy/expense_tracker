@@ -467,6 +467,84 @@ const HomeScreen = ({ navigation }) => {
     }
   }, [incomeCategories]);
 
+  const renderSwipeableSection = () => (
+    <View style={styles.swipeableSection}>
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.swipeableContent}
+      >
+        <View style={styles.swipeableTile}>
+          <View style={styles.tileContent}>
+            <Text style={styles.tileTitle}>Total Balance</Text>
+            <Text style={styles.tileAmount}>$12,345.67</Text>
+            <Text style={styles.tileSubtitle}>+$1,234.56 this month</Text>
+          </View>
+        </View>
+
+        <View style={styles.swipeableTile}>
+          <View style={styles.tileContent}>
+            <Text style={styles.tileTitle}>Monthly Budget</Text>
+            <Text style={styles.tileAmount}>$5,000.00</Text>
+            <Text style={styles.tileSubtitle}>$3,456.78 spent</Text>
+          </View>
+        </View>
+
+        <View style={styles.swipeableTile}>
+          <View style={styles.tileContent}>
+            <Text style={styles.tileTitle}>Assets</Text>
+            <View style={styles.categoryList}>
+              <View style={styles.categoryItem}>
+                <Ionicons name="cash" size={16} color="#4BC0C0" style={styles.categoryIcon} />
+                <Text style={styles.categoryText}>Cash & Bank Accounts</Text>
+              </View>
+              <View style={styles.categoryItem}>
+                <Ionicons name="trending-up" size={16} color="#4BC0C0" style={styles.categoryIcon} />
+                <Text style={styles.categoryText}>Investments</Text>
+              </View>
+              <View style={styles.categoryItem}>
+                <Ionicons name="home" size={16} color="#4BC0C0" style={styles.categoryIcon} />
+                <Text style={styles.categoryText}>Real Estate</Text>
+              </View>
+              <View style={styles.categoryItem}>
+                <Ionicons name="car" size={16} color="#4BC0C0" style={styles.categoryIcon} />
+                <Text style={styles.categoryText}>Vehicles</Text>
+              </View>
+              <View style={styles.categoryItem}>
+                <Ionicons name="cube" size={16} color="#4BC0C0" style={styles.categoryIcon} />
+                <Text style={styles.categoryText}>Other Assets</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.swipeableTile}>
+          <View style={styles.tileContent}>
+            <Text style={styles.tileTitle}>Liabilities</Text>
+            <View style={styles.categoryList}>
+              <View style={styles.categoryItem}>
+                <Ionicons name="card" size={16} color="#FF6384" style={styles.categoryIcon} />
+                <Text style={styles.categoryText}>Credit Cards</Text>
+              </View>
+              <View style={styles.categoryItem}>
+                <Ionicons name="cash" size={16} color="#FF6384" style={styles.categoryIcon} />
+                <Text style={styles.categoryText}>Loans</Text>
+              </View>
+              <View style={styles.categoryItem}>
+                <Ionicons name="home" size={16} color="#FF6384" style={styles.categoryIcon} />
+                <Text style={styles.categoryText}>Mortgages</Text>
+              </View>
+              <View style={styles.categoryItem}>
+                <Ionicons name="document" size={16} color="#FF6384" style={styles.categoryIcon} />
+                <Text style={styles.categoryText}>Other Debts</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+      </ScrollView>
+    </View>
+  );
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
@@ -1687,7 +1765,7 @@ const styles = StyleSheet.create({
   tile: {
     backgroundColor: '#1a1a1a',
     borderRadius: 15,
-    padding: 15,
+    padding: 12,
     width: '49%',
     position: 'relative',
     overflow: 'hidden',
@@ -1708,12 +1786,12 @@ const styles = StyleSheet.create({
   tileLabel: {
     fontSize: 14,
     color: '#666666',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   tileAmount: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 5,
+    marginBottom: 2,
   },
   earnedAmount: {
     color: '#4BC0C0',
@@ -2021,31 +2099,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-evenly',
     width: '100%',
-    marginTop: 20,
+    marginTop: 8,
   },
   netWorthActionButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#4BC0C0',
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
+    borderRadius: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
     width: '42%',
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
   },
   netWorthActionText: {
     color: '#FFFFFF',
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: '600',
-    marginLeft: 8,
+    marginLeft: 6,
   },
   statsIndicator: {
     flexDirection: 'row',
@@ -2489,13 +2559,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    width: '100%',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   tileTrend: {
     fontSize: 12,
     color: '#666666',
-    marginTop: 3,
+    marginBottom: 8,
   },
   miniActionButton: {
     width: 36,
@@ -2516,6 +2585,44 @@ const styles = StyleSheet.create({
   carouselWrapper: {
     width: screenWidth - 30,
     alignSelf: 'center',
+  },
+  swipeableSection: {
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  swipeableContent: {
+    paddingHorizontal: 20,
+    paddingRight: 10,
+  },
+  swipeableTile: {
+    width: 280,
+    backgroundColor: '#252525',
+    borderRadius: 12,
+    padding: 12,
+    marginRight: 10,
+  },
+  tileContent: {
+    flex: 1,
+  },
+  tileTitle: {
+    color: '#8E8E93',
+    fontSize: 14,
+    marginBottom: 6,
+  },
+  categoryList: {
+    marginTop: 4,
+  },
+  categoryItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 2,
+  },
+  categoryIcon: {
+    marginRight: 8,
+  },
+  categoryText: {
+    color: '#FFFFFF',
+    fontSize: 13,
   },
 });
 

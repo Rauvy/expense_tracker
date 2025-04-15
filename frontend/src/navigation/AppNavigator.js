@@ -20,6 +20,7 @@ import IncomeSource from '../screens/IncomeSource';
 import BackUpSettings from '../screens/BackUpSettings';
 import SecuritySettings from '../screens/SecuritySettings';
 import CategoriesScreen from '../screens/CategoriesScreen';
+import SubscriptionScreen from '../screens/SubscriptionScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -108,6 +109,7 @@ const AppNavigator = () => {
         <Stack.Screen name="Categories" component={CategoriesScreen} />
         <Stack.Screen name="IncomeSource" component={IncomeSource} />
         <Stack.Screen name="PaymentSettings" component={PaymentSettings} />
+        <Stack.Screen name="Subscription" component={SubscriptionScreen} />
         <Stack.Screen name="MainApp" component={MainAppNavigator} options={{ gestureEnabled: false }} />
       </Stack.Navigator>
     </NavigationContainer>

@@ -296,6 +296,65 @@ const ProfileScreen = ({ navigation }) => {
     </TouchableOpacity>
   );
   
+  const renderPreferencesSection = () => (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>Preferences</Text>
+      <View style={styles.tilesContainer}>
+        <TouchableOpacity 
+          style={styles.preferenceTile}
+          onPress={() => navigation.navigate('Categories')}
+        >
+          <View style={styles.preferenceContent}>
+            <View style={styles.preferenceText}>
+              <Text style={styles.preferenceTitle}>Categories</Text>
+              <Text style={styles.preferenceSubtitle}>Manage expense and income categories</Text>
+            </View>
+          </View>
+          <Ionicons name="chevron-forward" size={24} color="#666666" />
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.preferenceTile}
+          onPress={() => navigation.navigate('IncomeSource')}
+        >
+          <View style={styles.preferenceContent}>
+            <View style={styles.preferenceText}>
+              <Text style={styles.preferenceTitle}>Income Sources</Text>
+              <Text style={styles.preferenceSubtitle}>Manage your income sources</Text>
+            </View>
+          </View>
+          <Ionicons name="chevron-forward" size={24} color="#666666" />
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.preferenceTile}
+          onPress={() => navigation.navigate('Subscription')}
+        >
+          <View style={styles.preferenceContent}>
+            <View style={styles.preferenceText}>
+              <Text style={styles.preferenceTitle}>Manage Subscription</Text>
+              <Text style={styles.preferenceSubtitle}>Manage your subscription and billing</Text>
+            </View>
+          </View>
+          <Ionicons name="chevron-forward" size={24} color="#666666" />
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.preferenceTile}
+          onPress={() => setBudgetPeriodModalVisible(true)}
+        >
+          <View style={styles.preferenceContent}>
+            <View style={styles.preferenceText}>
+              <Text style={styles.preferenceTitle}>Budget Period</Text>
+              <Text style={styles.preferenceSubtitle}>Set your budget period</Text>
+            </View>
+          </View>
+          <Ionicons name="chevron-forward" size={24} color="#666666" />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView 
@@ -366,37 +425,7 @@ const ProfileScreen = ({ navigation }) => {
           </View>
           
           {/* Preferences Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Preferences</Text>
-            
-            {renderMenuItem(
-              'card-outline',
-              'Payment Methods',
-              'Manage your payment methods',
-              () => navigation.navigate('PaymentSettings')
-            )}
-            
-            {renderMenuItem(
-              'list-outline',
-              'Categories',
-              'Customize your expense and income categories',
-              () => navigation.navigate('Categories')
-            )}
-            
-            {renderMenuItem(
-              'cash-outline',
-              'Income Sources',
-              'Manage your income sources',
-              () => navigation.navigate('IncomeSource')
-            )}
-            
-            {renderMenuItem(
-              'calendar-outline',
-              'Budget Period',
-              `Current: ${budgetPeriod.charAt(0).toUpperCase() + budgetPeriod.slice(1)}`,
-              () => setBudgetPeriodModalVisible(true)
-            )}
-          </View>
+          {renderPreferencesSection()}
 
           {/* Logout Button */}
           <TouchableOpacity 
@@ -596,10 +625,10 @@ const ProfileScreen = ({ navigation }) => {
                 </TouchableOpacity>
                 
                 <TouchableOpacity 
-                  style={styles.saveButton}
+                  style={styles.applyButton}
                   onPress={() => setBudgetPeriodModalVisible(false)}
                 >
-                  <Text style={styles.saveButtonText}>Apply</Text>
+                  <Text style={styles.applyButtonText}>Apply</Text>
                 </TouchableOpacity>
               </ScrollView>
             </View>
@@ -992,25 +1021,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#252525',
     borderRadius: 12,
-    padding: 15,
+    padding: 12,
     marginBottom: 8,
+    marginHorizontal: 15,
   },
   periodOptionLeft: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   periodIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: '#333333',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 15,
+    marginRight: 12,
   },
   periodOptionText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 15,
   },
   tabContainer: {
     flexDirection: 'row',
@@ -1118,6 +1148,50 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  tilesContainer: {
+    marginBottom: 20,
+  },
+  preferenceTile: {
+    backgroundColor: '#252525',
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 10,
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  preferenceContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  preferenceText: {
+    flex: 1,
+  },
+  preferenceTitle: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  preferenceSubtitle: {
+    color: '#8E8E93',
+    fontSize: 14,
+    marginTop: 2,
+  },
+  applyButton: {
+    backgroundColor: '#276EF1',
+    borderRadius: 12,
+    padding: 15,
+    alignItems: 'center',
+    marginHorizontal: 20,
+    marginBottom: 20,
+  },
+  applyButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 

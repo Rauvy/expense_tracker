@@ -6,22 +6,23 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CategoriesScreen = ({ navigation }) => {
   const [activeTab, setActiveTab] = useState('expense');
-  const [categories, setCategories] = useState([
-    { name: 'Food', icon: 'fast-food', color: '#FF9500' },
-    { name: 'Shopping', icon: 'cart', color: '#5856D6' },
-    { name: 'Transport', icon: 'car', color: '#FF2D55' },
-    { name: 'Health', icon: 'fitness', color: '#4CD964' },
-    { name: 'Entertainment', icon: 'film', color: '#FF9500' },
-    { name: 'Education', icon: 'school', color: '#5AC8FA' },
-    { name: 'Bills', icon: 'receipt', color: '#007AFF' },
-    { name: 'Other', icon: 'ellipsis-horizontal', color: '#8E8E93' },
+  const [expenseCategories, setExpenseCategories] = useState([
+    { id: '1', name: 'Food & Dining', icon: 'fast-food', color: '#FF9500' },
+    { id: '2', name: 'Shopping', icon: 'cart', color: '#5856D6' },
+    { id: '3', name: 'Transportation', icon: 'car', color: '#FF2D55' },
+    { id: '4', name: 'Entertainment', icon: 'game-controller', color: '#4CD964' },
+    { id: '5', name: 'Bills & Utilities', icon: 'receipt', color: '#007AFF' },
+    { id: '6', name: 'Health & Fitness', icon: 'fitness', color: '#FF9500' },
+    { id: '7', name: 'Education', icon: 'school', color: '#5AC8FA' },
+    { id: '8', name: 'Travel', icon: 'airplane', color: '#5856D6' },
   ]);
   const [incomeCategories, setIncomeCategories] = useState([
-    { name: 'Salary', icon: 'cash', color: '#4CD964' },
-    { name: 'Investments', icon: 'trending-up', color: '#007AFF' },
-    { name: 'Freelance', icon: 'briefcase', color: '#5856D6' },
-    { name: 'Gifts', icon: 'gift', color: '#FF2D55' },
-    { name: 'Other', icon: 'ellipsis-horizontal', color: '#8E8E93' },
+    { id: '9', name: 'Salary', icon: 'cash', color: '#4CD964' },
+    { id: '10', name: 'Freelance', icon: 'briefcase', color: '#007AFF' },
+    { id: '11', name: 'Investments', icon: 'trending-up', color: '#FF9500' },
+    { id: '12', name: 'Gifts', icon: 'gift', color: '#FF2D55' },
+    { id: '13', name: 'Rental Income', icon: 'home', color: '#5856D6' },
+    { id: '14', name: 'Side Hustle', icon: 'construct', color: '#5AC8FA' },
   ]);
   const [customCategoryName, setCustomCategoryName] = useState('');
   const [selectedIcon, setSelectedIcon] = useState('');
@@ -41,7 +42,7 @@ const CategoriesScreen = ({ navigation }) => {
       const savedIncomeCategories = await AsyncStorage.getItem('incomeCategories');
       
       if (savedExpenseCategories) {
-        setCategories(JSON.parse(savedExpenseCategories));
+        setExpenseCategories(JSON.parse(savedExpenseCategories));
       }
       
       if (savedIncomeCategories) {
@@ -71,8 +72,8 @@ const CategoriesScreen = ({ navigation }) => {
 
     try {
       if (activeTab === 'expense') {
-        const updatedCategories = [...categories, newCategory];
-        setCategories(updatedCategories);
+        const updatedCategories = [...expenseCategories, newCategory];
+        setExpenseCategories(updatedCategories);
         await AsyncStorage.setItem('expenseCategories', JSON.stringify(updatedCategories));
       } else {
         const updatedCategories = [...incomeCategories, newCategory];
@@ -83,6 +84,7 @@ const CategoriesScreen = ({ navigation }) => {
       setCustomCategoryName('');
       setSelectedIcon('');
       setSelectedColor('');
+      setShowAddForm(false);
       Alert.alert('Success', 'Category added successfully');
     } catch (error) {
       console.error('Error saving category:', error);
@@ -93,8 +95,8 @@ const CategoriesScreen = ({ navigation }) => {
   const removeCategory = async (categoryId) => {
     try {
       if (activeTab === 'expense') {
-        const updatedCategories = categories.filter(cat => cat.id !== categoryId);
-        setCategories(updatedCategories);
+        const updatedCategories = expenseCategories.filter(cat => cat.id !== categoryId);
+        setExpenseCategories(updatedCategories);
         await AsyncStorage.setItem('expenseCategories', JSON.stringify(updatedCategories));
       } else {
         const updatedCategories = incomeCategories.filter(cat => cat.id !== categoryId);
@@ -144,22 +146,45 @@ const CategoriesScreen = ({ navigation }) => {
         </View>
 
         <ScrollView style={styles.scrollView}>
-          <View style={styles.categoriesList}>
-            {(activeTab === 'expense' ? categories : incomeCategories).map((category) => (
-              <View key={category.id} style={styles.categoryTile}>
-                <View style={[styles.categoryIcon, { backgroundColor: category.color }]}>
-                  <Ionicons name={category.icon} size={24} color="#FFFFFF" />
+          {activeTab === 'expense' ? (
+            <View style={styles.categoriesList}>
+              {expenseCategories.map((category) => (
+                <View key={category.id} style={styles.categoryTile}>
+                  <View style={styles.categoryContent}>
+                    <View style={[styles.categoryIcon, { backgroundColor: category.color }]}>
+                      <Ionicons name={category.icon} size={24} color="#FFFFFF" />
+                    </View>
+                    <Text style={styles.categoryName}>{category.name}</Text>
+                  </View>
+                  <TouchableOpacity 
+                    style={styles.removeButton}
+                    onPress={() => removeCategory(category.id)}
+                  >
+                    <Ionicons name="close-circle" size={24} color="#FF3B30" />
+                  </TouchableOpacity>
                 </View>
-                <Text style={styles.categoryName}>{category.name}</Text>
-                <TouchableOpacity
-                  style={styles.removeButton}
-                  onPress={() => removeCategory(category.id)}
-                >
-                  <Ionicons name="trash-outline" size={20} color="#FF3B30" />
-                </TouchableOpacity>
-              </View>
-            ))}
-          </View>
+              ))}
+            </View>
+          ) : (
+            <View style={styles.categoriesList}>
+              {incomeCategories.map((category) => (
+                <View key={category.id} style={styles.categoryTile}>
+                  <View style={styles.categoryContent}>
+                    <View style={[styles.categoryIcon, { backgroundColor: category.color }]}>
+                      <Ionicons name={category.icon} size={24} color="#FFFFFF" />
+                    </View>
+                    <Text style={styles.categoryName}>{category.name}</Text>
+                  </View>
+                  <TouchableOpacity 
+                    style={styles.removeButton}
+                    onPress={() => removeCategory(category.id)}
+                  >
+                    <Ionicons name="close-circle" size={24} color="#FF3B30" />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          )}
 
           {showAddForm && (
             <View style={styles.addCategoryForm}>
@@ -230,14 +255,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#333333',
   },
   headerTitle: {
     color: '#FFFFFF',
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '600',
   },
   content: {
     flex: 1,
@@ -280,18 +306,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  categoryContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
   categoryIcon: {
     width: 40,
     height: 40,
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
+    marginRight: 12,
   },
   categoryName: {
     color: '#FFFFFF',
     fontSize: 16,
     flex: 1,
-    marginLeft: 12,
   },
   addCategoryForm: {
     backgroundColor: '#252525',
@@ -350,9 +381,9 @@ const styles = StyleSheet.create({
     borderColor: '#FFFFFF',
   },
   addButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: '#276EF1',
     justifyContent: 'center',
     alignItems: 'center',
@@ -371,6 +402,7 @@ const styles = StyleSheet.create({
   },
   removeButton: {
     padding: 8,
+    marginLeft: 12,
   },
 });
 
