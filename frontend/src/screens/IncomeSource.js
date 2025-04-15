@@ -177,12 +177,17 @@ const IncomeSource = () => {
               
               // Filter out the source with the specified ID
               const updatedSources = incomeSources.filter(source => source.id !== sourceId);
+              
+              // First update the state
               setIncomeSources(updatedSources);
               
-              // Save updated sources to AsyncStorage
+              // Then save to AsyncStorage
               await AsyncStorage.setItem('incomeCategories', JSON.stringify(updatedSources));
               
-              Alert.alert('Success', `Income source "${sourceToDelete.name}" deleted successfully`);
+              // Show success alert after a small delay to ensure state is updated
+              setTimeout(() => {
+                Alert.alert('Success', `Income source "${sourceToDelete.name}" deleted successfully`);
+              }, 100);
             } catch (error) {
               console.error('Error deleting income source:', error);
               Alert.alert('Error', 'Failed to delete income source');

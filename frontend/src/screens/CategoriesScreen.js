@@ -5,7 +5,6 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CategoriesScreen = ({ navigation }) => {
-  const [activeTab, setActiveTab] = useState('expense');
   const [expenseCategories, setExpenseCategories] = useState([
     { id: '1', name: 'Food & Dining', icon: 'fast-food', color: '#FF9500' },
     { id: '2', name: 'Shopping', icon: 'cart', color: '#5856D6' },
@@ -15,14 +14,6 @@ const CategoriesScreen = ({ navigation }) => {
     { id: '6', name: 'Health & Fitness', icon: 'fitness', color: '#FF9500' },
     { id: '7', name: 'Education', icon: 'school', color: '#5AC8FA' },
     { id: '8', name: 'Travel', icon: 'airplane', color: '#5856D6' },
-  ]);
-  const [incomeCategories, setIncomeCategories] = useState([
-    { id: '9', name: 'Salary', icon: 'cash', color: '#4CD964' },
-    { id: '10', name: 'Freelance', icon: 'briefcase', color: '#007AFF' },
-    { id: '11', name: 'Investments', icon: 'trending-up', color: '#FF9500' },
-    { id: '12', name: 'Gifts', icon: 'gift', color: '#FF2D55' },
-    { id: '13', name: 'Rental Income', icon: 'home', color: '#5856D6' },
-    { id: '14', name: 'Side Hustle', icon: 'construct', color: '#5AC8FA' },
   ]);
   const [customCategoryName, setCustomCategoryName] = useState('');
   const [selectedIcon, setSelectedIcon] = useState('');
@@ -39,22 +30,13 @@ const CategoriesScreen = ({ navigation }) => {
   const loadCategories = async () => {
     try {
       const savedExpenseCategories = await AsyncStorage.getItem('expenseCategories');
-      const savedIncomeCategories = await AsyncStorage.getItem('incomeCategories');
       
       if (savedExpenseCategories) {
         setExpenseCategories(JSON.parse(savedExpenseCategories));
       }
-      
-      if (savedIncomeCategories) {
-        setIncomeCategories(JSON.parse(savedIncomeCategories));
-      }
     } catch (error) {
       console.error('Error loading categories:', error);
     }
-  };
-
-  const handleTabSwitch = (tab) => {
-    setActiveTab(tab);
   };
 
   const saveNewCategory = async () => {
@@ -71,15 +53,9 @@ const CategoriesScreen = ({ navigation }) => {
     };
 
     try {
-      if (activeTab === 'expense') {
-        const updatedCategories = [...expenseCategories, newCategory];
-        setExpenseCategories(updatedCategories);
-        await AsyncStorage.setItem('expenseCategories', JSON.stringify(updatedCategories));
-      } else {
-        const updatedCategories = [...incomeCategories, newCategory];
-        setIncomeCategories(updatedCategories);
-        await AsyncStorage.setItem('incomeCategories', JSON.stringify(updatedCategories));
-      }
+      const updatedCategories = [...expenseCategories, newCategory];
+      setExpenseCategories(updatedCategories);
+      await AsyncStorage.setItem('expenseCategories', JSON.stringify(updatedCategories));
 
       setCustomCategoryName('');
       setSelectedIcon('');
@@ -94,16 +70,13 @@ const CategoriesScreen = ({ navigation }) => {
 
   const removeCategory = async (categoryId) => {
     try {
-      if (activeTab === 'expense') {
-        const updatedCategories = expenseCategories.filter(cat => cat.id !== categoryId);
-        setExpenseCategories(updatedCategories);
-        await AsyncStorage.setItem('expenseCategories', JSON.stringify(updatedCategories));
-      } else {
-        const updatedCategories = incomeCategories.filter(cat => cat.id !== categoryId);
-        setIncomeCategories(updatedCategories);
-        await AsyncStorage.setItem('incomeCategories', JSON.stringify(updatedCategories));
-      }
-      Alert.alert('Success', 'Category removed successfully');
+      const updatedCategories = expenseCategories.filter(cat => cat.id !== categoryId);
+      setExpenseCategories(updatedCategories);
+      await AsyncStorage.setItem('expenseCategories', JSON.stringify(updatedCategories));
+      
+      setTimeout(() => {
+        Alert.alert('Success', 'Category removed successfully');
+      }, 100);
     } catch (error) {
       console.error('Error removing category:', error);
       Alert.alert('Error', 'Failed to remove category');
@@ -116,7 +89,7 @@ const CategoriesScreen = ({ navigation }) => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Categories</Text>
+        <Text style={styles.headerTitle}>Expense Categories</Text>
         <TouchableOpacity 
           style={styles.addButton}
           onPress={() => setShowAddForm(!showAddForm)}
@@ -126,65 +99,25 @@ const CategoriesScreen = ({ navigation }) => {
       </View>
 
       <View style={styles.content}>
-        <View style={styles.tabContainer}>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === 'expense' && styles.activeTab]}
-            onPress={() => handleTabSwitch('expense')}
-          >
-            <Text style={[styles.tabText, activeTab === 'expense' && styles.activeTabText]}>
-              Expense Categories
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === 'income' && styles.activeTab]}
-            onPress={() => handleTabSwitch('income')}
-          >
-            <Text style={[styles.tabText, activeTab === 'income' && styles.activeTabText]}>
-              Income Categories
-            </Text>
-          </TouchableOpacity>
-        </View>
-
         <ScrollView style={styles.scrollView}>
-          {activeTab === 'expense' ? (
-            <View style={styles.categoriesList}>
-              {expenseCategories.map((category) => (
-                <View key={category.id} style={styles.categoryTile}>
-                  <View style={styles.categoryContent}>
-                    <View style={[styles.categoryIcon, { backgroundColor: category.color }]}>
-                      <Ionicons name={category.icon} size={24} color="#FFFFFF" />
-                    </View>
-                    <Text style={styles.categoryName}>{category.name}</Text>
+          <View style={styles.categoriesList}>
+            {expenseCategories.map((category) => (
+              <View key={category.id} style={styles.categoryTile}>
+                <View style={styles.categoryContent}>
+                  <View style={[styles.categoryIcon, { backgroundColor: category.color }]}>
+                    <Ionicons name={category.icon} size={24} color="#FFFFFF" />
                   </View>
-                  <TouchableOpacity 
-                    style={styles.removeButton}
-                    onPress={() => removeCategory(category.id)}
-                  >
-                    <Ionicons name="close-circle" size={24} color="#FF3B30" />
-                  </TouchableOpacity>
+                  <Text style={styles.categoryName}>{category.name}</Text>
                 </View>
-              ))}
-            </View>
-          ) : (
-            <View style={styles.categoriesList}>
-              {incomeCategories.map((category) => (
-                <View key={category.id} style={styles.categoryTile}>
-                  <View style={styles.categoryContent}>
-                    <View style={[styles.categoryIcon, { backgroundColor: category.color }]}>
-                      <Ionicons name={category.icon} size={24} color="#FFFFFF" />
-                    </View>
-                    <Text style={styles.categoryName}>{category.name}</Text>
-                  </View>
-                  <TouchableOpacity 
-                    style={styles.removeButton}
-                    onPress={() => removeCategory(category.id)}
-                  >
-                    <Ionicons name="close-circle" size={24} color="#FF3B30" />
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </View>
-          )}
+                <TouchableOpacity 
+                  style={styles.removeButton}
+                  onPress={() => removeCategory(category.id)}
+                >
+                  <Ionicons name="close-circle" size={24} color="#FF3B30" />
+                </TouchableOpacity>
+              </View>
+            ))}
+          </View>
 
           {showAddForm && (
             <View style={styles.addCategoryForm}>
@@ -267,28 +200,6 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-  },
-  tabContainer: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#333333',
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: 15,
-    alignItems: 'center',
-  },
-  activeTab: {
-    borderBottomWidth: 2,
-    borderBottomColor: '#276EF1',
-  },
-  tabText: {
-    color: '#666666',
-    fontSize: 16,
-  },
-  activeTabText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
   },
   scrollView: {
     flex: 1,

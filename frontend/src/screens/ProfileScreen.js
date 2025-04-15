@@ -307,7 +307,7 @@ const ProfileScreen = ({ navigation }) => {
           <View style={styles.preferenceContent}>
             <View style={styles.preferenceText}>
               <Text style={styles.preferenceTitle}>Categories</Text>
-              <Text style={styles.preferenceSubtitle}>Manage expense and income categories</Text>
+              <Text style={styles.preferenceSubtitle}>Manage expense categories</Text>
             </View>
           </View>
           <Ionicons name="chevron-forward" size={24} color="#666666" />
