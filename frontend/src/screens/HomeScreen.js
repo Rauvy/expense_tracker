@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity, Animated, Modal, TextInput, SafeAreaView, Platform, FlatList, PanResponder } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity, Animated, Modal, TextInput, SafeAreaView, Platform, FlatList, PanResponder, TouchableWithoutFeedback } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { G, Path, Circle, Text as SvgText } from 'react-native-svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import TransactionsDetail from '../components/TransactionsDetail';
+import { GestureDetector, Gesture, GestureHandlerRootView } from 'react-native-gesture-handler';
 
 const { width } = Dimensions.get('window');
 const screenWidth = Dimensions.get('window').width;
@@ -364,35 +365,52 @@ const HomeScreen = ({ navigation }) => {
 
   // Handle add expense
   const handleAddExpense = () => {
-    if (!expenseAmount || !expenseDescription || !selectedCategory) {
-      // We could add validation alerts here
+    if (!expenseAmount || !selectedCategory || !selectedPaymentMethod) {
+      // In a real app, you'd show an error toast or alert
+      console.log('Please fill in all expense details');
       return;
     }
-    
-    // Find the selected category to get icon and color
-    const category = categories.find(cat => cat.name === selectedCategory);
-    
-    // Create a new expense
+
+    // Get the category details to extract icon and color
+    const categoryDetails = categories.find(cat => cat.name === selectedCategory);
+    const paymentDetails = paymentMethods.find(method => method.name === selectedPaymentMethod);
+
+    // Generate a new transaction object
     const newExpense = {
-      id: Date.now(), // Simple unique ID based on timestamp
-      title: expenseDescription,
+      id: Date.now(),
+      title: expenseDescription || selectedCategory,
       category: selectedCategory,
       amount: parseFloat(expenseAmount),
       date: new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'short' }),
-      icon: category ? category.icon : 'cash',
-      color: category ? category.color : '#FF6384',
+      icon: categoryDetails?.icon || 'help-circle',
+      color: categoryDetails?.color || '#FF6384',
+      paymentMethod: selectedPaymentMethod,
+      paymentIcon: paymentDetails?.icon || 'card',
+      paymentColor: paymentDetails?.color || '#FF6384',
+      type: 'expense',
     };
-    
-    // Add to recent expenses - at the beginning of the array
-    setRecentExpenses([newExpense, ...recentExpenses]);
-    
-    // Clear the form and close the modal
+
+    // In a real app, you would save this to your data store or API
+    console.log('New expense created:', newExpense);
+
+    // Reset form and close modal
     setExpenseAmount('');
     setExpenseDescription('');
     setSelectedCategory(null);
     setSelectedPaymentMethod(null);
     setExpenseModalVisible(false);
   };
+
+  // Создаем жест для свайпа вниз, чтобы закрыть модальное окно
+  const closeExpenseModalGesture = Gesture.Pan().onUpdate((event) => {
+    if (event.translationY > 50) {
+      setExpenseModalVisible(false);
+      setExpenseAmount('');
+      setExpenseDescription('');
+      setSelectedCategory(null);
+      setSelectedPaymentMethod(null);
+    }
+  });
 
   // Handle add income
   const handleAddIncome = () => {
@@ -858,221 +876,126 @@ const HomeScreen = ({ navigation }) => {
           setSelectedPaymentMethod(null);
         }}
       >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <ScrollView showsVerticalScrollIndicator={false}>
-              {/* Modal Header */}
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Add Expense</Text>
-                <TouchableOpacity
-                  onPress={() => {
-                    setExpenseModalVisible(false);
-                    setExpenseAmount('');
-                    setExpenseDescription('');
-                    setSelectedCategory(null);
-                    setSelectedPaymentMethod(null);
-                  }}
-                >
-                  <Ionicons name="close" size={24} color="#ffffff" />
-                </TouchableOpacity>
-              </View>
-
-              {/* Expense Form */}
-              <TextInput
-                style={styles.amountInput}
-                placeholder="$0.00"
-                placeholderTextColor="#666666"
-                keyboardType="decimal-pad"
-                value={expenseAmount}
-                onChangeText={setExpenseAmount}
-              />
-
-              <TextInput
-                style={styles.input}
-                placeholder="Description"
-                placeholderTextColor="#666666"
-                value={expenseDescription}
-                onChangeText={setExpenseDescription}
-              />
-
-              <Text style={styles.categoryLabel}>Select Category</Text>
-              <View style={styles.categoriesContainer}>
-                {categories.map((category) => (
+        <TouchableOpacity 
+          onPress={() => {
+            setExpenseModalVisible(false);
+            setExpenseAmount('');
+            setExpenseDescription('');
+            setSelectedCategory(null);
+            setSelectedPaymentMethod(null);
+          }}
+        >
+          <View style={styles.modalOverlay} />
+        </TouchableOpacity>
+        
+        <GestureHandlerRootView style={{ flex: 1, position: 'absolute', left: 0, right: 0, bottom: 0 }}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <GestureDetector gesture={closeExpenseModalGesture}>
+                <View style={styles.pullTabContainer}>
+                  <View style={styles.modalPullTab} />
+                </View>
+              </GestureDetector>
+              
+              <ScrollView showsVerticalScrollIndicator={false}>
+                {/* Modal Header */}
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>Add Expense</Text>
                   <TouchableOpacity
-                    key={category.name}
-                    style={[
-                      styles.categoryButton,
-                      selectedCategory === category.name && { borderColor: category.color }
-                    ]}
-                    onPress={() => setSelectedCategory(category.name)}
+                    onPress={() => {
+                      setExpenseModalVisible(false);
+                      setExpenseAmount('');
+                      setExpenseDescription('');
+                      setSelectedCategory(null);
+                      setSelectedPaymentMethod(null);
+                    }}
                   >
-                    <View style={[styles.categoryIcon, { backgroundColor: category.color }]}>
-                      <Ionicons name={category.icon} size={18} color="#FFFFFF" />
-                    </View>
-                    <Text style={styles.categoryText}>{category.name}</Text>
+                    <Ionicons name="close" size={24} color="#ffffff" />
                   </TouchableOpacity>
-                ))}
+                </View>
 
-                <TouchableOpacity
-                  style={styles.addCategoryButton}
-                  onPress={() => setCustomCategoryModalVisible(true)}
-                >
-                  <Ionicons name="add" size={20} color="#276EF1" />
-                  <Text style={styles.addCategoryText}>Custom</Text>
-                </TouchableOpacity>
-              </View>
+                {/* Expense Form */}
+                <TextInput
+                  style={styles.amountInput}
+                  placeholder="$0.00"
+                  placeholderTextColor="#666666"
+                  keyboardType="decimal-pad"
+                  value={expenseAmount}
+                  onChangeText={setExpenseAmount}
+                />
 
-              <Text style={styles.categoryLabel}>Payment Method</Text>
-              <View style={styles.categoriesContainer}>
-                {paymentMethods.map((method) => (
+                <TextInput
+                  style={styles.input}
+                  placeholder="Description"
+                  placeholderTextColor="#666666"
+                  value={expenseDescription}
+                  onChangeText={setExpenseDescription}
+                />
+
+                <Text style={styles.categoryLabel}>Select Category</Text>
+                <View style={styles.categoriesContainer}>
+                  {categories.map((category) => (
+                    <TouchableOpacity
+                      key={category.name}
+                      style={[
+                        styles.categoryButton,
+                        selectedCategory === category.name && { borderColor: category.color }
+                      ]}
+                      onPress={() => setSelectedCategory(category.name)}
+                    >
+                      <View style={[styles.categoryIcon, { backgroundColor: category.color }]}>
+                        <Ionicons name={category.icon} size={18} color="#FFFFFF" />
+                      </View>
+                      <Text style={styles.categoryText}>{category.name}</Text>
+                    </TouchableOpacity>
+                  ))}
+
                   <TouchableOpacity
-                    key={method.name}
-                    style={[
-                      styles.categoryButton,
-                      selectedPaymentMethod === method.name && { borderColor: method.color }
-                    ]}
-                    onPress={() => setSelectedPaymentMethod(method.name)}
+                    style={styles.addCategoryButton}
+                    onPress={() => setCustomCategoryModalVisible(true)}
                   >
-                    <View style={[styles.categoryIcon, { backgroundColor: method.color }]}>
-                      <Ionicons name={method.icon} size={18} color="#FFFFFF" />
-                    </View>
-                    <Text style={styles.categoryText}>{method.name}</Text>
+                    <Ionicons name="add" size={20} color="#276EF1" />
+                    <Text style={styles.addCategoryText}>Custom</Text>
                   </TouchableOpacity>
-                ))}
+                </View>
+
+                <Text style={styles.categoryLabel}>Payment Method</Text>
+                <View style={styles.categoriesContainer}>
+                  {paymentMethods.map((method) => (
+                    <TouchableOpacity
+                      key={method.name}
+                      style={[
+                        styles.categoryButton,
+                        selectedPaymentMethod === method.name && { borderColor: method.color }
+                      ]}
+                      onPress={() => setSelectedPaymentMethod(method.name)}
+                    >
+                      <View style={[styles.categoryIcon, { backgroundColor: method.color }]}>
+                        <Ionicons name={method.icon} size={18} color="#FFFFFF" />
+                      </View>
+                      <Text style={styles.categoryText}>{method.name}</Text>
+                    </TouchableOpacity>
+                  ))}
+
+                  <TouchableOpacity
+                    style={styles.addCategoryButton}
+                    onPress={() => setCustomPaymentMethodModalVisible(true)}
+                  >
+                    <Ionicons name="add" size={20} color="#276EF1" />
+                    <Text style={styles.addCategoryText}>Custom</Text>
+                  </TouchableOpacity>
+                </View>
 
                 <TouchableOpacity
-                  style={styles.addCategoryButton}
-                  onPress={() => setCustomPaymentMethodModalVisible(true)}
+                  style={[styles.addButton, { backgroundColor: '#FF6384' }]}
+                  onPress={handleAddExpense}
                 >
-                  <Ionicons name="add" size={20} color="#276EF1" />
-                  <Text style={styles.addCategoryText}>Custom</Text>
+                  <Text style={styles.buttonText}>Add Expense</Text>
                 </TouchableOpacity>
-              </View>
-
-              <TouchableOpacity
-                style={[styles.addButton, { backgroundColor: '#FF6384' }]}
-                onPress={handleAddExpense}
-              >
-                <Text style={styles.buttonText}>Add Expense</Text>
-              </TouchableOpacity>
-            </ScrollView>
+              </ScrollView>
+            </View>
           </View>
-        </View>
-      </Modal>
-
-      {/* Add Income Modal */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={incomeModalVisible}
-        onRequestClose={() => {
-          setIncomeModalVisible(false);
-          setIncomeAmount('');
-          setIncomeDescription('');
-          setSelectedIncomeCategory(null);
-          setSelectedIncomeSource(null);
-        }}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <ScrollView showsVerticalScrollIndicator={false}>
-              {/* Modal Header */}
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Add Income</Text>
-                <TouchableOpacity
-                  onPress={() => {
-                    setIncomeModalVisible(false);
-                    setIncomeAmount('');
-                    setIncomeDescription('');
-                    setSelectedIncomeCategory(null);
-                    setSelectedIncomeSource(null);
-                  }}
-                >
-                  <Ionicons name="close" size={24} color="#ffffff" />
-                </TouchableOpacity>
-              </View>
-
-              {/* Income Form */}
-              <TextInput
-                style={styles.amountInput}
-                placeholder="$0.00"
-                placeholderTextColor="#666666"
-                keyboardType="decimal-pad"
-                value={incomeAmount}
-                onChangeText={setIncomeAmount}
-              />
-
-              <TextInput
-                style={styles.input}
-                placeholder="Description"
-                placeholderTextColor="#666666"
-                value={incomeDescription}
-                onChangeText={setIncomeDescription}
-              />
-
-              <Text style={styles.categoryLabel}>Income Category</Text>
-              <View style={styles.categoriesContainer}>
-                {incomeCategories.map((category) => (
-                  <TouchableOpacity
-                    key={category.name}
-                    style={[
-                      styles.categoryButton,
-                      selectedIncomeCategory === category.name && { borderColor: category.color }
-                    ]}
-                    onPress={() => setSelectedIncomeCategory(category.name)}
-                  >
-                    <View style={[styles.categoryIcon, { backgroundColor: category.color }]}>
-                      <Ionicons name={category.icon} size={18} color="#FFFFFF" />
-                    </View>
-                    <Text style={styles.categoryText}>{category.name}</Text>
-                  </TouchableOpacity>
-                ))}
-
-                <TouchableOpacity
-                  style={styles.addCategoryButton}
-                  onPress={() => setCustomIncomeCategoryModalVisible(true)}
-                >
-                  <Ionicons name="add" size={20} color="#276EF1" />
-                  <Text style={styles.addCategoryText}>Custom</Text>
-                </TouchableOpacity>
-              </View>
-
-              <Text style={styles.categoryLabel}>Income Source</Text>
-              <View style={styles.categoriesContainer}>
-                {incomeSources.map((source) => (
-                  <TouchableOpacity
-                    key={source.name}
-                    style={[
-                      styles.categoryButton,
-                      selectedIncomeSource === source.name && { borderColor: source.color }
-                    ]}
-                    onPress={() => setSelectedIncomeSource(source.name)}
-                  >
-                    <View style={[styles.categoryIcon, { backgroundColor: source.color }]}>
-                      <Ionicons name={source.icon} size={18} color="#FFFFFF" />
-                    </View>
-                    <Text style={styles.categoryText}>{source.name}</Text>
-                  </TouchableOpacity>
-                ))}
-
-                <TouchableOpacity
-                  style={styles.addCategoryButton}
-                  onPress={() => setCustomIncomeSourceModalVisible(true)}
-                >
-                  <Ionicons name="add" size={20} color="#276EF1" />
-                  <Text style={styles.addCategoryText}>Custom</Text>
-                </TouchableOpacity>
-              </View>
-
-              <TouchableOpacity
-                style={[styles.addButton, { backgroundColor: '#4BC0C0' }]}
-                onPress={handleAddIncome}
-              >
-                <Text style={styles.buttonText}>Add Income</Text>
-              </TouchableOpacity>
-            </ScrollView>
-          </View>
-        </View>
+        </GestureHandlerRootView>
       </Modal>
 
       {/* Custom Category Modal */}
@@ -2761,6 +2684,24 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 3,
     elevation: 5,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+  },
+  
+  pullTabContainer: {
+    height: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  
+  modalPullTab: {
+    width: 60,
+    height: 6,
+    backgroundColor: '#444444',
+    borderRadius: 3,
+    opacity: 0,
   },
 });
 

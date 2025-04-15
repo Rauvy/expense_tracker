@@ -6,9 +6,11 @@ import {
   Modal, 
   TouchableOpacity, 
   ScrollView, 
-  TextInput 
+  TextInput,
+  TouchableWithoutFeedback 
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { GestureDetector, Gesture, GestureHandlerRootView } from 'react-native-gesture-handler';
 
 const TransactionsDetail = ({ 
   visible, 
@@ -69,6 +71,15 @@ const TransactionsDetail = ({
     setIsEditMode(false);
   };
 
+  // Create pan gesture for swiping down to close
+  const panGesture = Gesture.Pan()
+    .onUpdate((event) => {
+      // Если пользователь свайпает вниз больше чем на 50 единиц, закрываем модальное окно
+      if (event.translationY > 50) {
+        onClose();
+      }
+    });
+
   if (!transaction) return null;
 
   return (
@@ -78,173 +89,189 @@ const TransactionsDetail = ({
       visible={visible}
       onRequestClose={onClose}
     >
-      <View style={styles.modalContainer}>
-        <View style={styles.modalContent}>
-          <ScrollView 
-            showsVerticalScrollIndicator={true}
-            bounces={true}
-            contentContainerStyle={styles.modalScrollContent}
-            keyboardShouldPersistTaps="handled"
-          >
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
-                {isEditMode ? 'Edit Transaction' : 'Transaction Details'}
-              </Text>
-              <TouchableOpacity onPress={isEditMode ? handleCancelEdit : onClose}>
-                <Ionicons name="close" size={24} color="#FFFFFF" />
-              </TouchableOpacity>
-            </View>
-
-            {!isEditMode ? (
-              // View Transaction Details
-              <View style={styles.transactionDetailsContent}>
-                <View style={[styles.transactionIcon, { backgroundColor: transaction.color }]}>
-                  <Ionicons name={transaction.icon} size={24} color="#FFFFFF" />
-                </View>
-
-                <Text style={styles.transactionDetailsTitle}>{transaction.title}</Text>
-                <Text style={styles.transactionDetailsCategory}>{transaction.category}</Text>
-
-                <Text style={styles.transactionDetailsAmount}>
-                  -${transaction.amount.toFixed(2)}
-                </Text>
-
-                <View style={styles.transactionDetailsRow}>
-                  <Text style={styles.transactionDetailsLabel}>Date</Text>
-                  <Text style={styles.transactionDetailsValue}>{transaction.date}, 2023</Text>
-                </View>
-
-                <View style={styles.transactionDetailsRow}>
-                  <Text style={styles.transactionDetailsLabel}>Time</Text>
-                  <Text style={styles.transactionDetailsValue}>12:30 PM</Text>
-                </View>
-
-                <View style={styles.transactionDetailsRow}>
-                  <Text style={styles.transactionDetailsLabel}>Transaction ID</Text>
-                  <Text style={styles.transactionDetailsValue}>#TRX{transaction.id.toString().padStart(4, '0')}</Text>
-                </View>
-
-                <View style={styles.transactionDetailsRow}>
-                  <Text style={styles.transactionDetailsLabel}>Payment Method</Text>
-                  <View style={styles.transactionDetailsMethod}>
-                    <View style={[styles.transactionMethodIcon, { backgroundColor: '#FF6384' }]}>
-                      <Ionicons name="card" size={16} color="#FFFFFF" />
-                    </View>
-                    <Text style={styles.transactionDetailsValue}>Credit Card</Text>
-                  </View>
-                </View>
-
-                <View style={styles.transactionDetailsRow}>
-                  <Text style={styles.transactionDetailsLabel}>Status</Text>
-                  <View style={styles.statusContainer}>
-                    <View style={[styles.statusDot, { backgroundColor: '#4CAF50' }]} />
-                    <Text style={[styles.transactionDetailsValue, { color: '#4CAF50' }]}>Completed</Text>
-                  </View>
-                </View>
-
-                <View style={styles.transactionDetailsRow}>
-                  <Text style={styles.transactionDetailsLabel}>Notes</Text>
-                  <Text style={styles.transactionDetailsValue} numberOfLines={2}>
-                    {transaction.title === 'Grocery Shopping' ? 'Weekly grocery run at Trader Joe\'s.' :
-                     transaction.title === 'Uber Ride' ? 'Business trip to downtown meeting.' :
-                     transaction.title === 'New Headphones' ? 'Sony WH-1000XM4 noise cancelling headphones.' :
-                     'No notes available.'}
-                  </Text>
-                </View>
-
-                <View style={styles.buttonContainer}>
-                  <TouchableOpacity
-                    style={styles.editTransactionButton}
-                    onPress={handleEditPress}
-                  >
-                    <Text style={styles.editTransactionButtonText}>Edit Transaction</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={styles.deleteTransactionButton}
-                    onPress={() => onDelete(transaction.id)}
-                  >
-                    <Text style={styles.deleteTransactionButtonText}>Delete Transaction</Text>
-                  </TouchableOpacity>
-                </View>
+      <TouchableWithoutFeedback onPress={onClose}>
+        <View style={styles.modalOverlay} />
+      </TouchableWithoutFeedback>
+      
+      <GestureHandlerRootView style={{ flex: 1, position: 'absolute', left: 0, right: 0, bottom: 0 }}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <GestureDetector gesture={panGesture}>
+              <View style={styles.pullTabContainer}>
+                <View style={styles.modalPullTab} />
               </View>
-            ) : (
-              // Edit Transaction Form
-              <View style={styles.editTransactionForm}>
-                <TextInput
-                  style={styles.amountInput}
-                  placeholder="$0.00"
-                  placeholderTextColor="#666666"
-                  keyboardType="decimal-pad"
-                  value={editAmount}
-                  onChangeText={setEditAmount}
-                />
-
-                <TextInput
-                  style={styles.input}
-                  placeholder="Description"
-                  placeholderTextColor="#666666"
-                  value={editDescription}
-                  onChangeText={setEditDescription}
-                />
-
-                <Text style={styles.categoryLabel}>Select Category</Text>
-                <View style={styles.categoriesContainer}>
-                  {categories.map((category) => (
-                    <TouchableOpacity
-                      key={category.name}
-                      style={[
-                        styles.categoryButton,
-                        editCategory === category.name && { borderColor: category.color }
-                      ]}
-                      onPress={() => setEditCategory(category.name)}
-                    >
-                      <View style={[styles.categoryIcon, { backgroundColor: category.color }]}>
-                        <Ionicons name={category.icon} size={18} color="#FFFFFF" />
-                      </View>
-                      <Text style={styles.categoryText}>{category.name}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-
-                <Text style={styles.categoryLabel}>Payment Method</Text>
-                <View style={styles.categoriesContainer}>
-                  {paymentMethods.map((method) => (
-                    <TouchableOpacity
-                      key={method.name}
-                      style={[
-                        styles.categoryButton,
-                        editPaymentMethod === method.name && { borderColor: method.color }
-                      ]}
-                      onPress={() => setEditPaymentMethod(method.name)}
-                    >
-                      <View style={[styles.categoryIcon, { backgroundColor: method.color }]}>
-                        <Ionicons name={method.icon} size={18} color="#FFFFFF" />
-                      </View>
-                      <Text style={styles.categoryText}>{method.name}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-
-                <TouchableOpacity
-                  style={[styles.addButton, { backgroundColor: '#FF6384' }]}
-                  onPress={handleSaveEdit}
-                >
-                  <Text style={styles.buttonText}>Save Changes</Text>
+            </GestureDetector>
+            
+            <ScrollView 
+              showsVerticalScrollIndicator={false}
+              bounces={true}
+              contentContainerStyle={styles.modalScrollContent}
+              keyboardShouldPersistTaps="handled"
+            >
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>
+                  {isEditMode ? 'Edit Transaction' : 'Transaction Details'}
+                </Text>
+                <TouchableOpacity onPress={isEditMode ? handleCancelEdit : onClose}>
+                  <Ionicons name="close" size={24} color="#FFFFFF" />
                 </TouchableOpacity>
               </View>
-            )}
-          </ScrollView>
+
+              {!isEditMode ? (
+                // View Transaction Details
+                <View style={styles.transactionDetailsContent}>
+                  <View style={[styles.transactionIcon, { backgroundColor: transaction.color }]}>
+                    <Ionicons name={transaction.icon} size={24} color="#FFFFFF" />
+                  </View>
+
+                  <Text style={styles.transactionDetailsTitle}>{transaction.title}</Text>
+                  <Text style={styles.transactionDetailsCategory}>{transaction.category}</Text>
+
+                  <Text style={styles.transactionDetailsAmount}>
+                    -${transaction.amount.toFixed(2)}
+                  </Text>
+
+                  <View style={styles.transactionDetailsRow}>
+                    <Text style={styles.transactionDetailsLabel}>Date</Text>
+                    <Text style={styles.transactionDetailsValue}>{transaction.date}, 2023</Text>
+                  </View>
+
+                  <View style={styles.transactionDetailsRow}>
+                    <Text style={styles.transactionDetailsLabel}>Time</Text>
+                    <Text style={styles.transactionDetailsValue}>12:30 PM</Text>
+                  </View>
+
+                  <View style={styles.transactionDetailsRow}>
+                    <Text style={styles.transactionDetailsLabel}>Transaction ID</Text>
+                    <Text style={styles.transactionDetailsValue}>#TRX{transaction.id.toString().padStart(4, '0')}</Text>
+                  </View>
+
+                  <View style={styles.transactionDetailsRow}>
+                    <Text style={styles.transactionDetailsLabel}>Payment Method</Text>
+                    <View style={styles.transactionDetailsMethod}>
+                      <View style={[styles.transactionMethodIcon, { backgroundColor: '#FF6384' }]}>
+                        <Ionicons name="card" size={16} color="#FFFFFF" />
+                      </View>
+                      <Text style={styles.transactionDetailsValue}>Credit Card</Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.transactionDetailsRow}>
+                    <Text style={styles.transactionDetailsLabel}>Status</Text>
+                    <View style={styles.statusContainer}>
+                      <View style={[styles.statusDot, { backgroundColor: '#4CAF50' }]} />
+                      <Text style={[styles.transactionDetailsValue, { color: '#4CAF50' }]}>Completed</Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.transactionDetailsRow}>
+                    <Text style={styles.transactionDetailsLabel}>Notes</Text>
+                    <Text style={styles.transactionDetailsValue} numberOfLines={2}>
+                      {transaction.title === 'Grocery Shopping' ? 'Weekly grocery run at Trader Joe\'s.' :
+                       transaction.title === 'Uber Ride' ? 'Business trip to downtown meeting.' :
+                       transaction.title === 'New Headphones' ? 'Sony WH-1000XM4 noise cancelling headphones.' :
+                       'No notes available.'}
+                    </Text>
+                  </View>
+
+                  <View style={styles.buttonContainer}>
+                    <TouchableOpacity
+                      style={styles.editTransactionButton}
+                      onPress={handleEditPress}
+                    >
+                      <Text style={styles.editTransactionButtonText}>Edit Transaction</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={styles.deleteTransactionButton}
+                      onPress={() => onDelete(transaction.id)}
+                    >
+                      <Text style={styles.deleteTransactionButtonText}>Delete Transaction</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ) : (
+                // Edit Transaction Form
+                <View style={styles.editTransactionForm}>
+                  <TextInput
+                    style={styles.amountInput}
+                    placeholder="$0.00"
+                    placeholderTextColor="#666666"
+                    keyboardType="decimal-pad"
+                    value={editAmount}
+                    onChangeText={setEditAmount}
+                  />
+
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Description"
+                    placeholderTextColor="#666666"
+                    value={editDescription}
+                    onChangeText={setEditDescription}
+                  />
+
+                  <Text style={styles.categoryLabel}>Select Category</Text>
+                  <View style={styles.categoriesContainer}>
+                    {categories.map((category) => (
+                      <TouchableOpacity
+                        key={category.name}
+                        style={[
+                          styles.categoryButton,
+                          editCategory === category.name && { borderColor: category.color }
+                        ]}
+                        onPress={() => setEditCategory(category.name)}
+                      >
+                        <View style={[styles.categoryIcon, { backgroundColor: category.color }]}>
+                          <Ionicons name={category.icon} size={18} color="#FFFFFF" />
+                        </View>
+                        <Text style={styles.categoryText}>{category.name}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+
+                  <Text style={styles.categoryLabel}>Payment Method</Text>
+                  <View style={styles.categoriesContainer}>
+                    {paymentMethods.map((method) => (
+                      <TouchableOpacity
+                        key={method.name}
+                        style={[
+                          styles.categoryButton,
+                          editPaymentMethod === method.name && { borderColor: method.color }
+                        ]}
+                        onPress={() => setEditPaymentMethod(method.name)}
+                      >
+                        <View style={[styles.categoryIcon, { backgroundColor: method.color }]}>
+                          <Ionicons name={method.icon} size={18} color="#FFFFFF" />
+                        </View>
+                        <Text style={styles.categoryText}>{method.name}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+
+                  <TouchableOpacity
+                    style={[styles.addButton, { backgroundColor: '#FF6384' }]}
+                    onPress={handleSaveEdit}
+                  >
+                    <Text style={styles.buttonText}>Save Changes</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </ScrollView>
+          </View>
         </View>
-      </View>
+      </GestureHandlerRootView>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
-  modalContainer: {
+  modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.7)',
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: 'transparent',
     justifyContent: 'flex-end',
   },
   modalContent: {
@@ -253,6 +280,18 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     padding: 20,
     maxHeight: '90%',
+  },
+  pullTabContainer: {
+    height: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalPullTab: {
+    width: 60,
+    height: 6,
+    backgroundColor: '#444444',
+    borderRadius: 3,
+    opacity: 0,
   },
   modalScrollContent: {
     paddingBottom: 30,
