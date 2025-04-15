@@ -165,18 +165,18 @@ const AddExpenseScreen = ({ navigation }) => {
     amountRange: { min: '', max: '' },
     searchQuery: ''
   });
-  
+
   // Using state for categories
   const [categories, setCategories] = useState([]);
   const [incomeCategories, setIncomeCategories] = useState([]);
-  
+
   // Load categories from AsyncStorage
   useEffect(() => {
     const loadCategories = async () => {
       try {
         const storedExpenseCategories = await AsyncStorage.getItem('expenseCategories');
         const storedIncomeCategories = await AsyncStorage.getItem('incomeCategories');
-        
+
         if (storedExpenseCategories) {
           setCategories(JSON.parse(storedExpenseCategories));
         } else {
@@ -194,7 +194,7 @@ const AddExpenseScreen = ({ navigation }) => {
           setCategories(defaultCategories);
           await AsyncStorage.setItem('expenseCategories', JSON.stringify(defaultCategories));
         }
-        
+
         if (storedIncomeCategories) {
           setIncomeCategories(JSON.parse(storedIncomeCategories));
         } else {
@@ -212,15 +212,15 @@ const AddExpenseScreen = ({ navigation }) => {
         console.log('Error loading categories from storage:', error);
       }
     };
-    
+
     loadCategories();
-    
+
     // Add a focus listener to reload categories when screen comes into focus
     const unsubscribe = navigation.addListener('focus', loadCategories);
-    
+
     return unsubscribe;
   }, [navigation]);
-  
+
   // Get current categories based on filter type
   const categoriesToShow = useCallback(() => {
     if (filterType === 'income') {
@@ -229,33 +229,33 @@ const AddExpenseScreen = ({ navigation }) => {
       return categories.map(cat => cat.name);
     }
   }, [categories, incomeCategories, filterType]);
-  
+
   // Get category color and icon
   const getCategoryDetails = useCallback((categoryName) => {
     const categoryList = filterType === 'income' ? incomeCategories : categories;
     const category = categoryList.find(cat => cat.name === categoryName);
-    
+
     return category || { color: '#276EF1', icon: 'ellipsis-horizontal' };
   }, [categories, incomeCategories, filterType]);
-  
+
   // Filter transactions based on selected type and advanced filters
   const filteredTransactions = allTransactions.filter(transaction => {
     // Basic type filter
     if (filterType !== 'all' && transaction.type !== filterType) return false;
-    
+
     // Advanced filters
     // Category filter
-    if (appliedFilters.categories.length > 0 && 
+    if (appliedFilters.categories.length > 0 &&
         !appliedFilters.categories.includes(transaction.category)) {
       return false;
     }
-    
+
     // Search query filter (name/title)
-    if (appliedFilters.searchQuery && 
+    if (appliedFilters.searchQuery &&
         !transaction.title.toLowerCase().includes(appliedFilters.searchQuery.toLowerCase())) {
       return false;
     }
-    
+
     // Amount range filter
     if (appliedFilters.amountRange.min && transaction.amount < parseFloat(appliedFilters.amountRange.min)) {
       return false;
@@ -263,22 +263,22 @@ const AddExpenseScreen = ({ navigation }) => {
     if (appliedFilters.amountRange.max && transaction.amount > parseFloat(appliedFilters.amountRange.max)) {
       return false;
     }
-    
+
     // Date filter would go here if we had proper date objects
     // For the mock data, we'd need to convert the string dates to Date objects
-    
+
     return true;
   });
-  
+
   // Calculate total income and expenses
   const totalIncome = allTransactions
     .filter(transaction => transaction.type === 'income')
     .reduce((sum, transaction) => sum + transaction.amount, 0);
-    
+
   const totalExpenses = allTransactions
     .filter(transaction => transaction.type === 'expense')
     .reduce((sum, transaction) => sum + transaction.amount, 0);
-  
+
   // Initialize modal state when opening
   useEffect(() => {
     if (showFilterModal) {
@@ -288,14 +288,14 @@ const AddExpenseScreen = ({ navigation }) => {
       setAmountRange({...appliedFilters.amountRange});
     }
   }, [showFilterModal]);
-  
+
   // Reset selected categories when filter type changes
   useEffect(() => {
     if (showFilterModal) {
       setSelectedCategories([]);
     }
   }, [filterType, showFilterModal]);
-  
+
   // Добавим состояние для отслеживания видимости клавиатуры
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
@@ -313,20 +313,20 @@ const AddExpenseScreen = ({ navigation }) => {
       keyboardDidHideListener.remove();
     };
   }, []);
-  
+
   const renderFilterButton = (label, value) => (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={[
-        styles.filterButton, 
+        styles.filterButton,
         filterType === value && styles.activeFilterButton,
         value === 'income' && filterType === value && styles.activeIncomeButton,
         value === 'expense' && filterType === value && styles.activeExpenseButton
       ]}
       onPress={() => setFilterType(value)}
     >
-      <Text 
+      <Text
         style={[
-          styles.filterText, 
+          styles.filterText,
           filterType === value && styles.activeFilterText
         ]}
       >
@@ -334,7 +334,7 @@ const AddExpenseScreen = ({ navigation }) => {
       </Text>
     </TouchableOpacity>
   );
-  
+
   const toggleCategory = useCallback((category) => {
     setSelectedCategories(prevCategories => {
       if (prevCategories.includes(category)) {
@@ -344,7 +344,7 @@ const AddExpenseScreen = ({ navigation }) => {
       }
     });
   }, []);
-  
+
   const applyFilters = () => {
     setAppliedFilters({
       categories: selectedCategories,
@@ -354,7 +354,7 @@ const AddExpenseScreen = ({ navigation }) => {
     });
     setShowFilterModal(false);
   };
-  
+
   const resetFilters = () => {
     setSelectedCategories([]);
     setDateRange({ start: '', end: '' });
@@ -367,30 +367,30 @@ const AddExpenseScreen = ({ navigation }) => {
       searchQuery: ''
     });
   };
-  
+
   // Completely rewrite the renderModalContent function to implement a better design
   const renderModalContent = useCallback(() => {
     const currentCategories = categoriesToShow();
-    
+
     return (
       <View style={styles.filterModalContainer}>
         <View style={styles.filterModalContent}>
           <View style={styles.filterModalHeader}>
-            <TouchableOpacity 
-              style={styles.filterModalCloseButton} 
+            <TouchableOpacity
+              style={styles.filterModalCloseButton}
               onPress={() => setShowFilterModal(false)}
             >
               <Ionicons name="chevron-down" size={26} color="#FFFFFF" />
             </TouchableOpacity>
             <Text style={styles.filterModalTitle}>Filters</Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.filterModalResetButton}
               onPress={resetFilters}
             >
               <Text style={styles.filterModalResetText}>Reset</Text>
             </TouchableOpacity>
           </View>
-          
+
           <ScrollView
             style={styles.filterModalScrollView}
             contentContainerStyle={styles.filterModalScrollContent}
@@ -416,20 +416,20 @@ const AddExpenseScreen = ({ navigation }) => {
                 )}
               </View>
             </View>
-            
+
             <View style={styles.filterDivider} />
-            
+
             {/* Categories Section */}
             <View style={styles.filterSection}>
               <Text style={styles.filterSectionTitle}>
-                {filterType === 'all' ? 'Categories' : 
+                {filterType === 'all' ? 'Categories' :
                  filterType === 'income' ? 'Income Categories' : 'Expense Categories'}
               </Text>
               <View style={styles.categoriesContainer}>
                 {currentCategories.map((category) => {
                   const { color } = getCategoryDetails(category);
                   const isSelected = selectedCategories.includes(category);
-                  
+
                   return (
                     <TouchableOpacity
                       key={category}
@@ -453,9 +453,9 @@ const AddExpenseScreen = ({ navigation }) => {
                 })}
               </View>
             </View>
-            
+
             <View style={styles.filterDivider} />
-            
+
             {/* Date Range Section */}
             <View style={styles.filterSection}>
               <Text style={styles.filterSectionTitle}>Date Range</Text>
@@ -473,7 +473,7 @@ const AddExpenseScreen = ({ navigation }) => {
                     <Ionicons name="calendar" size={20} color="#999999" style={styles.dateInputIcon} />
                   </View>
                 </View>
-                
+
                 <View style={styles.dateInputWrapper}>
                   <Text style={styles.dateInputLabel}>To</Text>
                   <View style={styles.dateInputContainer}>
@@ -489,9 +489,9 @@ const AddExpenseScreen = ({ navigation }) => {
                 </View>
               </View>
             </View>
-            
+
             <View style={styles.filterDivider} />
-            
+
             {/* Amount Range Section */}
             <View style={styles.filterSection}>
               <Text style={styles.filterSectionTitle}>Amount Range</Text>
@@ -510,7 +510,7 @@ const AddExpenseScreen = ({ navigation }) => {
                     />
                   </View>
                 </View>
-                
+
                 <View style={styles.amountInputWrapper}>
                   <Text style={styles.amountInputLabel}>Maximum</Text>
                   <View style={styles.amountInputContainer}>
@@ -528,9 +528,9 @@ const AddExpenseScreen = ({ navigation }) => {
               </View>
             </View>
           </ScrollView>
-          
+
           <View style={styles.filterModalFooter}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.filterApplyButton}
               onPress={applyFilters}
             >
@@ -541,11 +541,11 @@ const AddExpenseScreen = ({ navigation }) => {
       </View>
     );
   }, [
-    categoriesToShow, 
-    searchQuery, 
-    selectedCategories, 
-    dateRange, 
-    amountRange, 
+    categoriesToShow,
+    searchQuery,
+    selectedCategories,
+    dateRange,
+    amountRange,
     filterType,
     getCategoryDetails,
     toggleCategory,
@@ -583,17 +583,17 @@ const AddExpenseScreen = ({ navigation }) => {
                 <View style={[styles.transactionIcon, { backgroundColor: selectedTransaction.color }]}>
                   <Ionicons name={selectedTransaction.icon} size={24} color="#FFFFFF" />
                 </View>
-                
+
                 <Text style={styles.transactionDetailsTitle}>{selectedTransaction.title}</Text>
                 <Text style={styles.transactionDetailsCategory}>{selectedTransaction.category}</Text>
-                
+
                 <Text style={[
                   styles.transactionDetailsAmount,
                   selectedTransaction.type === 'income' ? styles.incomeAmount : styles.expenseAmount
                 ]}>
                   {selectedTransaction.type === 'income' ? '+' : '-'}${selectedTransaction.amount.toFixed(2)}
                 </Text>
-                
+
                 <View style={styles.transactionDetailsRow}>
                   <Text style={styles.transactionDetailsLabel}>Date</Text>
                   <Text style={styles.transactionDetailsValue}>{selectedTransaction.date}</Text>
@@ -603,38 +603,38 @@ const AddExpenseScreen = ({ navigation }) => {
                   <Text style={styles.transactionDetailsLabel}>Time</Text>
                   <Text style={styles.transactionDetailsValue}>12:30 PM</Text>
                 </View>
-                
+
                 <View style={styles.transactionDetailsRow}>
                   <Text style={styles.transactionDetailsLabel}>Transaction ID</Text>
                   <Text style={styles.transactionDetailsValue}>#TRX{selectedTransaction.id.toString().padStart(4, '0')}</Text>
                 </View>
-                
+
                 <View style={styles.transactionDetailsRow}>
                   <Text style={styles.transactionDetailsLabel}>
                     {selectedTransaction.type === 'income' ? 'Source' : 'Payment Method'}
                   </Text>
                   <View style={styles.transactionDetailsMethod}>
-                    <View 
+                    <View
                       style={[
-                        styles.transactionMethodIcon, 
-                        { 
-                          backgroundColor: selectedTransaction.type === 'income' 
-                            ? selectedTransaction.sourceColor 
-                            : selectedTransaction.paymentColor 
+                        styles.transactionMethodIcon,
+                        {
+                          backgroundColor: selectedTransaction.type === 'income'
+                            ? selectedTransaction.sourceColor
+                            : selectedTransaction.paymentColor
                         }
                       ]}
                     >
-                      <Ionicons 
-                        name={selectedTransaction.type === 'income' 
-                          ? selectedTransaction.sourceIcon 
-                          : selectedTransaction.paymentIcon} 
-                        size={16} 
-                        color="#FFFFFF" 
+                      <Ionicons
+                        name={selectedTransaction.type === 'income'
+                          ? selectedTransaction.sourceIcon
+                          : selectedTransaction.paymentIcon}
+                        size={16}
+                        color="#FFFFFF"
                       />
                     </View>
                     <Text style={styles.transactionDetailsValue}>
-                      {selectedTransaction.type === 'income' 
-                        ? selectedTransaction.source 
+                      {selectedTransaction.type === 'income'
+                        ? selectedTransaction.source
                         : selectedTransaction.paymentMethod}
                     </Text>
                   </View>
@@ -668,8 +668,8 @@ const AddExpenseScreen = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        <ScrollView 
-          style={styles.content} 
+        <ScrollView
+          style={styles.content}
           contentContainerStyle={styles.contentContainer}
           showsVerticalScrollIndicator={false}
         >
@@ -678,7 +678,7 @@ const AddExpenseScreen = ({ navigation }) => {
             <View style={styles.header}>
               <Text style={styles.headerTitle}>Transactions</Text>
             </View>
-            
+
             {/* Summary Card */}
             <View style={styles.summaryCard}>
               <View style={styles.summaryRow}>
@@ -691,9 +691,9 @@ const AddExpenseScreen = ({ navigation }) => {
                     <Text style={[styles.summaryAmount, styles.incomeAmount]}>${totalIncome.toFixed(2)}</Text>
                   </View>
                 </View>
-                
+
                 <View style={styles.summaryDivider} />
-                
+
                 <View style={styles.summaryItem}>
                   <View style={styles.summaryIconContainer}>
                     <Ionicons name="arrow-up" size={18} color={COLORS.EXPENSE} />
@@ -705,29 +705,29 @@ const AddExpenseScreen = ({ navigation }) => {
                 </View>
               </View>
             </View>
-            
+
             {/* Filter Buttons */}
             <View style={styles.filterContainer}>
               {renderFilterButton('All', 'all')}
               {renderFilterButton('Income', 'income')}
               {renderFilterButton('Expenses', 'expense')}
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.advancedFilterButton}
                 onPress={() => setShowFilterModal(true)}
               >
                 <Ionicons name="options" size={20} color="#FFFFFF" />
               </TouchableOpacity>
             </View>
-            
+
             {/* Active Filters Display */}
-            {(appliedFilters.categories.length > 0 || 
-              appliedFilters.searchQuery || 
-              appliedFilters.amountRange.min || 
+            {(appliedFilters.categories.length > 0 ||
+              appliedFilters.searchQuery ||
+              appliedFilters.amountRange.min ||
               appliedFilters.amountRange.max) && (
               <View style={styles.activeFiltersContainer}>
                 <Text style={styles.activeFiltersTitle}>Active Filters:</Text>
-                <ScrollView 
-                  horizontal 
+                <ScrollView
+                  horizontal
                   showsHorizontalScrollIndicator={false}
                   style={styles.activeFiltersScroll}
                 >
@@ -739,7 +739,7 @@ const AddExpenseScreen = ({ navigation }) => {
                       </View>
                     );
                   })}
-                  
+
                   {appliedFilters.searchQuery && (
                     <View style={styles.activeFilterChip}>
                       <Text style={styles.activeFilterChipText}>
@@ -747,7 +747,7 @@ const AddExpenseScreen = ({ navigation }) => {
                       </Text>
                     </View>
                   )}
-                  
+
                   {(appliedFilters.amountRange.min || appliedFilters.amountRange.max) && (
                     <View style={styles.activeFilterChip}>
                       <Text style={styles.activeFilterChipText}>
@@ -755,8 +755,8 @@ const AddExpenseScreen = ({ navigation }) => {
                       </Text>
                     </View>
                   )}
-                  
-                  <TouchableOpacity 
+
+                  <TouchableOpacity
                     style={[styles.clearFiltersButton, { backgroundColor: COLORS.EXPENSE }]}
                     onPress={resetFilters}
                   >
@@ -765,13 +765,13 @@ const AddExpenseScreen = ({ navigation }) => {
                 </ScrollView>
               </View>
             )}
-            
+
             {/* Transactions List */}
             <View style={styles.transactionsContainer}>
               {filteredTransactions.length > 0 ? (
                 filteredTransactions.map((transaction) => (
-                  <TouchableOpacity 
-                    key={transaction.id} 
+                  <TouchableOpacity
+                    key={transaction.id}
                     style={styles.transactionItem}
                     activeOpacity={0.7}
                     onPress={() => handleTransactionClick(transaction)}
@@ -779,14 +779,14 @@ const AddExpenseScreen = ({ navigation }) => {
                     <View style={[styles.transactionIcon, { backgroundColor: transaction.color }]}>
                       <Ionicons name={transaction.icon} size={20} color="#FFFFFF" />
                     </View>
-                    
+
                     <View style={styles.transactionInfo}>
                       <Text style={styles.transactionTitle}>{transaction.title}</Text>
                       <Text style={styles.transactionCategory}>{transaction.category}</Text>
                     </View>
-                    
+
                     <View style={styles.transactionDetails}>
-                      <Text 
+                      <Text
                         style={[
                           styles.transactionAmount,
                           transaction.type === 'income' ? styles.incomeAmount : styles.expenseAmount
@@ -795,21 +795,21 @@ const AddExpenseScreen = ({ navigation }) => {
                         {transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)}
                       </Text>
                       <Text style={styles.transactionDate}>{transaction.date}</Text>
-                      
-                      <View 
+
+                      <View
                         style={[
-                          styles.transactionMethodIcon, 
-                          { 
-                            backgroundColor: transaction.type === 'income' 
-                              ? transaction.sourceColor 
-                              : transaction.paymentColor 
+                          styles.transactionMethodIcon,
+                          {
+                            backgroundColor: transaction.type === 'income'
+                              ? transaction.sourceColor
+                              : transaction.paymentColor
                           }
                         ]}
                       >
-                        <Ionicons 
-                          name={transaction.type === 'income' ? transaction.sourceIcon : transaction.paymentIcon} 
-                          size={14} 
-                          color="#FFFFFF" 
+                        <Ionicons
+                          name={transaction.type === 'income' ? transaction.sourceIcon : transaction.paymentIcon}
+                          size={14}
+                          color="#FFFFFF"
                         />
                       </View>
                     </View>
@@ -824,7 +824,7 @@ const AddExpenseScreen = ({ navigation }) => {
           </View>
         </ScrollView>
       </View>
-      
+
       {/* Filter Modal */}
       <Modal
         animationType="slide"
@@ -1324,4 +1324,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AddExpenseScreen; 
+export default AddExpenseScreen;

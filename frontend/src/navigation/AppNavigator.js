@@ -44,8 +44,8 @@ const MainAppNavigator = () => {
         }
       }}
     >
-      <Tab.Screen 
-        name="Home" 
+      <Tab.Screen
+        name="Home"
         component={HomeScreen}
         options={{
           tabBarIcon: ({ color, size }) => (
@@ -53,8 +53,8 @@ const MainAppNavigator = () => {
           ),
         }}
       />
-      <Tab.Screen 
-        name="Transactions" 
+      <Tab.Screen
+        name="Transactions"
         component={TransactionsScreen}
         options={{
           tabBarIcon: ({ color, size }) => (
@@ -62,8 +62,8 @@ const MainAppNavigator = () => {
           ),
         }}
       />
-      <Tab.Screen 
-        name="Accounts" 
+      <Tab.Screen
+        name="Accounts"
         component={AccountsScreen}
         options={{
           tabBarIcon: ({ color, size }) => (
@@ -71,8 +71,8 @@ const MainAppNavigator = () => {
           ),
         }}
       />
-      <Tab.Screen 
-        name="Statistics" 
+      <Tab.Screen
+        name="Statistics"
         component={StatisticsScreen}
         options={{
           tabBarIcon: ({ color, size }) => (
@@ -80,8 +80,8 @@ const MainAppNavigator = () => {
           ),
         }}
       />
-      <Tab.Screen 
-        name="Profile" 
+      <Tab.Screen
+        name="Profile"
         component={ProfileScreen}
         options={{
           tabBarIcon: ({ color, size }) => (
@@ -114,4 +114,4 @@ const AppNavigator = () => {
   );
 };
 
-export default AppNavigator; 
+export default AppNavigator;

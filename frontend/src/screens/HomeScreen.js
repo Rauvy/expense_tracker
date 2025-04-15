@@ -52,7 +52,7 @@ const initialIncomeSources = [
 
 // Available icons for custom categories
 const availableIcons = [
-  'basketball', 'airplane', 'book', 'briefcase', 'calculator', 
+  'basketball', 'airplane', 'book', 'briefcase', 'calculator',
   'calendar', 'camera', 'color-palette', 'desktop', 'fitness',
   'gift', 'glasses', 'home', 'medical', 'paw', 'school'
 ];
@@ -95,38 +95,38 @@ const categoryData = [
 const generatePieChartPath = (index, data, radius, innerRadius) => {
   // Calculate total
   const total = data.reduce((acc, item) => acc + item.amount, 0);
-  
+
   // Calculate start and end angles
   let startAngle = 0;
   for (let i = 0; i < index; i++) {
     const angle = (data[i].amount / total) * 2 * Math.PI;
     startAngle += angle;
   }
-  
+
   const angle = (data[index].amount / total) * 2 * Math.PI;
   const endAngle = startAngle + angle;
-  
+
   // Calculate coordinates
   const centerX = radius;
   const centerY = radius;
-  
+
   // Starting point
   const startX = centerX + Math.cos(startAngle) * radius;
   const startY = centerY + Math.sin(startAngle) * radius;
-  
+
   // End point
   const endX = centerX + Math.cos(endAngle) * radius;
   const endY = centerY + Math.sin(endAngle) * radius;
-  
+
   // Inner points for donut
   const innerStartX = centerX + Math.cos(startAngle) * innerRadius;
   const innerStartY = centerY + Math.sin(startAngle) * innerRadius;
   const innerEndX = centerX + Math.cos(endAngle) * innerRadius;
   const innerEndY = centerY + Math.sin(endAngle) * innerRadius;
-  
+
   // Large arc flag
   const largeArcFlag = angle > Math.PI ? 1 : 0;
-  
+
   // Create SVG path with slightly adjusted padding for better appearance
   return `
     M ${startX} ${startY}
@@ -170,29 +170,29 @@ const recentExpenses = [
 const HomeScreen = ({ navigation }) => {
   const [activeIndex, setActiveIndex] = useState(null);
   const fadeAnim = useRef(new Animated.Value(1)).current;
-  
+
   // State for modals
   const [expenseModalVisible, setExpenseModalVisible] = useState(false);
   const [incomeModalVisible, setIncomeModalVisible] = useState(false);
-  
+
   // State for expense form
   const [expenseAmount, setExpenseAmount] = useState('');
   const [expenseDescription, setExpenseDescription] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
-  
+
   // State for income form
   const [incomeAmount, setIncomeAmount] = useState('');
   const [incomeDescription, setIncomeDescription] = useState('');
   const [selectedIncomeCategory, setSelectedIncomeCategory] = useState(null);
   const [selectedIncomeSource, setSelectedIncomeSource] = useState(null);
-  
+
   // State for custom category/payment method modals
   const [customCategoryModalVisible, setCustomCategoryModalVisible] = useState(false);
   const [customPaymentMethodModalVisible, setCustomPaymentMethodModalVisible] = useState(false);
   const [customIncomeCategoryModalVisible, setCustomIncomeCategoryModalVisible] = useState(false);
   const [customIncomeSourceModalVisible, setCustomIncomeSourceModalVisible] = useState(false);
-  
+
   // State for custom category/payment method forms
   const [customCategoryName, setCustomCategoryName] = useState('');
   const [customPaymentMethodName, setCustomPaymentMethodName] = useState('');
@@ -206,7 +206,7 @@ const HomeScreen = ({ navigation }) => {
   const [selectedPaymentColor, setSelectedPaymentColor] = useState('#276EF1');
   const [selectedIncomeColor, setSelectedIncomeColor] = useState('#276EF1');
   const [selectedSourceColor, setSelectedSourceColor] = useState('#276EF1');
-  
+
   // State for categories and payment methods
   const [categories, setCategories] = useState([
     { name: 'Food', icon: 'fast-food', color: '#FF9500' },
@@ -218,7 +218,7 @@ const HomeScreen = ({ navigation }) => {
     { name: 'Education', icon: 'school', color: '#007AFF' },
     { name: 'Other', icon: 'ellipsis-horizontal', color: '#8E8E93' },
   ]);
-  
+
   const [paymentMethods, setPaymentMethods] = useState(initialPaymentMethods);
   const [incomeCategories, setIncomeCategories] = useState([
     { name: 'Salary', icon: 'cash', color: '#4CD964' },
@@ -227,7 +227,7 @@ const HomeScreen = ({ navigation }) => {
     { name: 'Gifts', icon: 'gift', color: '#FF2D55' },
   ]);
   const [incomeSources, setIncomeSources] = useState(initialIncomeSources);
-  
+
   // Calculate percentages and prepare data
   const total = categoryData.reduce((acc, item) => acc + item.amount, 0);
   const formattedCategoryData = categoryData.map((item) => ({
@@ -261,7 +261,7 @@ const HomeScreen = ({ navigation }) => {
   // Set up refs for the carousel
   const carouselRef = useRef(null);
   const scrollX = useRef(new Animated.Value(0)).current;
-  
+
   // Update active index based on scroll position
   useEffect(() => {
     const listener = scrollX.addListener(({ value }) => {
@@ -270,7 +270,7 @@ const HomeScreen = ({ navigation }) => {
         setActiveCardIndex(index);
       }
     });
-    
+
     return () => {
       scrollX.removeListener(listener);
     };
@@ -281,27 +281,27 @@ const HomeScreen = ({ navigation }) => {
     <View style={[styles.tile, { width: screenWidth - 30 }]}>
       <View style={styles.financialCardHeader}>
         <Text style={[styles.tileLabel, { textAlign: 'center', flex: 1 }]}>{item.title}</Text>
-        <Ionicons 
+        <Ionicons
           name={
-            index === 0 ? "wallet-outline" : 
+            index === 0 ? "wallet-outline" :
             index === 1 ? "trending-up-outline" : "trending-down-outline"
-          } 
-          size={22} 
-          color={item.color} 
+          }
+          size={22}
+          color={item.color}
         />
       </View>
-      
+
       <Text style={[styles.tileAmount, { color: item.color, textAlign: 'center' }]}>
         ${item.value.toLocaleString()}
       </Text>
       <Text style={[styles.tileTrend, { textAlign: 'center' }]}>
         {item.trend} this month
       </Text>
-      
+
       {/* Add Action Buttons - only on Net Worth tile */}
       {index === 0 && (
         <View style={styles.actionButtonsContainer}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.netWorthActionButton}
             activeOpacity={0.7}
             onPress={() => setIncomeModalVisible(true)}
@@ -309,8 +309,8 @@ const HomeScreen = ({ navigation }) => {
             <Ionicons name="add-circle" size={20} color="#FFFFFF" />
             <Text style={styles.netWorthActionText}>Income</Text>
           </TouchableOpacity>
-          
-          <TouchableOpacity 
+
+          <TouchableOpacity
             style={[styles.netWorthActionButton, {backgroundColor: '#FF6384'}]}
             activeOpacity={0.7}
             onPress={() => setExpenseModalVisible(true)}
@@ -333,7 +333,7 @@ const HomeScreen = ({ navigation }) => {
     }).start(() => {
       // Change the content
       setActiveIndex(activeIndex === index ? null : index);
-      
+
       // Fade in
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -388,7 +388,7 @@ const HomeScreen = ({ navigation }) => {
       try {
         const storedExpenseCategories = await AsyncStorage.getItem('expenseCategories');
         const storedIncomeCategories = await AsyncStorage.getItem('incomeCategories');
-        
+
         if (storedExpenseCategories) {
           setCategories(JSON.parse(storedExpenseCategories));
         } else {
@@ -406,7 +406,7 @@ const HomeScreen = ({ navigation }) => {
           setCategories(defaultCategories);
           await AsyncStorage.setItem('expenseCategories', JSON.stringify(defaultCategories));
         }
-        
+
         if (storedIncomeCategories) {
           setIncomeCategories(JSON.parse(storedIncomeCategories));
         } else {
@@ -424,15 +424,15 @@ const HomeScreen = ({ navigation }) => {
         console.log('Error loading categories from storage:', error);
       }
     };
-    
+
     loadCategories();
-    
+
     // Add a focus listener to reload categories when screen comes into focus
     const unsubscribe = navigation.addListener('focus', loadCategories);
-    
+
     return unsubscribe;
   }, [navigation]);
-  
+
   // Modify the Custom Category Modal to save to AsyncStorage
   const saveCategory = useCallback(async (newCategory) => {
     try {
@@ -441,7 +441,7 @@ const HomeScreen = ({ navigation }) => {
       await AsyncStorage.setItem('expenseCategories', JSON.stringify(updatedCategories));
       setSelectedCategory(newCategory.name);
       setCustomCategoryModalVisible(false);
-      
+
       // Reset form
       setCustomCategoryName('');
       setSelectedIcon(null);
@@ -449,7 +449,7 @@ const HomeScreen = ({ navigation }) => {
       console.log('Error saving expense category:', error);
     }
   }, [categories]);
-  
+
   // Modify the Custom Income Category Modal to save to AsyncStorage
   const saveIncomeCategory = useCallback(async (newCategory) => {
     try {
@@ -458,7 +458,7 @@ const HomeScreen = ({ navigation }) => {
       await AsyncStorage.setItem('incomeCategories', JSON.stringify(updatedCategories));
       setSelectedIncomeCategory(newCategory.name);
       setCustomIncomeCategoryModalVisible(false);
-      
+
       // Reset form
       setCustomIncomeCategoryName('');
       setSelectedIncomeIcon(null);
@@ -469,7 +469,7 @@ const HomeScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView 
+      <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollViewContent}
         showsVerticalScrollIndicator={true}
@@ -481,9 +481,8 @@ const HomeScreen = ({ navigation }) => {
           {/* Financial Cards Carousel */}
           <View style={styles.monthlyStatsHeader}>
             <Text style={styles.sectionTitle}>Financial Overview</Text>
-            <Ionicons name="wallet-outline" size={22} color="#276EF1" />
           </View>
-          
+
           <View style={styles.carouselWrapper}>
             <AnimatedFlatList
               ref={carouselRef}
@@ -504,29 +503,29 @@ const HomeScreen = ({ navigation }) => {
               contentContainerStyle={styles.carouselContentContainer}
             />
           </View>
-          
+
           {/* Pagination Indicators */}
           <View style={styles.paginationDots}>
             {financialCards.map((_, index) => (
-              <View 
-                key={index} 
+              <View
+                key={index}
                 style={[
-                  styles.paginationDot, 
+                  styles.paginationDot,
                   activeCardIndex === index ? styles.paginationDotActive : {}
-                ]} 
+                ]}
               />
             ))}
           </View>
-          
+
           {/* Monthly Stats Section */}
           <View style={styles.monthlyStatsHeader}>
             <Text style={styles.sectionTitle}>Monthly Statistics</Text>
             <Ionicons name="stats-chart" size={22} color="#276EF1" />
           </View>
-          
+
           {/* Tiles for Monthly Earned and Monthly Spent */}
           <View style={styles.tilesContainer}>
-            <TouchableOpacity 
+            <TouchableOpacity
               activeOpacity={0.7}
               style={[styles.tile, earnedTilePressed && styles.tileTouched]}
               onPress={() => {
@@ -541,8 +540,8 @@ const HomeScreen = ({ navigation }) => {
                 <Ionicons name="trending-up" size={24} color="#4BC0C0" />
               </View>
             </TouchableOpacity>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               activeOpacity={0.7}
               style={[styles.tile, spentTilePressed && styles.tileTouched]}
               onPress={() => {
@@ -558,12 +557,12 @@ const HomeScreen = ({ navigation }) => {
               </View>
             </TouchableOpacity>
           </View>
-          
+
           {/* Activity Section with Pie Chart */}
           <View style={styles.activityContainer}>
             <Text style={styles.sectionTitle}>Activity</Text>
             <Text style={styles.sectionSubtitle}>Spending by Category</Text>
-            
+
             <View style={styles.chartAndLegendWrapper}>
               {/* Left side: Pie Chart */}
               <View style={styles.chartContainer}>
@@ -591,18 +590,18 @@ const HomeScreen = ({ navigation }) => {
                     />
                   </G>
                 </Svg>
-                
+
                 {/* Center Display */}
                 <Animated.View style={[styles.chartCenterView, { opacity: fadeAnim }]}>
                   <View style={styles.chartCenterContent}>
                     <Text style={styles.chartCenterValue} numberOfLines={1} adjustsFontSizeToFit>
-                      {activeIndex !== null 
+                      {activeIndex !== null
                         ? `$${formattedCategoryData[activeIndex].amount.toFixed(2)}`
                         : `$${total.toFixed(2)}`
                       }
                     </Text>
                     <Text style={styles.chartCenterLabel} numberOfLines={1}>
-                      {activeIndex !== null 
+                      {activeIndex !== null
                         ? formattedCategoryData[activeIndex].name
                         : "Monthly Spent"
                       }
@@ -610,13 +609,13 @@ const HomeScreen = ({ navigation }) => {
                   </View>
                 </Animated.View>
               </View>
-              
+
               {/* Categories below the chart */}
               <View style={styles.legendContainer}>
                 <View style={styles.legendGrid}>
                   {formattedCategoryData.map((category, index) => (
-                    <TouchableOpacity 
-                      key={index} 
+                    <TouchableOpacity
+                      key={index}
                       style={[
                         styles.legendItem,
                         activeIndex === index && styles.activeLegendItem
@@ -626,8 +625,8 @@ const HomeScreen = ({ navigation }) => {
                       <View style={[styles.legendColorDot, { backgroundColor: category.color }]} />
                       <Text style={styles.legendLabel}>{category.name}</Text>
                       <Text style={styles.legendValue}>
-                        {activeIndex === index 
-                          ? `$${category.amount.toFixed(2)}` 
+                        {activeIndex === index
+                          ? `$${category.amount.toFixed(2)}`
                           : `${category.percentage}%`}
                       </Text>
                     </TouchableOpacity>
@@ -636,14 +635,14 @@ const HomeScreen = ({ navigation }) => {
               </View>
             </View>
           </View>
-          
+
           {/* Recent Expenses */}
           <View style={styles.expenseContainer}>
             <Text style={styles.sectionTitle}>Recent Expenses</Text>
-            
+
             {recentExpenses.map((expense) => (
-              <TouchableOpacity 
-                key={expense.id} 
+              <TouchableOpacity
+                key={expense.id}
                 style={styles.expenseItem}
                 activeOpacity={0.7}
                 onPress={() => handleTransactionClick(expense)}
@@ -651,12 +650,12 @@ const HomeScreen = ({ navigation }) => {
                 <View style={[styles.expenseIcon, { backgroundColor: expense.color }]}>
                   <Ionicons name={expense.icon} size={20} color="#FFFFFF" />
                 </View>
-                
+
                 <View style={styles.expenseInfo}>
                   <Text style={styles.expenseTitle}>{expense.title}</Text>
                   <Text style={styles.expenseCategory}>{expense.category}</Text>
                 </View>
-                
+
                 <View style={styles.expenseDetails}>
                   <Text style={styles.expenseAmount}>-${expense.amount.toFixed(2)}</Text>
                   <Text style={styles.expenseDate}>{expense.date}</Text>
@@ -686,7 +685,7 @@ const HomeScreen = ({ navigation }) => {
               {/* Modal Header */}
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>Add Expense</Text>
-                <TouchableOpacity 
+                <TouchableOpacity
                   onPress={() => {
                     setExpenseModalVisible(false);
                     setExpenseAmount('');
@@ -698,7 +697,7 @@ const HomeScreen = ({ navigation }) => {
                   <Ionicons name="close" size={24} color="#ffffff" />
                 </TouchableOpacity>
               </View>
-              
+
               {/* Expense Form */}
               <TextInput
                 style={styles.amountInput}
@@ -708,7 +707,7 @@ const HomeScreen = ({ navigation }) => {
                 value={expenseAmount}
                 onChangeText={setExpenseAmount}
               />
-              
+
               <TextInput
                 style={styles.input}
                 placeholder="Description"
@@ -716,11 +715,11 @@ const HomeScreen = ({ navigation }) => {
                 value={expenseDescription}
                 onChangeText={setExpenseDescription}
               />
-              
+
               <Text style={styles.categoryLabel}>Select Category</Text>
               <View style={styles.categoriesContainer}>
                 {categories.map((category) => (
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     key={category.name}
                     style={[
                       styles.categoryButton,
@@ -734,8 +733,8 @@ const HomeScreen = ({ navigation }) => {
                     <Text style={styles.categoryText}>{category.name}</Text>
                   </TouchableOpacity>
                 ))}
-                
-                <TouchableOpacity 
+
+                <TouchableOpacity
                   style={styles.addCategoryButton}
                   onPress={() => setCustomCategoryModalVisible(true)}
                 >
@@ -747,7 +746,7 @@ const HomeScreen = ({ navigation }) => {
               <Text style={styles.categoryLabel}>Payment Method</Text>
               <View style={styles.categoriesContainer}>
                 {paymentMethods.map((method) => (
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     key={method.name}
                     style={[
                       styles.categoryButton,
@@ -761,8 +760,8 @@ const HomeScreen = ({ navigation }) => {
                     <Text style={styles.categoryText}>{method.name}</Text>
                   </TouchableOpacity>
                 ))}
-                
-                <TouchableOpacity 
+
+                <TouchableOpacity
                   style={styles.addCategoryButton}
                   onPress={() => setCustomPaymentMethodModalVisible(true)}
                 >
@@ -770,8 +769,8 @@ const HomeScreen = ({ navigation }) => {
                   <Text style={styles.addCategoryText}>Custom</Text>
                 </TouchableOpacity>
               </View>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={[styles.addButton, { backgroundColor: '#FF6384' }]}
                 onPress={handleAddExpense}
               >
@@ -801,7 +800,7 @@ const HomeScreen = ({ navigation }) => {
               {/* Modal Header */}
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>Add Income</Text>
-                <TouchableOpacity 
+                <TouchableOpacity
                   onPress={() => {
                     setIncomeModalVisible(false);
                     setIncomeAmount('');
@@ -813,7 +812,7 @@ const HomeScreen = ({ navigation }) => {
                   <Ionicons name="close" size={24} color="#ffffff" />
                 </TouchableOpacity>
               </View>
-              
+
               {/* Income Form */}
               <TextInput
                 style={styles.amountInput}
@@ -823,7 +822,7 @@ const HomeScreen = ({ navigation }) => {
                 value={incomeAmount}
                 onChangeText={setIncomeAmount}
               />
-              
+
               <TextInput
                 style={styles.input}
                 placeholder="Description"
@@ -831,11 +830,11 @@ const HomeScreen = ({ navigation }) => {
                 value={incomeDescription}
                 onChangeText={setIncomeDescription}
               />
-              
+
               <Text style={styles.categoryLabel}>Income Category</Text>
               <View style={styles.categoriesContainer}>
                 {incomeCategories.map((category) => (
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     key={category.name}
                     style={[
                       styles.categoryButton,
@@ -849,8 +848,8 @@ const HomeScreen = ({ navigation }) => {
                     <Text style={styles.categoryText}>{category.name}</Text>
                   </TouchableOpacity>
                 ))}
-                
-                <TouchableOpacity 
+
+                <TouchableOpacity
                   style={styles.addCategoryButton}
                   onPress={() => setCustomIncomeCategoryModalVisible(true)}
                 >
@@ -862,7 +861,7 @@ const HomeScreen = ({ navigation }) => {
               <Text style={styles.categoryLabel}>Income Source</Text>
               <View style={styles.categoriesContainer}>
                 {incomeSources.map((source) => (
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     key={source.name}
                     style={[
                       styles.categoryButton,
@@ -876,8 +875,8 @@ const HomeScreen = ({ navigation }) => {
                     <Text style={styles.categoryText}>{source.name}</Text>
                   </TouchableOpacity>
                 ))}
-                
-                <TouchableOpacity 
+
+                <TouchableOpacity
                   style={styles.addCategoryButton}
                   onPress={() => setCustomIncomeSourceModalVisible(true)}
                 >
@@ -885,8 +884,8 @@ const HomeScreen = ({ navigation }) => {
                   <Text style={styles.addCategoryText}>Custom</Text>
                 </TouchableOpacity>
               </View>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={[styles.addButton, { backgroundColor: '#4BC0C0' }]}
                 onPress={handleAddIncome}
               >
@@ -896,7 +895,7 @@ const HomeScreen = ({ navigation }) => {
           </View>
         </View>
       </Modal>
-      
+
       {/* Custom Category Modal */}
       <Modal
         animationType="slide"
@@ -913,7 +912,7 @@ const HomeScreen = ({ navigation }) => {
                   <Ionicons name="close" size={24} color="#ffffff" />
                 </TouchableOpacity>
               </View>
-              
+
               <TextInput
                 style={styles.input}
                 placeholder="Category Name"
@@ -921,11 +920,11 @@ const HomeScreen = ({ navigation }) => {
                 value={customCategoryName}
                 onChangeText={setCustomCategoryName}
               />
-              
+
               <Text style={styles.categoryLabel}>Select Icon</Text>
               <View style={styles.iconGrid}>
                 {['fast-food', 'car', 'cart', 'receipt', 'film', 'medical', 'school', 'basket', 'home', 'fitness', 'briefcase', 'game-controller', 'gift'].map((icon) => (
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     key={icon}
                     style={[
                       styles.iconButton,
@@ -937,11 +936,11 @@ const HomeScreen = ({ navigation }) => {
                   </TouchableOpacity>
                 ))}
               </View>
-              
+
               <Text style={styles.categoryLabel}>Select Color</Text>
               <View style={styles.colorGrid}>
                 {colors.map((color) => (
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     key={color}
                     style={[
                       styles.colorButton,
@@ -952,8 +951,8 @@ const HomeScreen = ({ navigation }) => {
                   />
                 ))}
               </View>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={[styles.addButton, { backgroundColor: selectedColor || '#276EF1' }]}
                 onPress={() => {
                   if (customCategoryName.trim() && selectedIcon) {
@@ -971,7 +970,7 @@ const HomeScreen = ({ navigation }) => {
           </View>
         </View>
       </Modal>
-      
+
       {/* Custom Payment Method Modal */}
       <Modal
         animationType="slide"
@@ -988,7 +987,7 @@ const HomeScreen = ({ navigation }) => {
                   <Ionicons name="close" size={24} color="#ffffff" />
                 </TouchableOpacity>
               </View>
-              
+
               <TextInput
                 style={styles.input}
                 placeholder="Payment Method Name"
@@ -996,11 +995,11 @@ const HomeScreen = ({ navigation }) => {
                 value={customPaymentMethodName}
                 onChangeText={setCustomPaymentMethodName}
               />
-              
+
               <Text style={styles.categoryLabel}>Select Icon</Text>
               <View style={styles.iconGrid}>
                 {['card', 'cash', 'wallet', 'phone-portrait', 'logo-paypal'].map((icon) => (
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     key={icon}
                     style={[
                       styles.iconButton,
@@ -1012,11 +1011,11 @@ const HomeScreen = ({ navigation }) => {
                   </TouchableOpacity>
                 ))}
               </View>
-              
+
               <Text style={styles.categoryLabel}>Select Color</Text>
               <View style={styles.colorGrid}>
                 {colors.map((color) => (
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     key={color}
                     style={[
                       styles.colorButton,
@@ -1027,8 +1026,8 @@ const HomeScreen = ({ navigation }) => {
                   />
                 ))}
               </View>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={[styles.addButton, { backgroundColor: selectedPaymentColor || '#276EF1' }]}
                 onPress={() => {
                   if (customPaymentMethodName.trim() && selectedPaymentIcon) {
@@ -1037,11 +1036,11 @@ const HomeScreen = ({ navigation }) => {
                       icon: selectedPaymentIcon,
                       color: selectedPaymentColor || '#276EF1'
                     };
-                    
+
                     setPaymentMethods([...paymentMethods, newPaymentMethod]);
                     setSelectedPaymentMethod(newPaymentMethod.name);
                     setCustomPaymentMethodModalVisible(false);
-                    
+
                     // Reset form
                     setCustomPaymentMethodName('');
                     setSelectedPaymentIcon(null);
@@ -1054,7 +1053,7 @@ const HomeScreen = ({ navigation }) => {
           </View>
         </View>
       </Modal>
-      
+
       {/* Custom Income Category Modal */}
       <Modal
         animationType="slide"
@@ -1071,7 +1070,7 @@ const HomeScreen = ({ navigation }) => {
                   <Ionicons name="close" size={24} color="#ffffff" />
                 </TouchableOpacity>
               </View>
-              
+
               <TextInput
                 style={styles.input}
                 placeholder="Category Name"
@@ -1079,11 +1078,11 @@ const HomeScreen = ({ navigation }) => {
                 value={customIncomeCategoryName}
                 onChangeText={setCustomIncomeCategoryName}
               />
-              
+
               <Text style={styles.categoryLabel}>Select Icon</Text>
               <View style={styles.iconGrid}>
                 {['cash', 'card', 'wallet', 'laptop', 'business', 'stats-chart', 'briefcase', 'gift'].map((icon) => (
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     key={icon}
                     style={[
                       styles.iconButton,
@@ -1095,11 +1094,11 @@ const HomeScreen = ({ navigation }) => {
                   </TouchableOpacity>
                 ))}
               </View>
-              
+
               <Text style={styles.categoryLabel}>Select Color</Text>
               <View style={styles.colorGrid}>
                 {colors.map((color) => (
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     key={color}
                     style={[
                       styles.colorButton,
@@ -1110,8 +1109,8 @@ const HomeScreen = ({ navigation }) => {
                   />
                 ))}
               </View>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={[styles.addButton, { backgroundColor: selectedIncomeColor || '#4BC0C0' }]}
                 onPress={() => {
                   if (customIncomeCategoryName.trim() && selectedIncomeIcon) {
@@ -1129,7 +1128,7 @@ const HomeScreen = ({ navigation }) => {
           </View>
         </View>
       </Modal>
-      
+
       {/* Custom Income Source Modal */}
       <Modal
         animationType="slide"
@@ -1146,7 +1145,7 @@ const HomeScreen = ({ navigation }) => {
                   <Ionicons name="close" size={24} color="#ffffff" />
                 </TouchableOpacity>
               </View>
-              
+
               <TextInput
                 style={styles.input}
                 placeholder="Source Name"
@@ -1154,11 +1153,11 @@ const HomeScreen = ({ navigation }) => {
                 value={customIncomeSourceName}
                 onChangeText={setCustomIncomeSourceName}
               />
-              
+
               <Text style={styles.categoryLabel}>Select Icon</Text>
               <View style={styles.iconGrid}>
                 {['business', 'person', 'stats-chart', 'globe', 'people', 'home', 'gift'].map((icon) => (
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     key={icon}
                     style={[
                       styles.iconButton,
@@ -1170,11 +1169,11 @@ const HomeScreen = ({ navigation }) => {
                   </TouchableOpacity>
                 ))}
               </View>
-              
+
               <Text style={styles.categoryLabel}>Select Color</Text>
               <View style={styles.colorGrid}>
                 {colors.map((color) => (
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     key={color}
                     style={[
                       styles.colorButton,
@@ -1185,8 +1184,8 @@ const HomeScreen = ({ navigation }) => {
                   />
                 ))}
               </View>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={[styles.addButton, { backgroundColor: selectedSourceColor || '#4BC0C0' }]}
                 onPress={() => {
                   if (customIncomeSourceName.trim() && selectedSourceIcon) {
@@ -1195,11 +1194,11 @@ const HomeScreen = ({ navigation }) => {
                       icon: selectedSourceIcon,
                       color: selectedSourceColor || '#4BC0C0'
                     };
-                    
+
                     setIncomeSources([...incomeSources, newSource]);
                     setSelectedIncomeSource(newSource.name);
                     setCustomIncomeSourceModalVisible(false);
-                    
+
                     // Reset form
                     setCustomIncomeSourceName('');
                     setSelectedSourceIcon(null);
@@ -1212,7 +1211,7 @@ const HomeScreen = ({ navigation }) => {
           </View>
         </View>
       </Modal>
-      
+
       {/* Statistics Modal */}
       <Modal
         animationType="slide"
@@ -1228,7 +1227,7 @@ const HomeScreen = ({ navigation }) => {
             <ScrollView showsVerticalScrollIndicator={false}>
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>Financial Analysis</Text>
-                <TouchableOpacity 
+                <TouchableOpacity
                   onPress={() => {
                     if (incomeStatsModalVisible) setIncomeStatsModalVisible(false);
                     if (expenseStatsModalVisible) setExpenseStatsModalVisible(false);
@@ -1237,20 +1236,20 @@ const HomeScreen = ({ navigation }) => {
                   <Ionicons name="close" size={24} color="#ffffff" />
                 </TouchableOpacity>
               </View>
-              
+
               {/* Tab Selector */}
               <View style={styles.statsTabSelector}>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={[
-                    styles.statsTab, 
+                    styles.statsTab,
                     activeStatsTab === 'income' && styles.statsTabActive
                   ]}
                   onPress={() => handleStatsTabChange('income')}
                 >
-                  <Ionicons 
-                    name="trending-up" 
-                    size={18} 
-                    color={activeStatsTab === 'income' ? '#4BC0C0' : '#999999'} 
+                  <Ionicons
+                    name="trending-up"
+                    size={18}
+                    color={activeStatsTab === 'income' ? '#4BC0C0' : '#999999'}
                   />
                   <Text style={[
                     styles.statsTabText,
@@ -1258,18 +1257,18 @@ const HomeScreen = ({ navigation }) => {
                     activeStatsTab === 'income' && {color: '#4BC0C0'}
                   ]}>Income</Text>
                 </TouchableOpacity>
-                
-                <TouchableOpacity 
+
+                <TouchableOpacity
                   style={[
-                    styles.statsTab, 
+                    styles.statsTab,
                     activeStatsTab === 'expense' && styles.statsTabActive
                   ]}
                   onPress={() => handleStatsTabChange('expense')}
                 >
-                  <Ionicons 
-                    name="trending-down" 
-                    size={18} 
-                    color={activeStatsTab === 'expense' ? '#FF6384' : '#999999'} 
+                  <Ionicons
+                    name="trending-down"
+                    size={18}
+                    color={activeStatsTab === 'expense' ? '#FF6384' : '#999999'}
                   />
                   <Text style={[
                     styles.statsTabText,
@@ -1278,7 +1277,7 @@ const HomeScreen = ({ navigation }) => {
                   ]}>Expenses</Text>
                 </TouchableOpacity>
               </View>
-              
+
               {/* Income Statistics Content */}
               {activeStatsTab === 'income' && (
                 <>
@@ -1287,11 +1286,11 @@ const HomeScreen = ({ navigation }) => {
                     <View style={styles.statsSummaryHeader}>
                       <Text style={styles.statsCardTitle}>Monthly Income</Text>
                     </View>
-                    
+
                     <Text style={[styles.statsAmount, {color: '#4BC0C0'}]}>${monthlyEarned.toFixed(2)}</Text>
-                    
+
                     <View style={styles.statsDivider} />
-                    
+
                     <View style={styles.statsMetricsContainer}>
                       <View style={styles.statsMetricItem}>
                         <View style={styles.statsMetricIcon}>
@@ -1300,7 +1299,7 @@ const HomeScreen = ({ navigation }) => {
                         <Text style={styles.statsMetricValue}>+12.5%</Text>
                         <Text style={styles.statsMetricLabel}>vs Last Month</Text>
                       </View>
-                      
+
                       <View style={styles.statsMetricItem}>
                         <View style={styles.statsMetricIcon}>
                           <Ionicons name="calendar" size={16} color="#FFFFFF" style={[styles.statsMetricIconBg, {backgroundColor: '#9966FF'}]} />
@@ -1308,7 +1307,7 @@ const HomeScreen = ({ navigation }) => {
                         <Text style={styles.statsMetricValue}>${(monthlyEarned / 30).toFixed(2)}</Text>
                         <Text style={styles.statsMetricLabel}>Daily Average</Text>
                       </View>
-                      
+
                       <View style={styles.statsMetricItem}>
                         <View style={styles.statsMetricIcon}>
                           <Ionicons name="trending-up" size={16} color="#FFFFFF" style={[styles.statsMetricIconBg, {backgroundColor: '#36A2EB'}]} />
@@ -1318,7 +1317,7 @@ const HomeScreen = ({ navigation }) => {
                       </View>
                     </View>
                   </View>
-                  
+
                   {/* Income Trend Chart */}
                   <View style={styles.statsTrendCard}>
                     <Text style={styles.statsSectionTitle}>Monthly Trend</Text>
@@ -1332,7 +1331,7 @@ const HomeScreen = ({ navigation }) => {
                       ))}
                     </View>
                   </View>
-                  
+
                   {/* Income by Category */}
                   <View style={styles.statsDetailCard}>
                     <Text style={styles.statsSectionTitle}>Income by Category</Text>
@@ -1359,7 +1358,7 @@ const HomeScreen = ({ navigation }) => {
                       ))}
                     </View>
                   </View>
-                  
+
                   {/* Income Sources */}
                   <View style={styles.statsDetailCard}>
                     <Text style={styles.statsSectionTitle}>Income Sources</Text>
@@ -1380,7 +1379,7 @@ const HomeScreen = ({ navigation }) => {
                   </View>
                 </>
               )}
-              
+
               {/* Expense Statistics Content */}
               {activeStatsTab === 'expense' && (
                 <>
@@ -1389,11 +1388,11 @@ const HomeScreen = ({ navigation }) => {
                     <View style={styles.statsSummaryHeader}>
                       <Text style={styles.statsCardTitle}>Monthly Expenses</Text>
                     </View>
-                    
+
                     <Text style={[styles.statsAmount, {color: '#FF6384'}]}>${monthlySpent.toFixed(2)}</Text>
-                    
+
                     <View style={styles.statsDivider} />
-                    
+
                     <View style={styles.statsMetricsContainer}>
                       <View style={styles.statsMetricItem}>
                         <View style={styles.statsMetricIcon}>
@@ -1402,7 +1401,7 @@ const HomeScreen = ({ navigation }) => {
                         <Text style={styles.statsMetricValue}>-8.3%</Text>
                         <Text style={styles.statsMetricLabel}>vs Last Month</Text>
                       </View>
-                      
+
                       <View style={styles.statsMetricItem}>
                         <View style={styles.statsMetricIcon}>
                           <Ionicons name="calendar" size={16} color="#FFFFFF" style={[styles.statsMetricIconBg, {backgroundColor: '#9966FF'}]} />
@@ -1410,7 +1409,7 @@ const HomeScreen = ({ navigation }) => {
                         <Text style={styles.statsMetricValue}>${(monthlySpent / 30).toFixed(2)}</Text>
                         <Text style={styles.statsMetricLabel}>Daily Average</Text>
                       </View>
-                      
+
                       <View style={styles.statsMetricItem}>
                         <View style={styles.statsMetricIcon}>
                           <Ionicons name="wallet" size={16} color="#FFFFFF" style={[styles.statsMetricIconBg, {backgroundColor: '#FF9F40'}]} />
@@ -1420,7 +1419,7 @@ const HomeScreen = ({ navigation }) => {
                       </View>
                     </View>
                   </View>
-                  
+
                   {/* Budget Progress */}
                   <View style={styles.statsBudgetCard}>
                     <Text style={styles.statsSectionTitle}>Budget Progress</Text>
@@ -1440,7 +1439,7 @@ const HomeScreen = ({ navigation }) => {
                         </View>
                         <Text style={styles.budgetProgressLabel}>Total Spending</Text>
                       </View>
-                      
+
                       <View style={styles.budgetProgressItem}>
                         <View style={styles.budgetCircleContainer}>
                           <View style={styles.budgetCircleBackground}></View>
@@ -1457,7 +1456,7 @@ const HomeScreen = ({ navigation }) => {
                       </View>
                     </View>
                   </View>
-                  
+
                   {/* Expense Pie Chart */}
                   <View style={styles.statsDetailCard}>
                     <Text style={styles.statsSectionTitle}>Expenses by Category</Text>
@@ -1484,7 +1483,7 @@ const HomeScreen = ({ navigation }) => {
                             />
                           </G>
                         </Svg>
-                        
+
                         <View style={styles.chartCenterView}>
                           <View style={styles.chartCenterContent}>
                             <Text style={styles.chartCenterValue} numberOfLines={1} adjustsFontSizeToFit>
@@ -1497,7 +1496,7 @@ const HomeScreen = ({ navigation }) => {
                         </View>
                       </View>
                     </View>
-                    
+
                     {/* Category List */}
                     <View style={styles.statsBarContainer}>
                       {formattedCategoryData.map((category, index) => (
@@ -1522,7 +1521,7 @@ const HomeScreen = ({ navigation }) => {
                       ))}
                     </View>
                   </View>
-                  
+
                   {/* Payment Methods */}
                   <View style={styles.statsDetailCard}>
                     <Text style={styles.statsSectionTitle}>Payment Methods</Text>
@@ -1547,7 +1546,7 @@ const HomeScreen = ({ navigation }) => {
           </View>
         </View>
       </Modal>
-      
+
       {/* Transaction Details Modal */}
       <Modal
         animationType="slide"
@@ -1563,20 +1562,20 @@ const HomeScreen = ({ navigation }) => {
                 <Ionicons name="close" size={24} color="#FFFFFF" />
               </TouchableOpacity>
             </View>
-            
+
             {selectedTransaction && (
               <View style={styles.transactionDetailsContent}>
                 <View style={[styles.transactionIcon, { backgroundColor: selectedTransaction.color }]}>
                   <Ionicons name={selectedTransaction.icon} size={24} color="#FFFFFF" />
                 </View>
-                
+
                 <Text style={styles.transactionDetailsTitle}>{selectedTransaction.title}</Text>
                 <Text style={styles.transactionDetailsCategory}>{selectedTransaction.category}</Text>
-                
+
                 <Text style={styles.transactionDetailsAmount}>
                   -${selectedTransaction.amount.toFixed(2)}
                 </Text>
-                
+
                 <View style={styles.transactionDetailsRow}>
                   <Text style={styles.transactionDetailsLabel}>Date</Text>
                   <Text style={styles.transactionDetailsValue}>{selectedTransaction.date}, 2023</Text>
@@ -1586,12 +1585,12 @@ const HomeScreen = ({ navigation }) => {
                   <Text style={styles.transactionDetailsLabel}>Time</Text>
                   <Text style={styles.transactionDetailsValue}>12:30 PM</Text>
                 </View>
-                
+
                 <View style={styles.transactionDetailsRow}>
                   <Text style={styles.transactionDetailsLabel}>Transaction ID</Text>
                   <Text style={styles.transactionDetailsValue}>#TRX{selectedTransaction.id.toString().padStart(4, '0')}</Text>
                 </View>
-                
+
                 <View style={styles.transactionDetailsRow}>
                   <Text style={styles.transactionDetailsLabel}>Payment Method</Text>
                   <View style={styles.transactionDetailsMethod}>
@@ -1613,9 +1612,9 @@ const HomeScreen = ({ navigation }) => {
                 <View style={styles.transactionDetailsRow}>
                   <Text style={styles.transactionDetailsLabel}>Notes</Text>
                   <Text style={styles.transactionDetailsValue} numberOfLines={2}>
-                    {selectedTransaction.title === 'Grocery Shopping' ? 'Weekly grocery run at Trader Joe\'s.' : 
+                    {selectedTransaction.title === 'Grocery Shopping' ? 'Weekly grocery run at Trader Joe\'s.' :
                      selectedTransaction.title === 'Uber Ride' ? 'Business trip to downtown meeting.' :
-                     selectedTransaction.title === 'New Headphones' ? 'Sony WH-1000XM4 noise cancelling headphones.' : 
+                     selectedTransaction.title === 'New Headphones' ? 'Sony WH-1000XM4 noise cancelling headphones.' :
                      'No notes available.'}
                   </Text>
                 </View>
@@ -1735,9 +1734,9 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 24,
     color: '#ffffff',
-    fontWeight: '600',
+    fontWeight: 'bold',
     marginBottom: 5,
   },
   sectionSubtitle: {
@@ -2469,7 +2468,9 @@ const styles = StyleSheet.create({
   },
   paginationDotActive: {
     backgroundColor: '#276EF1',
-    width: 16,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
   carouselContainer: {
     marginBottom: 20,
@@ -2518,4 +2519,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default HomeScreen; 
+export default HomeScreen;
