@@ -97,7 +97,7 @@ const MainAppNavigator = () => {
 const AppNavigator = () => {
   return (
     <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="MainApp">
+      <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Login">
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Signup" component={SignupScreen} />
         <Stack.Screen name="Settings" component={SettingsScreen} />
