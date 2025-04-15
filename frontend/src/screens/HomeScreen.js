@@ -91,6 +91,37 @@ const categoryData = [
   },
 ];
 
+// Define initial expenses data
+const initialExpenses = [
+  {
+    id: 1,
+    title: 'Grocery Shopping',
+    category: 'Food',
+    amount: 85.25,
+    date: '15 Jun',
+    icon: 'fast-food',
+    color: '#FF6384',
+  },
+  {
+    id: 2,
+    title: 'Uber Ride',
+    category: 'Transport',
+    amount: 24.50,
+    date: '14 Jun',
+    icon: 'car',
+    color: '#36A2EB',
+  },
+  {
+    id: 3,
+    title: 'New Headphones',
+    category: 'Shopping',
+    amount: 159.99,
+    date: '12 Jun',
+    icon: 'cart',
+    color: '#FFCE56',
+  },
+];
+
 // Function to generate pie chart slices
 const generatePieChartPath = (index, data, radius, innerRadius) => {
   // Calculate total
@@ -137,39 +168,12 @@ const generatePieChartPath = (index, data, radius, innerRadius) => {
   `;
 };
 
-const recentExpenses = [
-  {
-    id: 1,
-    title: 'Grocery Shopping',
-    category: 'Food',
-    amount: 85.25,
-    date: '15 Jun',
-    icon: 'fast-food',
-    color: '#FF6384',
-  },
-  {
-    id: 2,
-    title: 'Uber Ride',
-    category: 'Transport',
-    amount: 24.50,
-    date: '14 Jun',
-    icon: 'car',
-    color: '#36A2EB',
-  },
-  {
-    id: 3,
-    title: 'New Headphones',
-    category: 'Shopping',
-    amount: 159.99,
-    date: '12 Jun',
-    icon: 'cart',
-    color: '#FFCE56',
-  },
-];
-
 const HomeScreen = ({ navigation }) => {
   const [activeIndex, setActiveIndex] = useState(null);
   const fadeAnim = useRef(new Animated.Value(1)).current;
+
+  // Add state for recent expenses
+  const [recentExpenses, setRecentExpenses] = useState(initialExpenses);
 
   // State for modals
   const [expenseModalVisible, setExpenseModalVisible] = useState(false);
@@ -246,6 +250,14 @@ const HomeScreen = ({ navigation }) => {
   // State for transaction details modal
   const [transactionDetailsVisible, setTransactionDetailsVisible] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
+  
+  // Add state for transaction edit modal
+  const [editTransactionModalVisible, setEditTransactionModalVisible] = useState(false);
+  const [editTransaction, setEditTransaction] = useState(null);
+  const [editAmount, setEditAmount] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editCategory, setEditCategory] = useState(null);
+  const [editPaymentMethod, setEditPaymentMethod] = useState(null);
 
   // State for statistics screen
   const [activeStatsTab, setActiveStatsTab] = useState('expense');
@@ -299,7 +311,7 @@ const HomeScreen = ({ navigation }) => {
       </Text>
 
       {/* Add Action Buttons - only on Net Worth tile */}
-      {index === 0 && (
+      {true && (
         <View style={styles.actionButtonsContainer}>
           <TouchableOpacity
             style={styles.netWorthActionButton}
@@ -351,8 +363,29 @@ const HomeScreen = ({ navigation }) => {
 
   // Handle add expense
   const handleAddExpense = () => {
-    // Here you would add the expense to your data
-    // Then clear the form and close the modal
+    if (!expenseAmount || !expenseDescription || !selectedCategory) {
+      // We could add validation alerts here
+      return;
+    }
+    
+    // Find the selected category to get icon and color
+    const category = categories.find(cat => cat.name === selectedCategory);
+    
+    // Create a new expense
+    const newExpense = {
+      id: Date.now(), // Simple unique ID based on timestamp
+      title: expenseDescription,
+      category: selectedCategory,
+      amount: parseFloat(expenseAmount),
+      date: new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'short' }),
+      icon: category ? category.icon : 'cash',
+      color: category ? category.color : '#FF6384',
+    };
+    
+    // Add to recent expenses - at the beginning of the array
+    setRecentExpenses([newExpense, ...recentExpenses]);
+    
+    // Clear the form and close the modal
     setExpenseAmount('');
     setExpenseDescription('');
     setSelectedCategory(null);
@@ -375,6 +408,49 @@ const HomeScreen = ({ navigation }) => {
   const handleTransactionClick = (transaction) => {
     setSelectedTransaction(transaction);
     setTransactionDetailsVisible(true);
+  };
+
+  // Handle edit transaction
+  const handleEditTransaction = (transaction) => {
+    setEditTransaction(transaction);
+    setEditAmount(transaction.amount.toString());
+    setEditDescription(transaction.title);
+    setEditCategory(transaction.category);
+    setEditPaymentMethod('Credit Card'); // Default or get from transaction if available
+    setTransactionDetailsVisible(false);
+    setEditTransactionModalVisible(true);
+  };
+
+  // Handle save edited transaction
+  const handleSaveEditedTransaction = () => {
+    // Update the transaction in our sample data
+    const updatedExpenses = recentExpenses.map(expense => {
+      if (expense.id === editTransaction.id) {
+        return {
+          ...expense,
+          amount: parseFloat(editAmount) || expense.amount,
+          title: editDescription || expense.title,
+          category: editCategory || expense.category,
+          // Find the matching category to get the icon and color
+          icon: categories.find(cat => cat.name === editCategory)?.icon || expense.icon,
+          color: categories.find(cat => cat.name === editCategory)?.color || expense.color,
+        };
+      }
+      return expense;
+    });
+    
+    // Update the state with the modified expenses
+    setRecentExpenses(updatedExpenses);
+    
+    // Close the modal
+    setEditTransactionModalVisible(false);
+    
+    // Reset form
+    setEditTransaction(null);
+    setEditAmount('');
+    setEditDescription('');
+    setEditCategory(null);
+    setEditPaymentMethod(null);
   };
 
   // Handle statistics tab change
@@ -544,6 +620,16 @@ const HomeScreen = ({ navigation }) => {
       </ScrollView>
     </View>
   );
+
+  // Handle delete transaction
+  const handleDeleteTransaction = (transactionId) => {
+    // Filter out the deleted transaction
+    const updatedExpenses = recentExpenses.filter(expense => expense.id !== transactionId);
+    
+    // Update state and close modal
+    setRecentExpenses(updatedExpenses);
+    setTransactionDetailsVisible(false);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -743,6 +829,14 @@ const HomeScreen = ({ navigation }) => {
           </View>
         </View>
       </ScrollView>
+
+      {/* Floating Action Button for adding expenses */}
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => setExpenseModalVisible(true)}
+      >
+        <Ionicons name="add" size={30} color="#FFFFFF" />
+      </TouchableOpacity>
 
       {/* Add Expense Modal */}
       <Modal
@@ -1701,13 +1795,107 @@ const HomeScreen = ({ navigation }) => {
                   style={styles.editTransactionButton}
                   onPress={() => {
                     // Handle edit action
-                    setTransactionDetailsVisible(false);
+                    handleEditTransaction(selectedTransaction);
                   }}
                 >
                   <Text style={styles.editTransactionButtonText}>Edit Transaction</Text>
                 </TouchableOpacity>
+
+                {/* <TouchableOpacity
+                  style={styles.deleteTransactionButton}
+                  onPress={() => handleDeleteTransaction(selectedTransaction.id)}
+                >
+                  <Text style={styles.deleteTransactionButtonText}>Delete Transaction</Text>
+                </TouchableOpacity> */}
               </View>
             )}
+          </View>
+        </View>
+      </Modal>
+
+      {/* Edit Transaction Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={editTransactionModalVisible}
+        onRequestClose={() => setEditTransactionModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {/* Modal Header */}
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Edit Transaction</Text>
+                <TouchableOpacity
+                  onPress={() => setEditTransactionModalVisible(false)}
+                >
+                  <Ionicons name="close" size={24} color="#ffffff" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Transaction Form */}
+              <TextInput
+                style={styles.amountInput}
+                placeholder="$0.00"
+                placeholderTextColor="#666666"
+                keyboardType="decimal-pad"
+                value={editAmount}
+                onChangeText={setEditAmount}
+              />
+
+              <TextInput
+                style={styles.input}
+                placeholder="Description"
+                placeholderTextColor="#666666"
+                value={editDescription}
+                onChangeText={setEditDescription}
+              />
+
+              <Text style={styles.categoryLabel}>Select Category</Text>
+              <View style={styles.categoriesContainer}>
+                {categories.map((category) => (
+                  <TouchableOpacity
+                    key={category.name}
+                    style={[
+                      styles.categoryButton,
+                      editCategory === category.name && { borderColor: category.color }
+                    ]}
+                    onPress={() => setEditCategory(category.name)}
+                  >
+                    <View style={[styles.categoryIcon, { backgroundColor: category.color }]}>
+                      <Ionicons name={category.icon} size={18} color="#FFFFFF" />
+                    </View>
+                    <Text style={styles.categoryText}>{category.name}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <Text style={styles.categoryLabel}>Payment Method</Text>
+              <View style={styles.categoriesContainer}>
+                {paymentMethods.map((method) => (
+                  <TouchableOpacity
+                    key={method.name}
+                    style={[
+                      styles.categoryButton,
+                      editPaymentMethod === method.name && { borderColor: method.color }
+                    ]}
+                    onPress={() => setEditPaymentMethod(method.name)}
+                  >
+                    <View style={[styles.categoryIcon, { backgroundColor: method.color }]}>
+                      <Ionicons name={method.icon} size={18} color="#FFFFFF" />
+                    </View>
+                    <Text style={styles.categoryText}>{method.name}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <TouchableOpacity
+                style={[styles.addButton, { backgroundColor: '#FF6384' }]}
+                onPress={handleSaveEditedTransaction}
+              >
+                <Text style={styles.buttonText}>Save Changes</Text>
+              </TouchableOpacity>
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -2623,6 +2811,35 @@ const styles = StyleSheet.create({
   categoryText: {
     color: '#FFFFFF',
     fontSize: 13,
+  },
+  deleteTransactionButton: {
+    backgroundColor: '#FF6384',
+    width: '100%',
+    paddingVertical: 15,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 15,
+  },
+  deleteTransactionButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    backgroundColor: '#276EF1',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 5,
   },
 });
 
