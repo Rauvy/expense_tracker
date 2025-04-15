@@ -19,6 +19,7 @@ import CategoriesSettings from '../screens/CategoriesSettings';
 import IncomeSource from '../screens/IncomeSource';
 import BackUpSettings from '../screens/BackUpSettings';
 import SecuritySettings from '../screens/SecuritySettings';
+import CategoriesScreen from '../screens/CategoriesScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -104,7 +105,9 @@ const AppNavigator = () => {
         <Stack.Screen name="SecuritySettings" component={SecuritySettings} />
         <Stack.Screen name="BackUpSettings" component={BackUpSettings} />
         <Stack.Screen name="CategoriesSettings" component={CategoriesSettings} />
+        <Stack.Screen name="Categories" component={CategoriesScreen} />
         <Stack.Screen name="IncomeSource" component={IncomeSource} />
+        <Stack.Screen name="PaymentSettings" component={PaymentSettings} />
         <Stack.Screen name="MainApp" component={MainAppNavigator} options={{ gestureEnabled: false }} />
       </Stack.Navigator>
     </NavigationContainer>

@@ -275,7 +275,7 @@ const IncomeSource = () => {
         <FlatList
           data={filteredSources}
           renderItem={renderSourceItem}
-          keyExtractor={item => item.id}
+          keyExtractor={(item) => item.id || item.name}
           contentContainerStyle={styles.sourcesList}
           showsVerticalScrollIndicator={false}
         />
@@ -334,9 +334,9 @@ const IncomeSource = () => {
               <View style={styles.formGroup}>
                 <Text style={styles.formLabel}>Select Icon</Text>
                 <View style={styles.iconsGrid}>
-                  {availableIcons.map((icon, index) => (
+                  {availableIcons.map((icon) => (
                     <TouchableOpacity
-                      key={index}
+                      key={`icon-${icon}`}
                       style={[
                         styles.iconOption,
                         selectedIcon === icon && styles.selectedIconOption
@@ -357,9 +357,9 @@ const IncomeSource = () => {
               <View style={styles.formGroup}>
                 <Text style={styles.formLabel}>Select Color</Text>
                 <View style={styles.colorsGrid}>
-                  {colorOptions.map((color, index) => (
+                  {colorOptions.map((color) => (
                     <TouchableOpacity
-                      key={index}
+                      key={`color-${color}`}
                       style={[
                         styles.colorOption,
                         { backgroundColor: color },

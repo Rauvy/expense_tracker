@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Platform, StatusBar, Modal, TextInput, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Platform, StatusBar, Modal, TextInput, Alert, ActivityIndicator, KeyboardAvoidingView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -35,54 +35,83 @@ const ProfileScreen = ({ navigation }) => {
   const [profilePictureOptionsVisible, setProfilePictureOptionsVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   
-  // Categories state for stats
-  const [categories, setCategories] = useState([]);
-  const [incomeCategories, setIncomeCategories] = useState([]);
+  // Preferences states
+  const [categoriesModalVisible, setCategoriesModalVisible] = useState(false);
+  const [budgetPeriodModalVisible, setBudgetPeriodModalVisible] = useState(false);
+  const [budgetPeriod, setBudgetPeriod] = useState('month');
   
-  // Load categories from AsyncStorage on mount for stats
+  // Category Management States
+  const [activeTab, setActiveTab] = useState('expense');
+  const [categories, setCategories] = useState([
+    { name: 'Food', icon: 'fast-food', color: '#FF9500' },
+    { name: 'Shopping', icon: 'cart', color: '#5856D6' },
+    { name: 'Transport', icon: 'car', color: '#FF2D55' },
+    { name: 'Health', icon: 'fitness', color: '#4CD964' },
+    { name: 'Entertainment', icon: 'film', color: '#FF9500' },
+    { name: 'Education', icon: 'school', color: '#5AC8FA' },
+    { name: 'Bills', icon: 'receipt', color: '#007AFF' },
+    { name: 'Other', icon: 'ellipsis-horizontal', color: '#8E8E93' },
+  ]);
+  const [incomeCategories, setIncomeCategories] = useState([
+    { name: 'Salary', icon: 'cash', color: '#4CD964' },
+    { name: 'Investments', icon: 'trending-up', color: '#007AFF' },
+    { name: 'Freelance', icon: 'briefcase', color: '#5856D6' },
+    { name: 'Gifts', icon: 'gift', color: '#FF2D55' },
+    { name: 'Other', icon: 'ellipsis-horizontal', color: '#8E8E93' },
+  ]);
+  const [customCategoryName, setCustomCategoryName] = useState('');
+  const [selectedIcon, setSelectedIcon] = useState('');
+  const [selectedColor, setSelectedColor] = useState('');
+
+  // Load categories on mount
   useEffect(() => {
     const loadCategories = async () => {
       try {
-        const storedExpenseCategories = await AsyncStorage.getItem('expenseCategories');
-        const storedIncomeCategories = await AsyncStorage.getItem('incomeCategories');
+        const savedExpenseCategories = await AsyncStorage.getItem('expenseCategories');
+        const savedIncomeCategories = await AsyncStorage.getItem('incomeCategories');
         
-        if (storedExpenseCategories) {
-          setCategories(JSON.parse(storedExpenseCategories));
+        if (savedExpenseCategories) {
+          setCategories(JSON.parse(savedExpenseCategories));
         }
         
-        if (storedIncomeCategories) {
-          setIncomeCategories(JSON.parse(storedIncomeCategories));
+        if (savedIncomeCategories) {
+          setIncomeCategories(JSON.parse(savedIncomeCategories));
         }
       } catch (error) {
-        console.log('Error loading categories from storage:', error);
+        console.error('Error loading categories:', error);
       }
     };
     
     loadCategories();
   }, []);
-  
-  // Request camera/gallery permissions
+
+  // Load budget period on mount
   useEffect(() => {
-    (async () => {
-      if (Platform.OS !== 'web') {
-        try {
-          const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
-          const { status: mediaLibraryStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-          
-          if (cameraStatus !== 'granted' || mediaLibraryStatus !== 'granted') {
-            Alert.alert(
-              'Permissions Required',
-              'Please grant camera and media library permissions to update your profile picture. Go to your device settings to enable these permissions.',
-              [{ text: 'OK' }]
-            );
-          }
-        } catch (error) {
-          console.error('Error requesting permissions:', error);
+    const loadBudgetPeriod = async () => {
+      try {
+        const savedPeriod = await AsyncStorage.getItem('budgetPeriod');
+        if (savedPeriod) {
+          setBudgetPeriod(savedPeriod);
         }
+      } catch (error) {
+        console.error('Error loading budget period:', error);
       }
-    })();
+    };
+    
+    loadBudgetPeriod();
   }, []);
-  
+
+  const handleBudgetPeriodChange = async (period) => {
+    try {
+      setBudgetPeriod(period);
+      await AsyncStorage.setItem('budgetPeriod', period);
+      setBudgetPeriodModalVisible(false);
+    } catch (error) {
+      console.error('Error saving budget period:', error);
+      Alert.alert('Error', 'Failed to save budget period');
+    }
+  };
+
   const handleLogout = () => {
     navigation.reset({
       index: 0,
@@ -224,6 +253,31 @@ const ProfileScreen = ({ navigation }) => {
     navigation.navigate('Settings');
   };
 
+  const handleTabSwitch = (tab) => {
+    setActiveTab(tab);
+  };
+
+  const saveNewCategory = (newCategory) => {
+    if (activeTab === 'expense') {
+      setCategories([...categories, newCategory]);
+      AsyncStorage.setItem('expenseCategories', JSON.stringify([...categories, newCategory]));
+    } else {
+      setIncomeCategories([...incomeCategories, newCategory]);
+      AsyncStorage.setItem('incomeCategories', JSON.stringify([...incomeCategories, newCategory]));
+    }
+    
+    // Reset form fields
+    setCustomCategoryName('');
+    setSelectedIcon('');
+    setSelectedColor('');
+    
+    Alert.alert(
+      "Success", 
+      `New ${activeTab === 'expense' ? 'expense' : 'income'} category added!`,
+      [{ text: "OK" }]
+    );
+  };
+
   const renderMenuItem = (icon, title, subtitle, onPress, rightElement) => (
     <TouchableOpacity 
       style={styles.menuItem}
@@ -238,6 +292,7 @@ const ProfileScreen = ({ navigation }) => {
         <Text style={styles.menuSubtitle}>{subtitle}</Text>
       </View>
       {rightElement && <View style={styles.menuRight}>{rightElement}</View>}
+      <Ionicons name="chevron-forward" size={20} color="#666666" />
     </TouchableOpacity>
   );
   
@@ -253,10 +308,7 @@ const ProfileScreen = ({ navigation }) => {
           <View style={styles.profileCard}>
             <View style={styles.profileHeader}>
               <View style={styles.profileMain}>
-                <TouchableOpacity 
-                  style={styles.profileImageContainer}
-                  onPress={() => setProfilePictureOptionsVisible(true)}
-                >
+                <View style={styles.profileImageContainer}>
                   {loading ? (
                     <View style={styles.profilePhotoPlaceholder}>
                       <ActivityIndicator color="#FFFFFF" size="small" />
@@ -273,7 +325,7 @@ const ProfileScreen = ({ navigation }) => {
                   <View style={styles.cameraIconContainer}>
                     <Ionicons name="camera" size={16} color="#FFFFFF" />
                   </View>
-                </TouchableOpacity>
+                </View>
                 
                 <View style={styles.profileInfo}>
                   <Text style={styles.profileName}>{userData.name}</Text>
@@ -313,30 +365,37 @@ const ProfileScreen = ({ navigation }) => {
             </View>
           </View>
           
-          {/* Account Settings */}
+          {/* Preferences Section */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Account</Text>
-            {renderMenuItem('person-outline', 'Personal Information', 'Update your profile details', () => setEditProfileVisible(true))}
-            {renderMenuItem('lock-closed-outline', 'Security', 'Manage your security settings', () => {})}
-            {renderMenuItem('notifications-outline', 'Notifications', 'Configure your notification preferences', () => {})}
-            {renderMenuItem('language-outline', 'Language', 'Change app language', () => {})}
-            {renderMenuItem('moon-outline', 'Theme', 'Change app theme', () => {})}
-          </View>
-
-          {/* Data & Privacy */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Data & Privacy</Text>
-            {renderMenuItem('cloud-download-outline', 'Export Data', 'Download your account data', () => {})}
-            {renderMenuItem('shield-checkmark-outline', 'Privacy Settings', 'Manage your privacy preferences', () => {})}
-            {renderMenuItem('trash-outline', 'Delete Account', 'Permanently delete your account', () => {}, <Ionicons name="warning" size={20} color="#FF3B30" />)}
-          </View>
-
-          {/* Support */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Support</Text>
-            {renderMenuItem('help-circle-outline', 'Help Center', 'Get help with the app', () => {})}
-            {renderMenuItem('mail-outline', 'Contact Us', 'Send us a message', () => {})}
-            {renderMenuItem('information-circle-outline', 'About', 'Learn more about the app', () => {})}
+            <Text style={styles.sectionTitle}>Preferences</Text>
+            
+            {renderMenuItem(
+              'card-outline',
+              'Payment Methods',
+              'Manage your payment methods',
+              () => navigation.navigate('PaymentSettings')
+            )}
+            
+            {renderMenuItem(
+              'list-outline',
+              'Categories',
+              'Customize your expense and income categories',
+              () => navigation.navigate('Categories')
+            )}
+            
+            {renderMenuItem(
+              'cash-outline',
+              'Income Sources',
+              'Manage your income sources',
+              () => navigation.navigate('IncomeSource')
+            )}
+            
+            {renderMenuItem(
+              'calendar-outline',
+              'Budget Period',
+              `Current: ${budgetPeriod.charAt(0).toUpperCase() + budgetPeriod.slice(1)}`,
+              () => setBudgetPeriodModalVisible(true)
+            )}
           </View>
 
           {/* Logout Button */}
@@ -348,113 +407,309 @@ const ProfileScreen = ({ navigation }) => {
             <Text style={styles.logoutText}>Log Out</Text>
           </TouchableOpacity>
         </View>
-      </ScrollView>
-      
-      {/* Edit Profile Modal */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={editProfileVisible}
-        onRequestClose={() => setEditProfileVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Edit Profile</Text>
-              <TouchableOpacity onPress={() => setEditProfileVisible(false)}>
-                <Ionicons name="close" size={24} color="#FFFFFF" />
-              </TouchableOpacity>
-            </View>
-            
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>First Name</Text>
-              <TextInput
-                style={styles.input}
-                value={firstName}
-                onChangeText={setFirstName}
-                placeholder="Enter first name"
-                placeholderTextColor="#666666"
-              />
-            </View>
-            
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Last Name</Text>
-              <TextInput
-                style={styles.input}
-                value={lastName}
-                onChangeText={setLastName}
-                placeholder="Enter last name"
-                placeholderTextColor="#666666"
-              />
-            </View>
-            
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Email</Text>
-              <TextInput
-                style={styles.input}
-                value={email}
-                onChangeText={setEmail}
-                placeholder="Enter email"
-                placeholderTextColor="#666666"
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-            </View>
-            
-            <TouchableOpacity 
-              style={styles.saveButton}
-              onPress={handleSaveProfile}
-            >
-              <Text style={styles.saveButtonText}>Save Changes</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-      
-      {/* Profile Picture Options Modal */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={profilePictureOptionsVisible}
-        onRequestClose={() => setProfilePictureOptionsVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Profile Picture</Text>
-              <TouchableOpacity onPress={() => setProfilePictureOptionsVisible(false)}>
-                <Ionicons name="close" size={24} color="#FFFFFF" />
-              </TouchableOpacity>
-            </View>
-            
-            <TouchableOpacity 
-              style={styles.pictureOption}
-              onPress={() => handleSelectProfilePicture('camera')}
-            >
-              <Ionicons name="camera" size={22} color="#FFFFFF" style={styles.pictureOptionIcon} />
-              <Text style={styles.pictureOptionText}>Take a Photo</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={styles.pictureOption}
-              onPress={() => handleSelectProfilePicture('gallery')}
-            >
-              <Ionicons name="images" size={22} color="#FFFFFF" style={styles.pictureOptionIcon} />
-              <Text style={styles.pictureOptionText}>Choose from Gallery</Text>
-            </TouchableOpacity>
-            
-            {userData.profilePhoto && (
+
+        {/* Edit Profile Modal */}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={editProfileVisible}
+          onRequestClose={() => setEditProfileVisible(false)}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Edit Profile</Text>
+                <TouchableOpacity onPress={() => setEditProfileVisible(false)}>
+                  <Ionicons name="close" size={24} color="#FFFFFF" />
+                </TouchableOpacity>
+              </View>
+              
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>First Name</Text>
+                <TextInput
+                  style={styles.input}
+                  value={firstName}
+                  onChangeText={setFirstName}
+                  placeholder="Enter first name"
+                  placeholderTextColor="#666666"
+                />
+              </View>
+              
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Last Name</Text>
+                <TextInput
+                  style={styles.input}
+                  value={lastName}
+                  onChangeText={setLastName}
+                  placeholder="Enter last name"
+                  placeholderTextColor="#666666"
+                />
+              </View>
+              
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Email</Text>
+                <TextInput
+                  style={styles.input}
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder="Enter email"
+                  placeholderTextColor="#666666"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+              </View>
+              
               <TouchableOpacity 
-                style={[styles.pictureOption, styles.removePictureOption]}
-                onPress={() => handleSelectProfilePicture('remove')}
+                style={styles.saveButton}
+                onPress={handleSaveProfile}
               >
-                <Ionicons name="trash" size={22} color="#FF3B30" style={styles.pictureOptionIcon} />
-                <Text style={[styles.pictureOptionText, styles.removePictureText]}>Remove Profile Picture</Text>
+                <Text style={styles.saveButtonText}>Save Changes</Text>
               </TouchableOpacity>
-            )}
+            </View>
           </View>
-        </View>
-      </Modal>
+        </Modal>
+        
+        {/* Profile Picture Options Modal */}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={profilePictureOptionsVisible}
+          onRequestClose={() => setProfilePictureOptionsVisible(false)}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Profile Picture</Text>
+                <TouchableOpacity onPress={() => setProfilePictureOptionsVisible(false)}>
+                  <Ionicons name="close" size={24} color="#FFFFFF" />
+                </TouchableOpacity>
+              </View>
+              
+              <TouchableOpacity 
+                style={styles.pictureOption}
+                onPress={() => handleSelectProfilePicture('camera')}
+              >
+                <Ionicons name="camera" size={22} color="#FFFFFF" style={styles.pictureOptionIcon} />
+                <Text style={styles.pictureOptionText}>Take a Photo</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.pictureOption}
+                onPress={() => handleSelectProfilePicture('gallery')}
+              >
+                <Ionicons name="images" size={22} color="#FFFFFF" style={styles.pictureOptionIcon} />
+                <Text style={styles.pictureOptionText}>Choose from Gallery</Text>
+              </TouchableOpacity>
+              
+              {userData.profilePhoto && (
+                <TouchableOpacity 
+                  style={[styles.pictureOption, styles.removePictureOption]}
+                  onPress={() => handleSelectProfilePicture('remove')}
+                >
+                  <Ionicons name="trash" size={22} color="#FF3B30" style={styles.pictureOptionIcon} />
+                  <Text style={[styles.pictureOptionText, styles.removePictureText]}>Remove Profile Picture</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        </Modal>
+
+        {/* Budget Period Modal */}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={budgetPeriodModalVisible}
+          onRequestClose={() => setBudgetPeriodModalVisible(false)}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Budget Period</Text>
+                <TouchableOpacity onPress={() => setBudgetPeriodModalVisible(false)}>
+                  <Ionicons name="close" size={24} color="#FFFFFF" />
+                </TouchableOpacity>
+              </View>
+              
+              <ScrollView>
+                <TouchableOpacity 
+                  style={styles.periodOption}
+                  onPress={() => handleBudgetPeriodChange('week')}
+                >
+                  <View style={styles.periodOptionLeft}>
+                    <View style={styles.periodIconContainer}>
+                      <Ionicons name="calendar-outline" size={22} color="#FFFFFF" />
+                    </View>
+                    <Text style={styles.periodOptionText}>Weekly</Text>
+                  </View>
+                  
+                  {budgetPeriod === 'week' && (
+                    <Ionicons name="checkmark-circle" size={22} color="#276EF1" />
+                  )}
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={styles.periodOption}
+                  onPress={() => handleBudgetPeriodChange('month')}
+                >
+                  <View style={styles.periodOptionLeft}>
+                    <View style={styles.periodIconContainer}>
+                      <Ionicons name="calendar" size={22} color="#FFFFFF" />
+                    </View>
+                    <Text style={styles.periodOptionText}>Monthly</Text>
+                  </View>
+                  
+                  {budgetPeriod === 'month' && (
+                    <Ionicons name="checkmark-circle" size={22} color="#276EF1" />
+                  )}
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={styles.periodOption}
+                  onPress={() => handleBudgetPeriodChange('quarter')}
+                >
+                  <View style={styles.periodOptionLeft}>
+                    <View style={styles.periodIconContainer}>
+                      <Ionicons name="apps" size={22} color="#FFFFFF" />
+                    </View>
+                    <Text style={styles.periodOptionText}>Quarterly</Text>
+                  </View>
+                  
+                  {budgetPeriod === 'quarter' && (
+                    <Ionicons name="checkmark-circle" size={22} color="#276EF1" />
+                  )}
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={styles.periodOption}
+                  onPress={() => handleBudgetPeriodChange('year')}
+                >
+                  <View style={styles.periodOptionLeft}>
+                    <View style={styles.periodIconContainer}>
+                      <Ionicons name="today" size={22} color="#FFFFFF" />
+                    </View>
+                    <Text style={styles.periodOptionText}>Yearly</Text>
+                  </View>
+                  
+                  {budgetPeriod === 'year' && (
+                    <Ionicons name="checkmark-circle" size={22} color="#276EF1" />
+                  )}
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={styles.saveButton}
+                  onPress={() => setBudgetPeriodModalVisible(false)}
+                >
+                  <Text style={styles.saveButtonText}>Apply</Text>
+                </TouchableOpacity>
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
+
+        {/* Categories Modal */}
+        <Modal
+          visible={categoriesModalVisible}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => setCategoriesModalVisible(false)}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Categories</Text>
+                <TouchableOpacity onPress={() => setCategoriesModalVisible(false)}>
+                  <Ionicons name="close" size={24} color="#FFFFFF" />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.tabContainer}>
+                <TouchableOpacity
+                  style={[styles.tab, activeTab === 'expense' && styles.activeTab]}
+                  onPress={() => handleTabSwitch('expense')}
+                >
+                  <Text style={[styles.tabText, activeTab === 'expense' && styles.activeTabText]}>
+                    Expense Categories
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.tab, activeTab === 'income' && styles.activeTab]}
+                  onPress={() => handleTabSwitch('income')}
+                >
+                  <Text style={[styles.tabText, activeTab === 'income' && styles.activeTabText]}>
+                    Income Categories
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView style={styles.modalBody}>
+                <View style={styles.categoriesList}>
+                  {(activeTab === 'expense' ? categories : incomeCategories).map((category) => (
+                    <View key={category.name} style={styles.categoryItem}>
+                      <View style={[styles.categoryIcon, { backgroundColor: category.color }]}>
+                        <Ionicons name={category.icon} size={24} color="#FFFFFF" />
+                      </View>
+                      <Text style={styles.categoryName}>{category.name}</Text>
+                    </View>
+                  ))}
+                </View>
+
+                <View style={styles.addCategoryForm}>
+                  <Text style={styles.formTitle}>Add New Category</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Category Name"
+                    placeholderTextColor="#666666"
+                    value={customCategoryName}
+                    onChangeText={setCustomCategoryName}
+                  />
+
+                  <Text style={styles.formLabel}>Select Icon</Text>
+                  <View style={styles.iconsGrid}>
+                    {['home', 'car', 'restaurant', 'shirt', 'airplane', 'gift', 'medical', 'school'].map((icon) => (
+                      <TouchableOpacity
+                        key={`icon-${icon}`}
+                        style={[
+                          styles.iconOption,
+                          selectedIcon === icon && styles.selectedIconOption
+                        ]}
+                        onPress={() => setSelectedIcon(icon)}
+                      >
+                        <Ionicons
+                          name={icon}
+                          size={24}
+                          color={selectedIcon === icon ? '#FFFFFF' : '#CCCCCC'}
+                        />
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+
+                  <Text style={styles.formLabel}>Select Color</Text>
+                  <View style={styles.colorsGrid}>
+                    {['#FF3B30', '#FF9500', '#FFCC00', '#34C759', '#5AC8FA', '#007AFF', '#5856D6', '#FF2D55'].map((color) => (
+                      <TouchableOpacity
+                        key={`color-${color}`}
+                        style={[
+                          styles.colorOption,
+                          { backgroundColor: color },
+                          selectedColor === color && styles.selectedColorOption
+                        ]}
+                        onPress={() => setSelectedColor(color)}
+                      />
+                    ))}
+                  </View>
+
+                  <TouchableOpacity
+                    style={styles.addButton}
+                    onPress={saveNewCategory}
+                  >
+                    <Text style={styles.addButtonText}>Add Category</Text>
+                  </TouchableOpacity>
+                </View>
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
+      </ScrollView>
     </SafeAreaView> 
   );
 };
@@ -633,25 +888,26 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'flex-end',
   },
   modalContent: {
     backgroundColor: '#1a1a1a',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    padding: 20,
     maxHeight: '90%',
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333333',
   },
   modalTitle: {
-    fontSize: 20,
     color: '#FFFFFF',
+    fontSize: 20,
     fontWeight: 'bold',
   },
   inputContainer: {
@@ -663,11 +919,11 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   input: {
-    backgroundColor: '#252525',
-    borderRadius: 12,
-    padding: 15,
+    backgroundColor: '#333333',
+    borderRadius: 8,
+    padding: 12,
     color: '#FFFFFF',
-    fontSize: 16,
+    marginBottom: 20,
   },
   saveButton: {
     backgroundColor: '#276EF1',
@@ -729,6 +985,139 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     color: '#FFFFFF',
+  },
+  periodOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#252525',
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 8,
+  },
+  periodOptionLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  periodIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#333333',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 15,
+  },
+  periodOptionText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    marginBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333333',
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 15,
+    alignItems: 'center',
+  },
+  activeTab: {
+    borderBottomWidth: 2,
+    borderBottomColor: '#276EF1',
+  },
+  tabText: {
+    color: '#666666',
+    fontSize: 16,
+  },
+  activeTabText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+  },
+  modalBody: {
+    padding: 20,
+  },
+  categoriesList: {
+    marginBottom: 20,
+  },
+  categoryItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333333',
+  },
+  categoryIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 15,
+  },
+  categoryName: {
+    color: '#FFFFFF',
+    fontSize: 16,
+  },
+  addCategoryForm: {
+    backgroundColor: '#252525',
+    borderRadius: 12,
+    padding: 20,
+  },
+  formTitle: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  formLabel: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    marginBottom: 10,
+  },
+  iconsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 20,
+  },
+  iconOption: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#333333',
+    justifyContent: 'center',
+    alignItems: 'center',
+    margin: 5,
+  },
+  selectedIconOption: {
+    backgroundColor: '#276EF1',
+  },
+  colorsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 20,
+  },
+  colorOption: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    margin: 5,
+  },
+  selectedColorOption: {
+    borderWidth: 3,
+    borderColor: '#FFFFFF',
+  },
+  addButton: {
+    backgroundColor: '#276EF1',
+    borderRadius: 8,
+    padding: 15,
+    alignItems: 'center',
+  },
+  addButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 

@@ -246,8 +246,9 @@ const AccountsScreen = ({ navigation }) => {
     const cashGrowth = 5.2; // Example growth percentage
     const creditCardGrowth = -2.8; // Example growth percentage
 
-    const cashPercentage = ((cashTotal / totalAssets) * 100).toFixed(1);
-    const creditCardPercentage = ((creditCardTotal / totalLiabilities) * 100).toFixed(1);
+    // Calculate percentages with proper handling for zero values
+    const cashPercentage = totalAssets > 0 ? ((cashTotal / totalAssets) * 100).toFixed(1) : '0.0';
+    const creditCardPercentage = totalLiabilities > 0 ? ((creditCardTotal / totalLiabilities) * 100).toFixed(1) : '0.0';
 
     return (
       <View style={styles.accountTilesContainer}>
@@ -371,7 +372,7 @@ const AccountsScreen = ({ navigation }) => {
 
         <TouchableOpacity 
           style={styles.addAccountButton}
-          onPress={() => setNewAccountVisible(true)}
+          onPress={() => navigation.navigate('AddAccount')}
         >
           <Ionicons name="add" size={20} color="#bdc3c7" />
           <Text style={styles.addAccountButtonText}>Add Account</Text>
@@ -666,7 +667,7 @@ const AccountsScreen = ({ navigation }) => {
             <Text style={styles.title}>Accounts</Text>
             <TouchableOpacity 
               style={styles.addButton}
-              onPress={() => setNewAccountVisible(true)}
+              onPress={() => navigation.navigate('AddAccount')}
               activeOpacity={0.7}
             >
               <Ionicons name="add" size={24} color="#FFFFFF" />
@@ -1163,14 +1164,14 @@ const styles = StyleSheet.create({
   },
   accountTile: {
     width: '100%',
-    backgroundColor: '#2c3e50',
+    backgroundColor: '#252525',
     borderRadius: 12,
     padding: 15,
     paddingBottom: 20,
     height: 100,
   },
   accountTileActive: {
-    backgroundColor: '#2980b9',
+    backgroundColor: '#333333',
   },
   tileContent: {
     flexDirection: 'row',
@@ -1219,7 +1220,7 @@ const styles = StyleSheet.create({
     color: '#bdc3c7',
   },
   expandedAccounts: {
-    backgroundColor: '#2c3e50',
+    backgroundColor: '#252525',
     borderBottomLeftRadius: 12,
     borderBottomRightRadius: 12,
     padding: 12,
@@ -1231,7 +1232,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    borderBottomColor: '#333333',
   },
   expandedAccountLeft: {
     flex: 1,

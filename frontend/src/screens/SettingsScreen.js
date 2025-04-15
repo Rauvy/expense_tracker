@@ -401,23 +401,6 @@ const SettingsScreen = () => {
             )}
           </View>
 
-          {/* Preferences */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Preferences</Text>
-            {renderMenuItem('card-outline', 'Payment Methods', 'Manage your payment methods', () => navigation.navigate('PaymentSettings'))}
-            {renderMenuItem('pricetag-outline', 'Categories', 'Customize your expense categories', () => navigation.navigate('CategoriesSettings'))}
-            {renderMenuItem('wallet-outline', 'Income Sources', 'Manage your income sources', () => navigation.navigate('IncomeSource'))}
-            {renderMenuItem('calendar-outline', 'Budget Period', 'Set your budget period', () => setBudgetPeriodModalVisible(true),
-              <View style={styles.menuItemValue}>
-                <Text style={styles.menuItemValueText}>
-                  {budgetPeriod === 'week' ? 'Weekly' : 
-                   budgetPeriod === 'month' ? 'Monthly' : 
-                   budgetPeriod === 'quarter' ? 'Quarterly' : 'Yearly'}
-                </Text>
-              </View>
-            )}
-          </View>
-
           {/* Data & Privacy */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Data & Privacy</Text>
