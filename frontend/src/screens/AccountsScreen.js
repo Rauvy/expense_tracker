@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, TextInput, Alert, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, TextInput, Alert, Image, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LineChart } from 'react-native-chart-kit';
@@ -9,79 +9,79 @@ const screenWidth = Dimensions.get('window').width;
 
 const AccountsScreen = ({ navigation }) => {
   const [accounts, setAccounts] = useState([
-    { 
-      id: '1', 
-      type: 'bank', 
-      name: 'Chase Checking', 
-      number: '••••4567', 
-      balance: 3245.78, 
+    {
+      id: '1',
+      type: 'bank',
+      name: 'Chase Checking',
+      number: '••••4567',
+      balance: 3245.78,
       income: 4500.00,
       expenses: 1254.22,
-      isDefault: false, 
-      iconName: 'business', 
-      connected: true, 
-      lastSync: '2 hours ago' 
+      isDefault: false,
+      iconName: 'business',
+      connected: true,
+      lastSync: '2 hours ago'
     },
-    { 
-      id: '2', 
-      type: 'card', 
-      name: 'Visa Credit', 
-      number: '••••8910', 
-      balance: 1500.00, 
+    {
+      id: '2',
+      type: 'card',
+      name: 'Visa Credit',
+      number: '••••8910',
+      balance: 1500.00,
       income: 0.00,
       expenses: 500.00,
-      isDefault: false, 
-      iconName: 'card', 
-      connected: true, 
-      lastSync: '3 hours ago' 
+      isDefault: false,
+      iconName: 'card',
+      connected: true,
+      lastSync: '3 hours ago'
     },
-    { 
-      id: '3', 
-      type: 'bank', 
-      name: 'Bank of America Savings', 
-      number: '••••2345', 
-      balance: 12500.50, 
+    {
+      id: '3',
+      type: 'bank',
+      name: 'Bank of America Savings',
+      number: '••••2345',
+      balance: 12500.50,
       income: 0.00,
       expenses: 0.00,
-      isDefault: false, 
-      iconName: 'business', 
-      connected: true, 
-      lastSync: '1 day ago' 
+      isDefault: false,
+      iconName: 'business',
+      connected: true,
+      lastSync: '1 day ago'
     },
-    { 
-      id: '4', 
-      type: 'paypal', 
-      name: 'PayPal', 
-      email: 'j•••@gmail.com', 
-      balance: 350.75, 
+    {
+      id: '4',
+      type: 'paypal',
+      name: 'PayPal',
+      email: 'j•••@gmail.com',
+      balance: 350.75,
       income: 200.00,
       expenses: 150.00,
-      isDefault: false, 
-      iconName: 'logo-paypal', 
-      connected: true, 
-      lastSync: '5 hours ago' 
+      isDefault: false,
+      iconName: 'logo-paypal',
+      connected: true,
+      lastSync: '5 hours ago'
     },
-    { 
-      id: '5', 
-      type: 'crypto', 
-      name: 'Coinbase', 
-      address: '••••••XZ45', 
-      balance: 650.20, 
+    {
+      id: '5',
+      type: 'crypto',
+      name: 'Coinbase',
+      address: '••••••XZ45',
+      balance: 650.20,
       income: 0.00,
       expenses: 0.00,
-      isDefault: false, 
-      iconName: 'logo-bitcoin', 
-      connected: true, 
-      lastSync: '1 day ago' 
+      isDefault: false,
+      iconName: 'logo-bitcoin',
+      connected: true,
+      lastSync: '1 day ago'
     },
   ]);
-  
+
   const [newAccountVisible, setNewAccountVisible] = useState(false);
   const [accountType, setAccountType] = useState('bank');
   const [accountName, setAccountName] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
   const [accountBalance, setAccountBalance] = useState('');
-  
+
   const [subscriptionModalVisible, setSubscriptionModalVisible] = useState(false);
   const [selectedAccountId, setSelectedAccountId] = useState(null);
   const [expanded, setExpanded] = useState(false);
@@ -138,11 +138,11 @@ const AccountsScreen = ({ navigation }) => {
     const currentValue = selectedIndex !== null ? data[selectedIndex] : data[data.length - 1];
     const previousValue = data[0];
     const growthPercentage = ((currentValue - previousValue) / previousValue) * 100;
-    
-    const currentDate = new Date().toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric', 
-      year: 'numeric' 
+
+    const currentDate = new Date().toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
     });
 
     return (
@@ -209,7 +209,7 @@ const AccountsScreen = ({ navigation }) => {
               paddingRight: 0,
             }}
           />
-          <View 
+          <View
             style={styles.touchArea}
             onTouchStart={(e) => {
               const touchX = e.nativeEvent.locationX;
@@ -252,7 +252,7 @@ const AccountsScreen = ({ navigation }) => {
     return (
       <View style={styles.accountTilesContainer}>
         <View>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.accountTile, expandedTile === 'cash' && styles.accountTileActive]}
             onPress={() => setExpandedTile(expandedTile === 'cash' ? null : 'cash')}
           >
@@ -278,7 +278,7 @@ const AccountsScreen = ({ navigation }) => {
           {expandedTile === 'cash' && (
             <View style={styles.expandedAccounts}>
               {cashAccounts.map(account => (
-                <TouchableOpacity 
+                <TouchableOpacity
                   key={account.id}
                   style={styles.expandedAccount}
                   onPress={() => handleAccountPress(account)}
@@ -311,7 +311,7 @@ const AccountsScreen = ({ navigation }) => {
         </View>
 
         <View>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.accountTile, expandedTile === 'creditCards' && styles.accountTileActive]}
             onPress={() => setExpandedTile(expandedTile === 'creditCards' ? null : 'creditCards')}
           >
@@ -337,7 +337,7 @@ const AccountsScreen = ({ navigation }) => {
           {expandedTile === 'creditCards' && (
             <View style={styles.expandedAccounts}>
               {creditCardAccounts.map(account => (
-                <TouchableOpacity 
+                <TouchableOpacity
                   key={account.id}
                   style={styles.expandedAccount}
                   onPress={() => handleAccountPress(account)}
@@ -369,7 +369,7 @@ const AccountsScreen = ({ navigation }) => {
           )}
         </View>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.addAccountButton}
           onPress={() => setNewAccountVisible(true)}
         >
@@ -381,24 +381,24 @@ const AccountsScreen = ({ navigation }) => {
   };
 
   const renderAccountCard = (account) => (
-    <View 
-      key={account.id} 
+    <View
+      key={account.id}
       style={styles.accountCard}
     >
       <View style={styles.accountCardHeader}>
         <View style={styles.accountIconContainer}>
-          <Ionicons 
-            name={account.type === 'bank' ? 'business' : 
-                 account.type === 'card' ? 'card' : 
-                 account.type === 'paypal' ? 'logo-paypal' : 'logo-bitcoin'} 
-            size={22} 
-            color="#FFFFFF" 
+          <Ionicons
+            name={account.type === 'bank' ? 'business' :
+                 account.type === 'card' ? 'card' :
+                 account.type === 'paypal' ? 'logo-paypal' : 'logo-bitcoin'}
+            size={22}
+            color="#FFFFFF"
           />
         </View>
         <View>
           <Text style={styles.accountName}>{account.name}</Text>
           <Text style={styles.accountNumber}>
-            {account.type === 'paypal' ? account.email : 
+            {account.type === 'paypal' ? account.email :
              account.type === 'crypto' ? account.address : account.number}
           </Text>
           <View style={styles.connectionInfo}>
@@ -409,14 +409,14 @@ const AccountsScreen = ({ navigation }) => {
           </View>
         </View>
       </View>
-      
+
       <View style={styles.accountBalanceContainer}>
         <Text style={styles.balanceLabel}>Balance</Text>
         <Text style={styles.balanceAmount}>${account.balance.toFixed(2)}</Text>
       </View>
-      
+
       <View style={styles.accountActions}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.accountAction, styles.syncAction]}
           onPress={() => {
             Alert.alert('Sync', `Syncing ${account.name}...`);
@@ -426,8 +426,8 @@ const AccountsScreen = ({ navigation }) => {
           <Ionicons name="sync" size={16} color="#FFFFFF" />
           <Text style={styles.accountActionText}>Sync</Text>
         </TouchableOpacity>
-        
-        <TouchableOpacity 
+
+        <TouchableOpacity
           style={[styles.accountAction, styles.editAction]}
           onPress={() => {
             Alert.alert('Edit Account', `Edit ${account.name} details`);
@@ -436,8 +436,8 @@ const AccountsScreen = ({ navigation }) => {
           <Ionicons name="create" size={16} color="#FFFFFF" />
           <Text style={styles.accountActionText}>Edit</Text>
         </TouchableOpacity>
-        
-        <TouchableOpacity 
+
+        <TouchableOpacity
           style={[styles.accountAction, styles.deleteAction]}
           onPress={() => {
             Alert.alert(
@@ -445,8 +445,8 @@ const AccountsScreen = ({ navigation }) => {
               `Are you sure you want to disconnect ${account.name}?`,
               [
                 { text: 'Cancel', style: 'cancel' },
-                { 
-                  text: 'Disconnect', 
+                {
+                  text: 'Disconnect',
                   style: 'destructive',
                   onPress: () => {
                     setAccounts(accounts.filter(a => a.id !== account.id));
@@ -462,7 +462,7 @@ const AccountsScreen = ({ navigation }) => {
       </View>
     </View>
   );
-  
+
   const renderNewAccountModal = () => (
     <Modal
       animationType="slide"
@@ -478,20 +478,20 @@ const AccountsScreen = ({ navigation }) => {
               <Ionicons name="close" size={24} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
-          
+
           <View style={styles.accountTypeSelector}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[
                   styles.accountTypeOption,
                   accountType === 'bank' && styles.accountTypeSelected
                 ]}
                 onPress={() => setAccountType('bank')}
               >
-                <Ionicons 
-                  name="business" 
-                  size={22} 
-                  color={accountType === 'bank' ? "#276EF1" : "#FFFFFF"} 
+                <Ionicons
+                  name="business"
+                  size={22}
+                  color={accountType === 'bank' ? "#276EF1" : "#FFFFFF"}
                 />
                 <Text style={[
                   styles.accountTypeText,
@@ -500,18 +500,18 @@ const AccountsScreen = ({ navigation }) => {
                   Bank
                 </Text>
               </TouchableOpacity>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={[
                   styles.accountTypeOption,
                   accountType === 'card' && styles.accountTypeSelected
                 ]}
                 onPress={() => setAccountType('card')}
               >
-                <Ionicons 
-                  name="card" 
-                  size={22} 
-                  color={accountType === 'card' ? "#276EF1" : "#FFFFFF"} 
+                <Ionicons
+                  name="card"
+                  size={22}
+                  color={accountType === 'card' ? "#276EF1" : "#FFFFFF"}
                 />
                 <Text style={[
                   styles.accountTypeText,
@@ -520,18 +520,18 @@ const AccountsScreen = ({ navigation }) => {
                   Card
                 </Text>
               </TouchableOpacity>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={[
                   styles.accountTypeOption,
                   accountType === 'paypal' && styles.accountTypeSelected
                 ]}
                 onPress={() => setAccountType('paypal')}
               >
-                <Ionicons 
-                  name="logo-paypal" 
-                  size={22} 
-                  color={accountType === 'paypal' ? "#276EF1" : "#FFFFFF"} 
+                <Ionicons
+                  name="logo-paypal"
+                  size={22}
+                  color={accountType === 'paypal' ? "#276EF1" : "#FFFFFF"}
                 />
                 <Text style={[
                   styles.accountTypeText,
@@ -540,18 +540,18 @@ const AccountsScreen = ({ navigation }) => {
                   PayPal
                 </Text>
               </TouchableOpacity>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={[
                   styles.accountTypeOption,
                   accountType === 'crypto' && styles.accountTypeSelected
                 ]}
                 onPress={() => setAccountType('crypto')}
               >
-                <Ionicons 
-                  name="logo-bitcoin" 
-                  size={22} 
-                  color={accountType === 'crypto' ? "#276EF1" : "#FFFFFF"} 
+                <Ionicons
+                  name="logo-bitcoin"
+                  size={22}
+                  color={accountType === 'crypto' ? "#276EF1" : "#FFFFFF"}
                 />
                 <Text style={[
                   styles.accountTypeText,
@@ -562,10 +562,10 @@ const AccountsScreen = ({ navigation }) => {
               </TouchableOpacity>
             </ScrollView>
           </View>
-          
+
           <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>
-              {accountType === 'bank' ? 'Bank Name' : 
+              {accountType === 'bank' ? 'Bank Name' :
                accountType === 'card' ? 'Card Name' :
                accountType === 'paypal' ? 'PayPal Account' : 'Crypto Wallet'}
             </Text>
@@ -573,16 +573,16 @@ const AccountsScreen = ({ navigation }) => {
               style={styles.input}
               value={accountName}
               onChangeText={setAccountName}
-              placeholder={accountType === 'bank' ? "e.g. Chase Bank" : 
+              placeholder={accountType === 'bank' ? "e.g. Chase Bank" :
                           accountType === 'card' ? "e.g. Visa Credit" :
                           accountType === 'paypal' ? "e.g. PayPal" : "e.g. Coinbase"}
               placeholderTextColor="#666666"
             />
           </View>
-          
+
           <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>
-              {accountType === 'bank' ? 'Account Number' : 
+              {accountType === 'bank' ? 'Account Number' :
                accountType === 'card' ? 'Card Number' :
                accountType === 'paypal' ? 'Email Address' : 'Wallet Address'}
             </Text>
@@ -590,7 +590,7 @@ const AccountsScreen = ({ navigation }) => {
               style={styles.input}
               value={accountNumber}
               onChangeText={setAccountNumber}
-              placeholder={accountType === 'bank' ? "Enter account number" : 
+              placeholder={accountType === 'bank' ? "Enter account number" :
                           accountType === 'card' ? "Enter card number" :
                           accountType === 'paypal' ? "Enter PayPal email" : "Enter wallet address"}
               placeholderTextColor="#666666"
@@ -599,7 +599,7 @@ const AccountsScreen = ({ navigation }) => {
               autoCapitalize="none"
             />
           </View>
-          
+
           <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>Current Balance</Text>
             <TextInput
@@ -611,8 +611,8 @@ const AccountsScreen = ({ navigation }) => {
               keyboardType="numeric"
             />
           </View>
-          
-          <TouchableOpacity 
+
+          <TouchableOpacity
             style={[
               styles.addButton,
               (!accountName || !accountNumber) && styles.addButtonDisabled
@@ -629,21 +629,21 @@ const AccountsScreen = ({ navigation }) => {
                 address: accountType === 'crypto' ? '••••••' + accountNumber.slice(-4) : null,
                 balance: parseFloat(accountBalance) || 0,
                 isDefault: false,
-                iconName: accountType === 'bank' ? 'business' : 
+                iconName: accountType === 'bank' ? 'business' :
                          accountType === 'card' ? 'card' :
                          accountType === 'paypal' ? 'logo-paypal' : 'logo-bitcoin',
                 connected: true,
                 lastSync: 'Just now'
               };
-              
+
               setAccounts([...accounts, newAccount]);
               setNewAccountVisible(false);
-              
+
               // Reset form
               setAccountName('');
               setAccountNumber('');
               setAccountBalance('');
-              
+
               Alert.alert('Connected', `${accountName} has been connected to your expense tracker.`);
             }}
           >
@@ -653,10 +653,10 @@ const AccountsScreen = ({ navigation }) => {
       </View>
     </Modal>
   );
-  
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView 
+      <ScrollView
         style={styles.content}
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
@@ -664,7 +664,7 @@ const AccountsScreen = ({ navigation }) => {
         <View style={styles.screenPadding}>
           <View style={styles.header}>
             <Text style={styles.title}>Accounts</Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.addButton}
               onPress={() => setNewAccountVisible(true)}
               activeOpacity={0.7}
@@ -675,19 +675,19 @@ const AccountsScreen = ({ navigation }) => {
 
           {/* Top Buttons */}
           <View style={styles.topButtonsContainer}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.topButton, selectedTopButton === 'netWorth' && styles.topButtonActive]}
               onPress={() => setSelectedTopButton('netWorth')}
             >
               <Text style={[styles.topButtonText, selectedTopButton === 'netWorth' && styles.topButtonTextActive]}>Net Worth</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.topButton, selectedTopButton === 'cash' && styles.topButtonActive]}
               onPress={() => setSelectedTopButton('cash')}
             >
               <Text style={[styles.topButtonText, selectedTopButton === 'cash' && styles.topButtonTextActive]}>Cash</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.topButton, selectedTopButton === 'creditCards' && styles.topButtonActive]}
               onPress={() => setSelectedTopButton('creditCards')}
             >
@@ -702,37 +702,37 @@ const AccountsScreen = ({ navigation }) => {
 
           {/* Timeline Controls */}
           <View style={styles.graphControls}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.timeButton, selectedTimeline === '1W' && styles.timeButtonActive]}
               onPress={() => setSelectedTimeline('1W')}
             >
               <Text style={[styles.timeButtonText, selectedTimeline === '1W' && styles.timeButtonTextActive]}>1W</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.timeButton, selectedTimeline === '1M' && styles.timeButtonActive]}
               onPress={() => setSelectedTimeline('1M')}
             >
               <Text style={[styles.timeButtonText, selectedTimeline === '1M' && styles.timeButtonTextActive]}>1M</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.timeButton, selectedTimeline === '3M' && styles.timeButtonActive]}
               onPress={() => setSelectedTimeline('3M')}
             >
               <Text style={[styles.timeButtonText, selectedTimeline === '3M' && styles.timeButtonTextActive]}>3M</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.timeButton, selectedTimeline === '6M' && styles.timeButtonActive]}
               onPress={() => setSelectedTimeline('6M')}
             >
               <Text style={[styles.timeButtonText, selectedTimeline === '6M' && styles.timeButtonTextActive]}>6M</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.timeButton, selectedTimeline === '1Y' && styles.timeButtonActive]}
               onPress={() => setSelectedTimeline('1Y')}
             >
               <Text style={[styles.timeButtonText, selectedTimeline === '1Y' && styles.timeButtonTextActive]}>1Y</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.timeButton, selectedTimeline === 'ALL' && styles.timeButtonActive]}
               onPress={() => setSelectedTimeline('ALL')}
             >
@@ -746,7 +746,7 @@ const AccountsScreen = ({ navigation }) => {
           </View>
         </View>
       </ScrollView>
-      
+
       {renderNewAccountModal()}
     </SafeAreaView>
   );
@@ -762,9 +762,10 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flexGrow: 1,
+    paddingBottom: Platform.OS === 'ios' ? 90 : 75,
   },
   screenPadding: {
-    padding: 16,
+    padding: 12,
   },
   header: {
     flexDirection: 'row',
@@ -1286,4 +1287,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AccountsScreen; 
+export default AccountsScreen;
