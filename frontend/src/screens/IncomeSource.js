@@ -82,6 +82,9 @@ const IncomeSource = () => {
     source.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
   
+  // Prepare data with add button as last item
+  const dataWithAddButton = searchQuery ? filteredSources : [...filteredSources, { id: 'add-button', isAddButton: true }];
+  
   // Reset new source form
   const resetNewSourceForm = () => {
     setNewSourceName('');
@@ -199,23 +202,40 @@ const IncomeSource = () => {
   };
   
   // Render income source item
-  const renderSourceItem = ({ item }) => (
-    <View style={styles.sourceItem}>
-      <View style={styles.sourceInfo}>
-        <View style={[styles.sourceIcon, { backgroundColor: item.color }]}>
-          <Ionicons name={item.icon} size={24} color="#FFFFFF" />
+  const renderSourceItem = ({ item }) => {
+    // Special case for add button
+    if (item.isAddButton) {
+      return (
+        <TouchableOpacity 
+          style={styles.addButton}
+          onPress={openAddSourceModal}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="add" size={24} color="#FFFFFF" />
+          <Text style={styles.addButtonText}>Add Income</Text>
+        </TouchableOpacity>
+      );
+    }
+    
+    // Normal income source item
+    return (
+      <View style={styles.sourceItem}>
+        <View style={styles.sourceInfo}>
+          <View style={[styles.sourceIcon, { backgroundColor: item.color }]}>
+            <Ionicons name={item.icon} size={24} color="#FFFFFF" />
+          </View>
+          <Text style={styles.sourceName}>{item.name}</Text>
         </View>
-        <Text style={styles.sourceName}>{item.name}</Text>
+        
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={() => handleDeleteSource(item.id)}
+        >
+          <Ionicons name="trash-outline" size={22} color="#FF3B30" />
+        </TouchableOpacity>
       </View>
-      
-      <TouchableOpacity
-        style={styles.deleteButton}
-        onPress={() => handleDeleteSource(item.id)}
-      >
-        <Ionicons name="trash-outline" size={22} color="#FF3B30" />
-      </TouchableOpacity>
-    </View>
-  );
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -230,13 +250,7 @@ const IncomeSource = () => {
         
         <Text style={styles.screenTitle}>Income Sources</Text>
         
-        <TouchableOpacity 
-          style={styles.addButton}
-          onPress={openAddSourceModal}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="add" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
+        <View style={{width: 40}} />
       </View>
       
       <View style={styles.searchContainer}>
@@ -259,26 +273,37 @@ const IncomeSource = () => {
         )}
       </View>
       
-      {filteredSources.length === 0 ? (
+      {filteredSources.length === 0 && !searchQuery ? (
         <View style={styles.emptyContainer}>
           <Ionicons name="wallet-outline" size={80} color="#333333" />
           <Text style={styles.emptyText}>
-            {searchQuery
-              ? `No income sources found for "${searchQuery}"`
-              : 'No income sources added yet'}
+            No income sources added yet
           </Text>
-          {searchQuery && (
-            <TouchableOpacity
-              style={styles.clearSearchButton}
-              onPress={() => setSearchQuery('')}
-            >
-              <Text style={styles.clearSearchText}>Clear Search</Text>
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={openAddSourceModal}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="add" size={24} color="#FFFFFF" />
+            <Text style={styles.addButtonText}>Add Income</Text>
+          </TouchableOpacity>
+        </View>
+      ) : filteredSources.length === 0 && searchQuery ? (
+        <View style={styles.emptyContainer}>
+          <Ionicons name="wallet-outline" size={80} color="#333333" />
+          <Text style={styles.emptyText}>
+            No income sources found for "{searchQuery}"
+          </Text>
+          <TouchableOpacity
+            style={styles.clearSearchButton}
+            onPress={() => setSearchQuery('')}
+          >
+            <Text style={styles.clearSearchText}>Clear Search</Text>
+          </TouchableOpacity>
         </View>
       ) : (
         <FlatList
-          data={filteredSources}
+          data={dataWithAddButton}
           renderItem={renderSourceItem}
           keyExtractor={(item) => item.id || item.name}
           contentContainerStyle={styles.sourcesList}
@@ -344,7 +369,8 @@ const IncomeSource = () => {
                       key={`icon-${icon}`}
                       style={[
                         styles.iconOption,
-                        selectedIcon === icon && styles.selectedIconOption
+                        selectedIcon === icon && styles.selectedIconOption,
+                        selectedIcon === icon && selectedColor ? { backgroundColor: selectedColor } : {}
                       ]}
                       onPress={() => setSelectedIcon(icon)}
                     >
@@ -377,7 +403,10 @@ const IncomeSource = () => {
               </View>
               
               <TouchableOpacity 
-                style={styles.addSourceButton}
+                style={[
+                  styles.addSourceButton,
+                  selectedColor ? { backgroundColor: selectedColor } : {}
+                ]}
                 onPress={handleAddSource}
               >
                 <Text style={styles.addSourceButtonText}>Add Income Source</Text>
@@ -416,12 +445,21 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   addButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#276EF1',
-    justifyContent: 'center',
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: '#bdc3c7',
+    borderRadius: 8,
+    backgroundColor: 'rgba(189, 195, 199, 0.1)',
+  },
+  addButtonText: {
+    color: '#bdc3c7',
+    fontSize: 14,
+    marginLeft: 8,
+    fontWeight: '500',
   },
   searchContainer: {
     flexDirection: 'row',
