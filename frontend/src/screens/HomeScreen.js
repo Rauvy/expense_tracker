@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity, Anima
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { G, Path, Circle, Text as SvgText } from 'react-native-svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import TransactionsDetail from '../components/TransactionsDetail';
 
 const { width } = Dimensions.get('window');
 const screenWidth = Dimensions.get('window').width;
@@ -411,14 +412,20 @@ const HomeScreen = ({ navigation }) => {
   };
 
   // Handle edit transaction
-  const handleEditTransaction = (transaction) => {
-    setEditTransaction(transaction);
-    setEditAmount(transaction.amount.toString());
-    setEditDescription(transaction.title);
-    setEditCategory(transaction.category);
-    setEditPaymentMethod('Credit Card'); // Default or get from transaction if available
+  const handleEditTransaction = (updatedTransaction) => {
+    // Update the transaction in our recentExpenses state
+    const updatedExpenses = recentExpenses.map(expense => {
+      if (expense.id === updatedTransaction.id) {
+        return updatedTransaction;
+      }
+      return expense;
+    });
+    
+    // Update the state with the modified expenses
+    setRecentExpenses(updatedExpenses);
+    
+    // Close the modal
     setTransactionDetailsVisible(false);
-    setEditTransactionModalVisible(true);
   };
 
   // Handle save edited transaction
@@ -1720,98 +1727,15 @@ const HomeScreen = ({ navigation }) => {
       </Modal>
 
       {/* Transaction Details Modal */}
-      <Modal
-        animationType="slide"
-        transparent={true}
+      <TransactionsDetail
         visible={transactionDetailsVisible}
-        onRequestClose={() => setTransactionDetailsVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Transaction Details</Text>
-              <TouchableOpacity onPress={() => setTransactionDetailsVisible(false)}>
-                <Ionicons name="close" size={24} color="#FFFFFF" />
-              </TouchableOpacity>
-            </View>
-
-            {selectedTransaction && (
-              <View style={styles.transactionDetailsContent}>
-                <View style={[styles.transactionIcon, { backgroundColor: selectedTransaction.color }]}>
-                  <Ionicons name={selectedTransaction.icon} size={24} color="#FFFFFF" />
-                </View>
-
-                <Text style={styles.transactionDetailsTitle}>{selectedTransaction.title}</Text>
-                <Text style={styles.transactionDetailsCategory}>{selectedTransaction.category}</Text>
-
-                <Text style={styles.transactionDetailsAmount}>
-                  -${selectedTransaction.amount.toFixed(2)}
-                </Text>
-
-                <View style={styles.transactionDetailsRow}>
-                  <Text style={styles.transactionDetailsLabel}>Date</Text>
-                  <Text style={styles.transactionDetailsValue}>{selectedTransaction.date}, 2023</Text>
-                </View>
-
-                <View style={styles.transactionDetailsRow}>
-                  <Text style={styles.transactionDetailsLabel}>Time</Text>
-                  <Text style={styles.transactionDetailsValue}>12:30 PM</Text>
-                </View>
-
-                <View style={styles.transactionDetailsRow}>
-                  <Text style={styles.transactionDetailsLabel}>Transaction ID</Text>
-                  <Text style={styles.transactionDetailsValue}>#TRX{selectedTransaction.id.toString().padStart(4, '0')}</Text>
-                </View>
-
-                <View style={styles.transactionDetailsRow}>
-                  <Text style={styles.transactionDetailsLabel}>Payment Method</Text>
-                  <View style={styles.transactionDetailsMethod}>
-                    <View style={[styles.transactionMethodIcon, { backgroundColor: '#FF6384' }]}>
-                      <Ionicons name="card" size={16} color="#FFFFFF" />
-                    </View>
-                    <Text style={styles.transactionDetailsValue}>Credit Card</Text>
-                  </View>
-                </View>
-
-                <View style={styles.transactionDetailsRow}>
-                  <Text style={styles.transactionDetailsLabel}>Status</Text>
-                  <View style={styles.statusContainer}>
-                    <View style={[styles.statusDot, { backgroundColor: '#4CAF50' }]} />
-                    <Text style={[styles.transactionDetailsValue, { color: '#4CAF50' }]}>Completed</Text>
-                  </View>
-                </View>
-
-                <View style={styles.transactionDetailsRow}>
-                  <Text style={styles.transactionDetailsLabel}>Notes</Text>
-                  <Text style={styles.transactionDetailsValue} numberOfLines={2}>
-                    {selectedTransaction.title === 'Grocery Shopping' ? 'Weekly grocery run at Trader Joe\'s.' :
-                     selectedTransaction.title === 'Uber Ride' ? 'Business trip to downtown meeting.' :
-                     selectedTransaction.title === 'New Headphones' ? 'Sony WH-1000XM4 noise cancelling headphones.' :
-                     'No notes available.'}
-                  </Text>
-                </View>
-
-                <TouchableOpacity
-                  style={styles.editTransactionButton}
-                  onPress={() => {
-                    // Handle edit action
-                    handleEditTransaction(selectedTransaction);
-                  }}
-                >
-                  <Text style={styles.editTransactionButtonText}>Edit Transaction</Text>
-                </TouchableOpacity>
-
-                {/* <TouchableOpacity
-                  style={styles.deleteTransactionButton}
-                  onPress={() => handleDeleteTransaction(selectedTransaction.id)}
-                >
-                  <Text style={styles.deleteTransactionButtonText}>Delete Transaction</Text>
-                </TouchableOpacity> */}
-              </View>
-            )}
-          </View>
-        </View>
-      </Modal>
+        transaction={selectedTransaction}
+        categories={categories}
+        paymentMethods={paymentMethods}
+        onClose={() => setTransactionDetailsVisible(false)}
+        onSave={handleEditTransaction}
+        onDelete={handleDeleteTransaction}
+      />
 
       {/* Edit Transaction Modal */}
       <Modal
