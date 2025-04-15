@@ -88,6 +88,7 @@ const AccountsScreen = ({ navigation }) => {
   const [selectedTimeline, setSelectedTimeline] = useState('1M');
   const [selectedTopButton, setSelectedTopButton] = useState('netWorth');
   const [selectedIndex, setSelectedIndex] = useState(null);
+  const [expandedTile, setExpandedTile] = useState(null);
 
   // Calculate net worth and change
   const netWorth = accounts.reduce((sum, account) => sum + account.balance, 0);
@@ -208,9 +209,6 @@ const AccountsScreen = ({ navigation }) => {
               paddingRight: 0,
             }}
           />
-          {selectedIndex !== null && (
-            <View style={[styles.verticalLine, { left: `${(selectedIndex / (data.length - 1)) * 100}%` }]} />
-          )}
           <View 
             style={styles.touchArea}
             onTouchStart={(e) => {
@@ -227,6 +225,9 @@ const AccountsScreen = ({ navigation }) => {
               setTimeout(() => setSelectedIndex(null), 1000);
             }}
           />
+          {selectedIndex !== null && (
+            <View style={[styles.verticalLine, { left: `${(selectedIndex / (data.length - 1)) * 100}%` }]} />
+          )}
         </View>
       </View>
     );
@@ -250,52 +251,130 @@ const AccountsScreen = ({ navigation }) => {
 
     return (
       <View style={styles.accountTilesContainer}>
-        <TouchableOpacity 
-          style={[styles.accountTile, selectedTopButton === 'cash' && styles.accountTileActive]}
-          onPress={() => setSelectedTopButton('cash')}
-        >
-          <View style={styles.tileContent}>
-            <View style={styles.tileLeft}>
-              <View style={styles.tileHeader}>
-                <Ionicons name="cash" size={20} color="#FFFFFF" />
-                <Text style={styles.tileTitle}>Cash</Text>
+        <View>
+          <TouchableOpacity 
+            style={[styles.accountTile, expandedTile === 'cash' && styles.accountTileActive]}
+            onPress={() => setExpandedTile(expandedTile === 'cash' ? null : 'cash')}
+          >
+            <View style={styles.tileContent}>
+              <View style={styles.tileLeft}>
+                <View style={styles.tileHeader}>
+                  <Ionicons name="cash" size={20} color="#FFFFFF" />
+                  <Text style={styles.tileTitle}>Cash</Text>
+                </View>
+                <View style={styles.tileInfo}>
+                  <Text style={styles.tileSubtitle}>{cashAccounts.length} accounts</Text>
+                  <Text style={[styles.tileGrowth, { color: cashGrowth >= 0 ? '#27ae60' : '#e74c3c' }]}>
+                    {cashGrowth >= 0 ? '+' : ''}{cashGrowth}%
+                  </Text>
+                </View>
               </View>
-              <View style={styles.tileInfo}>
-                <Text style={styles.tileSubtitle}>{cashAccounts.length} accounts</Text>
-                <Text style={[styles.tileGrowth, { color: cashGrowth >= 0 ? '#27ae60' : '#e74c3c' }]}>
-                  {cashGrowth >= 0 ? '+' : ''}{cashGrowth}%
-                </Text>
+              <View style={styles.tileRight}>
+                <Text style={styles.tileAmount}>${cashTotal.toLocaleString()}</Text>
+                <Text style={styles.tilePercentage}>{cashPercentage}% of assets</Text>
               </View>
             </View>
-            <View style={styles.tileRight}>
-              <Text style={styles.tileAmount}>${cashTotal.toLocaleString()}</Text>
-              <Text style={styles.tilePercentage}>{cashPercentage}% of assets</Text>
+          </TouchableOpacity>
+          {expandedTile === 'cash' && (
+            <View style={styles.expandedAccounts}>
+              {cashAccounts.map(account => (
+                <TouchableOpacity 
+                  key={account.id}
+                  style={styles.expandedAccount}
+                  onPress={() => handleAccountPress(account)}
+                >
+                  <View style={styles.expandedAccountLeft}>
+                    <View style={styles.expandedAccountHeader}>
+                      <Ionicons name={getAccountIcon(account.type)} size={20} color="#FFFFFF" />
+                      <Text style={styles.expandedAccountName}>
+                        {account.name} ({account.number.slice(-4)})
+                      </Text>
+                    </View>
+                    <View style={styles.expandedAccountDetails}>
+                      <Text style={styles.expandedAccountType}>
+                        {account.type.charAt(0).toUpperCase() + account.type.slice(1)}
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={styles.expandedAccountRight}>
+                    <Text style={styles.expandedAccountBalance}>
+                      ${Math.abs(account.balance).toLocaleString()}
+                    </Text>
+                    <Text style={styles.expandedAccountSync}>
+                      {account.lastSync}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
             </View>
-          </View>
-        </TouchableOpacity>
+          )}
+        </View>
+
+        <View>
+          <TouchableOpacity 
+            style={[styles.accountTile, expandedTile === 'creditCards' && styles.accountTileActive]}
+            onPress={() => setExpandedTile(expandedTile === 'creditCards' ? null : 'creditCards')}
+          >
+            <View style={styles.tileContent}>
+              <View style={styles.tileLeft}>
+                <View style={styles.tileHeader}>
+                  <Ionicons name="card" size={20} color="#FFFFFF" />
+                  <Text style={styles.tileTitle}>Credit Cards</Text>
+                </View>
+                <View style={styles.tileInfo}>
+                  <Text style={styles.tileSubtitle}>{creditCardAccounts.length} accounts</Text>
+                  <Text style={[styles.tileGrowth, { color: creditCardGrowth >= 0 ? '#27ae60' : '#e74c3c' }]}>
+                    {creditCardGrowth >= 0 ? '+' : ''}{creditCardGrowth}%
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.tileRight}>
+                <Text style={styles.tileAmount}>${creditCardTotal.toLocaleString()}</Text>
+                <Text style={styles.tilePercentage}>{creditCardPercentage}% of liabilities</Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+          {expandedTile === 'creditCards' && (
+            <View style={styles.expandedAccounts}>
+              {creditCardAccounts.map(account => (
+                <TouchableOpacity 
+                  key={account.id}
+                  style={styles.expandedAccount}
+                  onPress={() => handleAccountPress(account)}
+                >
+                  <View style={styles.expandedAccountLeft}>
+                    <View style={styles.expandedAccountHeader}>
+                      <Ionicons name={getAccountIcon(account.type)} size={20} color="#FFFFFF" />
+                      <Text style={styles.expandedAccountName}>
+                        {account.name} ({account.number.slice(-4)})
+                      </Text>
+                    </View>
+                    <View style={styles.expandedAccountDetails}>
+                      <Text style={styles.expandedAccountType}>
+                        {account.type.charAt(0).toUpperCase() + account.type.slice(1)}
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={styles.expandedAccountRight}>
+                    <Text style={styles.expandedAccountBalance}>
+                      ${Math.abs(account.balance).toLocaleString()}
+                    </Text>
+                    <Text style={styles.expandedAccountSync}>
+                      {account.lastSync}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </View>
 
         <TouchableOpacity 
-          style={[styles.accountTile, selectedTopButton === 'creditCards' && styles.accountTileActive]}
-          onPress={() => setSelectedTopButton('creditCards')}
+          style={styles.addAccountButton}
+          onPress={() => setNewAccountVisible(true)}
         >
-          <View style={styles.tileContent}>
-            <View style={styles.tileLeft}>
-              <View style={styles.tileHeader}>
-                <Ionicons name="card" size={20} color="#FFFFFF" />
-                <Text style={styles.tileTitle}>Credit Cards</Text>
-              </View>
-              <View style={styles.tileInfo}>
-                <Text style={styles.tileSubtitle}>{creditCardAccounts.length} accounts</Text>
-                <Text style={[styles.tileGrowth, { color: creditCardGrowth >= 0 ? '#27ae60' : '#e74c3c' }]}>
-                  {creditCardGrowth >= 0 ? '+' : ''}{creditCardGrowth}%
-                </Text>
-              </View>
-            </View>
-            <View style={styles.tileRight}>
-              <Text style={styles.tileAmount}>${creditCardTotal.toLocaleString()}</Text>
-              <Text style={styles.tilePercentage}>{creditCardPercentage}% of liabilities</Text>
-            </View>
-          </View>
+          <Ionicons name="add" size={20} color="#bdc3c7" />
+          <Text style={styles.addAccountButtonText}>Add Account</Text>
         </TouchableOpacity>
       </View>
     );
@@ -621,7 +700,7 @@ const AccountsScreen = ({ navigation }) => {
             {renderGraph()}
           </View>
 
-          {/* Timeline Controls and Account Tiles Container */}
+          {/* Timeline Controls */}
           <View style={styles.graphControls}>
             <TouchableOpacity 
               style={[styles.timeButton, selectedTimeline === '1W' && styles.timeButtonActive]}
@@ -661,56 +740,10 @@ const AccountsScreen = ({ navigation }) => {
             </TouchableOpacity>
           </View>
 
+          {/* Account Tiles */}
           <View style={styles.tilesSection}>
-            <View style={styles.accountTilesContainer}>
-              {renderAccountTiles()}
-            </View>
+            {renderAccountTiles()}
           </View>
-
-          {/* Accounts List */}
-          {expanded && (
-            <View style={styles.accountsList}>
-              {accounts.map((account, index) => (
-                <TouchableOpacity 
-                  key={index}
-                  style={styles.accountCard}
-                  onPress={() => handleAccountPress(account)}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.accountHeader}>
-                    <View style={styles.accountIconContainer}>
-                      <Ionicons 
-                        name={getAccountIcon(account.type)} 
-                        size={24} 
-                        color="#FFFFFF" 
-                      />
-                    </View>
-                    <View style={styles.accountInfo}>
-                      <Text style={styles.accountName}>{account.name}</Text>
-                      <Text style={styles.accountType}>{account.type}</Text>
-                    </View>
-                    <View style={styles.accountBalance}>
-                      <Text style={styles.balanceAmount}>${account.balance.toLocaleString()}</Text>
-                      <Text style={styles.balanceLabel}>Available</Text>
-                    </View>
-                  </View>
-                  <View style={styles.accountFooter}>
-                    <View style={styles.accountStats}>
-                      <View style={styles.statItem}>
-                        <Text style={styles.statLabel}>Income</Text>
-                        <Text style={styles.statValue}>${account.income.toLocaleString()}</Text>
-                      </View>
-                      <View style={styles.statDivider} />
-                      <View style={styles.statItem}>
-                        <Text style={styles.statLabel}>Expenses</Text>
-                        <Text style={styles.statValue}>${account.expenses.toLocaleString()}</Text>
-                      </View>
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
         </View>
       </ScrollView>
       
@@ -743,22 +776,15 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     color: '#ffffff',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   addButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#2980b9',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 3,
   },
   topButtonsContainer: {
     flexDirection: 'row',
@@ -872,7 +898,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#2c3e50',
+    backgroundColor: '#1a1a1a',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
@@ -926,11 +952,19 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   input: {
-    backgroundColor: '#3a3a3a',
+    backgroundColor: '#2c3e50',
     borderRadius: 12,
     padding: 15,
     color: '#ffffff',
     fontSize: 16,
+  },
+  addButton: {
+    backgroundColor: 'transparent',
+    borderRadius: 12,
+    padding: 15,
+    alignItems: 'center',
+    marginTop: 10,
+    borderWidth: 0,
   },
   addButtonText: {
     color: '#ffffff',
@@ -1079,24 +1113,44 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
   graphWrapper: {
-    flex: 1,
+    position: 'relative',
+    height: 220,
+    marginBottom: 20,
+    overflow: 'hidden',
   },
   touchArea: {
-    flex: 1,
-  },
-  verticalLine: {
     position: 'absolute',
     top: 0,
     left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1,
+    backgroundColor: 'transparent',
+    height: 220,
+    width: screenWidth,
+  },
+  verticalLine: {
+    position: 'absolute',
+    top: 20,
     width: 1,
-    height: '100%',
+    height: 165,
     backgroundColor: '#3a3a3a',
+    zIndex: 2,
+  },
+  pointIndicator: {
+    position: 'absolute',
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#2980b9',
+    zIndex: 3,
+    transform: [{ translateY: -4 }, { translateX: -4 }],
   },
   graphContainer: {
     backgroundColor: '#121212',
     borderRadius: 0,
     padding: 16,
-    height: 220,
+    height: 250,
     marginBottom: 20,
   },
   tilesSection: {
@@ -1111,7 +1165,8 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: '#2c3e50',
     borderRadius: 12,
-    padding: 12,
+    padding: 15,
+    paddingBottom: 20,
     height: 100,
   },
   accountTileActive: {
@@ -1135,31 +1190,99 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   tileInfo: {
-    marginLeft: 28,
+    marginLeft: 0,
   },
   tileTitle: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: 'bold',
     color: '#FFFFFF',
     marginLeft: 8,
   },
   tileSubtitle: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#bdc3c7',
+    marginBottom: 4,
   },
   tileGrowth: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
-    marginTop: 4,
   },
   tileAmount: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#FFFFFF',
+    marginBottom: 4,
   },
   tilePercentage: {
+    fontSize: 14,
+    marginBottom: 3,
+    color: '#bdc3c7',
+  },
+  expandedAccounts: {
+    backgroundColor: '#2c3e50',
+    borderBottomLeftRadius: 12,
+    borderBottomRightRadius: 12,
+    padding: 12,
+    marginTop: -12,
+  },
+  expandedAccount: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  expandedAccountLeft: {
+    flex: 1,
+  },
+  expandedAccountHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  expandedAccountName: {
+    fontSize: 14,
+    color: '#FFFFFF',
+    marginLeft: 8,
+  },
+  expandedAccountDetails: {
+    marginLeft: 28,
+    marginTop: 4,
+  },
+  expandedAccountType: {
     fontSize: 12,
     color: '#bdc3c7',
+  },
+  expandedAccountRight: {
+    alignItems: 'flex-end',
+  },
+  expandedAccountBalance: {
+    fontSize: 14,
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  expandedAccountSync: {
+    fontSize: 12,
+    color: '#bdc3c7',
+  },
+  addAccountButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: '#bdc3c7',
+    borderRadius: 8,
+    marginTop: 8,
+    backgroundColor: 'rgba(189, 195, 199, 0.1)',
+  },
+  addAccountButtonText: {
+    color: '#bdc3c7',
+    fontSize: 14,
+    marginLeft: 8,
+    fontWeight: '500',
   },
 });
 
