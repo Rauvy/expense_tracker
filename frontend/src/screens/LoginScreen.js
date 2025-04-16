@@ -36,42 +36,37 @@ const LoginScreen = ({ navigation }) => {
     androidClientId: 'YOUR_ANDROID_CLIENT_ID',
   });
 
+  
+
   useEffect(() => {
     if (response?.type === 'success') {
       handleGoogleSignIn(response.authentication);
     }
   }, [response]);
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      const token = await AsyncStorage.getItem('access_token');
-      if (!token) {
-        navigation.replace('Login');
-      }
-    };
-    checkAuth();
-  }, []);
-
-  useEffect(() => {
-    api.get('/account/me')
-      .then(res => console.log('User data:', res.data))
-      .catch(err => console.log('Protected data error:', err.response?.status));
-  }, []);
+  
 
   const handleLogin = async () => {
     if (!email || !password) {
       setError('Please enter both email and password');
       return;
     }
+  
     setIsLoading(true);
     setError('');
+  
     try {
-      const { access_token, refresh_token } = await login({ email, password });
-      await AsyncStorage.setItem('access_token', access_token);
-      await AsyncStorage.setItem('refresh_token', refresh_token);
+      // Step 1: Login and get tokens (tokens are saved in authService)
+      const { access_token } = await login({ email, password });
+  
+      // Step 2: Immediately hit the protected route
+      const res = await api.get('/account/me');
+      console.log('✅ Logged in user:', res.data);
+  
+      // Step 3: Navigate to main app
       navigation.replace('MainApp');
     } catch (error) {
       console.log('Login error:', error.response?.data, error.message);
+  
       setError(
         error.response?.data?.detail ||
         error.response?.data?.message ||
@@ -82,6 +77,7 @@ const LoginScreen = ({ navigation }) => {
       setIsLoading(false);
     }
   };
+  
 
   const handleGoogleSignIn = async (authentication) => {
     if (!authentication) return;

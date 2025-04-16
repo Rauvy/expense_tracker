@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Platform, StatusBar, SafeAreaView, Modal, TextInput, Switch, FlatList, KeyboardAvoidingView, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Platform, StatusBar, SafeAreaView, Modal, TextInput, Switch, FlatList, KeyboardAvoidingView, TouchableWithoutFeedback, Keyboard, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import { getTransactions, deleteTransaction } from '../services/transactionsService';
+
 
 const { width } = Dimensions.get('window');
 
@@ -15,140 +18,6 @@ const COLORS = {
   ENTERTAINMENT: '#9966FF',
   BLUE: '#276EF1'
 };
-
-// Mock data for all transactions (both expenses and income)
-const allTransactions = [
-  {
-    id: 1,
-    title: 'Grocery Shopping',
-    category: 'Food',
-    amount: 85.25,
-    date: '15 Jun',
-    icon: 'fast-food',
-    color: '#FF6384',
-    paymentMethod: 'Credit Card',
-    paymentIcon: 'card',
-    paymentColor: '#FF6384',
-    type: 'expense',
-  },
-  {
-    id: 2,
-    title: 'Monthly Salary',
-    category: 'Salary',
-    amount: 2800.00,
-    date: '15 Jun',
-    icon: 'cash',
-    color: '#4BC0C0',
-    source: 'Employer',
-    sourceIcon: 'business',
-    sourceColor: '#4BC0C0',
-    type: 'income',
-  },
-  {
-    id: 3,
-    title: 'Uber Ride',
-    category: 'Transport',
-    amount: 24.50,
-    date: '14 Jun',
-    icon: 'car',
-    color: '#36A2EB',
-    paymentMethod: 'Mobile Pay',
-    paymentIcon: 'phone-portrait',
-    paymentColor: '#9966FF',
-    type: 'expense',
-  },
-  {
-    id: 4,
-    title: 'Freelance Project',
-    category: 'Freelance',
-    amount: 350.00,
-    date: '13 Jun',
-    icon: 'laptop',
-    color: '#36A2EB',
-    source: 'Client',
-    sourceIcon: 'person',
-    sourceColor: '#36A2EB',
-    type: 'income',
-  },
-  {
-    id: 5,
-    title: 'New Headphones',
-    category: 'Shopping',
-    amount: 159.99,
-    date: '12 Jun',
-    icon: 'cart',
-    color: '#FFCE56',
-    paymentMethod: 'Credit Card',
-    paymentIcon: 'card',
-    paymentColor: '#FF6384',
-    type: 'expense',
-  },
-  {
-    id: 6,
-    title: 'Electricity Bill',
-    category: 'Bills',
-    amount: 75.40,
-    date: '10 Jun',
-    icon: 'flash',
-    color: '#4BC0C0',
-    paymentMethod: 'Cash',
-    paymentIcon: 'cash',
-    paymentColor: '#4BC0C0',
-    type: 'expense',
-  },
-  {
-    id: 7,
-    title: 'Gift from Dad',
-    category: 'Gifts',
-    amount: 100.00,
-    date: '10 Jun',
-    icon: 'gift',
-    color: '#9966FF',
-    source: 'Family',
-    sourceIcon: 'people',
-    sourceColor: '#9966FF',
-    type: 'income',
-  },
-  {
-    id: 8,
-    title: 'Coffee Shop',
-    category: 'Food',
-    amount: 12.99,
-    date: '9 Jun',
-    icon: 'cafe',
-    color: '#FF6384',
-    paymentMethod: 'Mobile Pay',
-    paymentIcon: 'phone-portrait',
-    paymentColor: '#9966FF',
-    type: 'expense',
-  },
-  {
-    id: 9,
-    title: 'Movie Tickets',
-    category: 'Entertainment',
-    amount: 32.00,
-    date: '8 Jun',
-    icon: 'film',
-    color: '#9966FF',
-    paymentMethod: 'Credit Card',
-    paymentIcon: 'card',
-    paymentColor: '#FF6384',
-    type: 'expense',
-  },
-  {
-    id: 10,
-    title: 'Stock Dividend',
-    category: 'Investments',
-    amount: 75.50,
-    date: '7 Jun',
-    icon: 'trending-up',
-    color: '#FFCE56',
-    source: 'Investments',
-    sourceIcon: 'stats-chart',
-    sourceColor: '#FFCE56',
-    type: 'income',
-  },
-];
 
 const AddExpenseScreen = ({ navigation }) => {
   const [filterType, setFilterType] = useState('all'); // 'all', 'expense', 'income'
@@ -169,6 +38,47 @@ const AddExpenseScreen = ({ navigation }) => {
   // Using state for categories
   const [categories, setCategories] = useState([]);
   const [incomeCategories, setIncomeCategories] = useState([]);
+  const [allTransactions, setAllTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      if (!categories.length || !incomeCategories.length) return;
+  
+      setLoading(true);
+      setError(null);
+  
+      try {
+        const data = await getTransactions();
+        const transactionsWithStyle = (data.items || []).map((tx) => {
+          const categoryList = tx.type === 'income' ? incomeCategories : categories;
+          const categoryInfo = categoryList.find((cat) => cat.name === tx.category);
+  
+          return {
+            ...tx,
+            amount: Number(tx.amount) || 0,
+            icon: categoryInfo?.icon || 'ellipsis-horizontal',
+            color: categoryInfo?.color || COLORS.BLUE,
+            paymentIcon: 'card',
+            paymentColor: COLORS.EXPENSE,
+            sourceIcon: 'person',
+            sourceColor: COLORS.INCOME,
+          };
+        });
+        setAllTransactions(transactionsWithStyle);
+      } catch (err) {
+        console.log('❌ Failed to load transactions:', err);
+        setError('Failed to load transactions');
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    fetchTransactions();
+  }, [categories, incomeCategories]);
+  
+
 
   // Load categories from AsyncStorage
   useEffect(() => {
@@ -192,6 +102,7 @@ const AddExpenseScreen = ({ navigation }) => {
             { name: 'Other', icon: 'ellipsis-horizontal', color: '#8E8E93' },
           ];
           setCategories(defaultCategories);
+          await fetchTransactions();
           await AsyncStorage.setItem('expenseCategories', JSON.stringify(defaultCategories));
         }
 
@@ -271,13 +182,17 @@ const AddExpenseScreen = ({ navigation }) => {
   });
 
   // Calculate total income and expenses
-  const totalIncome = allTransactions
-    .filter(transaction => transaction.type === 'income')
-    .reduce((sum, transaction) => sum + transaction.amount, 0);
+  const totalIncome = allTransactions?.length
+  ? allTransactions
+      .filter((transaction) => transaction.type === 'income')
+      .reduce((sum, transaction) => sum + (transaction.amount || 0), 0)
+  : 0;
 
-  const totalExpenses = allTransactions
-    .filter(transaction => transaction.type === 'expense')
-    .reduce((sum, transaction) => sum + transaction.amount, 0);
+const totalExpenses = allTransactions?.length
+  ? allTransactions
+      .filter((transaction) => transaction.type === 'expense')
+      .reduce((sum, transaction) => sum + (transaction.amount || 0), 0)
+  : 0;
 
   // Initialize modal state when opening
   useEffect(() => {
@@ -397,7 +312,7 @@ const AddExpenseScreen = ({ navigation }) => {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
-            {/* Search Section */}
+            {/* Search Section */} 
             <View style={styles.filterSection}>
               <Text style={styles.filterSectionTitle}>Search</Text>
               <View style={styles.searchInputContainer}>
@@ -559,6 +474,25 @@ const AddExpenseScreen = ({ navigation }) => {
     setTransactionDetailsVisible(true);
   };
 
+  const handleDeleteTransaction = async () => {
+    try {
+      await deleteTransaction(selectedTransaction.id);
+      // Remove the transaction from the list
+      setAllTransactions(prevTransactions => 
+        prevTransactions.filter(tx => tx.id !== selectedTransaction.id)
+      );
+      // Close the modal
+      setTransactionDetailsVisible(false);
+    } catch (error) {
+      console.error('Error deleting transaction:', error);
+      // Show error message
+      Alert.alert(
+        'Error',
+        error.response?.data?.detail || 'Failed to delete transaction. Please try again.'
+      );
+    }
+  };
+
   const renderTransactionDetails = () => {
     if (!selectedTransaction) return null;
 
@@ -584,7 +518,7 @@ const AddExpenseScreen = ({ navigation }) => {
                   <Ionicons name={selectedTransaction.icon} size={24} color="#FFFFFF" />
                 </View>
 
-                <Text style={styles.transactionDetailsTitle}>{selectedTransaction.title}</Text>
+                <Text style={styles.transactionDetailsTitle}>{selectedTransaction.description}</Text>
                 <Text style={styles.transactionDetailsCategory}>{selectedTransaction.category}</Text>
 
                 <Text style={[
@@ -596,7 +530,7 @@ const AddExpenseScreen = ({ navigation }) => {
 
                 <View style={styles.transactionDetailsRow}>
                   <Text style={styles.transactionDetailsLabel}>Date</Text>
-                  <Text style={styles.transactionDetailsValue}>{selectedTransaction.date}</Text>
+                  <Text style={styles.transactionDetailsValue}>{formatDate(selectedTransaction.date)}</Text>
                 </View>
 
                 <View style={styles.transactionDetailsRow}>
@@ -632,10 +566,10 @@ const AddExpenseScreen = ({ navigation }) => {
                         color="#FFFFFF"
                       />
                     </View>
-                    <Text style={styles.transactionDetailsValue}>
+                    <Text style={[styles.transactionDetailsValue, { marginLeft: 8, fontSize: 16 }]}>
                       {selectedTransaction.type === 'income'
                         ? selectedTransaction.source
-                        : selectedTransaction.paymentMethod}
+                        : selectedTransaction.payment_method}
                     </Text>
                   </View>
                 </View>
@@ -649,13 +583,10 @@ const AddExpenseScreen = ({ navigation }) => {
                 </View>
 
                 <TouchableOpacity
-                  style={styles.editTransactionButton}
-                  onPress={() => {
-                    // Handle edit action
-                    setTransactionDetailsVisible(false);
-                  }}
+                  style={styles.deleteTransactionButton}
+                  onPress={handleDeleteTransaction}
                 >
-                  <Text style={styles.editTransactionButtonText}>Edit Transaction</Text>
+                  <Text style={styles.deleteTransactionButtonText}>Delete Transaction</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -663,6 +594,16 @@ const AddExpenseScreen = ({ navigation }) => {
         </View>
       </Modal>
     );
+  };
+
+  // Add this date formatting function
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    });
   };
 
   return (
@@ -688,7 +629,10 @@ const AddExpenseScreen = ({ navigation }) => {
                   </View>
                   <View>
                     <Text style={styles.summaryLabel}>Income</Text>
-                    <Text style={[styles.summaryAmount, styles.incomeAmount]}>${totalIncome.toFixed(2)}</Text>
+                    <Text style={[styles.summaryAmount, styles.incomeAmount]}>
+                      ${Number(totalIncome || 0).toFixed(2)}
+                    </Text>
+
                   </View>
                 </View>
 
@@ -700,7 +644,10 @@ const AddExpenseScreen = ({ navigation }) => {
                   </View>
                   <View>
                     <Text style={styles.summaryLabel}>Expenses</Text>
-                    <Text style={[styles.summaryAmount, styles.expenseAmount]}>${totalExpenses.toFixed(2)}</Text>
+                    <Text style={[styles.summaryAmount, styles.expenseAmount]}>
+                      ${Number(totalExpenses || 0).toFixed(2)}
+                    </Text>
+
                   </View>
                 </View>
               </View>
@@ -781,7 +728,7 @@ const AddExpenseScreen = ({ navigation }) => {
                     </View>
 
                     <View style={styles.transactionInfo}>
-                      <Text style={styles.transactionTitle}>{transaction.title}</Text>
+                      <Text style={styles.transactionTitle}>{transaction.description}</Text>
                       <Text style={styles.transactionCategory}>{transaction.category}</Text>
                     </View>
 
@@ -794,25 +741,33 @@ const AddExpenseScreen = ({ navigation }) => {
                       >
                         {transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)}
                       </Text>
-                      <Text style={styles.transactionDate}>{transaction.date}</Text>
+                      <Text style={styles.transactionDate}>{formatDate(transaction.date)}</Text>
 
-                      <View
-                        style={[
-                          styles.transactionMethodIcon,
-                          {
-                            backgroundColor: transaction.type === 'income'
-                              ? transaction.sourceColor
-                              : transaction.paymentColor
-                          }
-                        ]}
-                      >
-                        <Ionicons
-                          name={transaction.type === 'income' ? transaction.sourceIcon : transaction.paymentIcon}
-                          size={14}
-                          color="#FFFFFF"
-                        />
+                      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
+                        <View
+                          style={[
+                            styles.transactionMethodIcon,
+                            {
+                              backgroundColor: transaction.type === 'income'
+                                ? transaction.sourceColor
+                                : transaction.paymentColor
+                            }
+                          ]}
+                        >
+                          <Ionicons
+                            name={transaction.type === 'income' ? transaction.sourceIcon : transaction.paymentIcon}
+                            size={14}
+                            color="#FFFFFF"
+                          />
+                        </View>
+                        <Text style={{ color: '#FFFFFF', fontSize: 13, marginLeft: 6 }}>
+                          {transaction.type === 'income'
+                            ? transaction.source
+                            : transaction.payment_method}
+                        </Text>
                       </View>
                     </View>
+
                   </TouchableOpacity>
                 ))
               ) : (
@@ -1020,7 +975,7 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
   transactionCategory: {
-    fontSize: 13,
+    fontSize: 14,
     color: '#888888',
   },
   transactionDetails: {
@@ -1042,7 +997,7 @@ const styles = StyleSheet.create({
     borderRadius: 13,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: 0, 
   },
   noTransactionsContainer: {
     padding: 20,
@@ -1133,15 +1088,15 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     marginRight: 10,
   },
-  editTransactionButton: {
-    backgroundColor: COLORS.BLUE,
+  deleteTransactionButton: {
+    backgroundColor: '#FF3B30', // iOS red color
     width: '100%',
     paddingVertical: 15,
     borderRadius: 12,
     alignItems: 'center',
     marginTop: 30,
   },
-  editTransactionButtonText: {
+  deleteTransactionButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',

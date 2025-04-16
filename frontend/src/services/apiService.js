@@ -1,19 +1,33 @@
 import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getBaseURL, getApiSettings } from '../config/apiConfig';
+import { getBaseURL } from '../config/apiConfig';
+import { refreshToken, getAccessToken, clearTokens } from '../services/tokenService';
+
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
 
 const api = axios.create({
   baseURL: getBaseURL(),
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: getApiSettings().timeout,
 });
 
-// Add auth token to requests
 api.interceptors.request.use(
   async (config) => {
-    const token = await AsyncStorage.getItem('authToken');
+    if (config.url?.includes('/auth/')) return config;
+
+    const token = await getAccessToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -22,17 +36,47 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Handle 401 errors (unauthorized)
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response?.status === 401) {
-      // Clear token and redirect to login
-      await AsyncStorage.removeItem('authToken');
-      // You might want to add navigation here
+    const originalRequest = error.config;
+
+    if (originalRequest.url?.includes('/auth/')) {
+      return Promise.reject(error);
     }
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        try {
+          const token = await new Promise((resolve, reject) => {
+            failedQueue.push({ resolve, reject });
+          });
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+          return api(originalRequest);
+        } catch (err) {
+          return Promise.reject(err);
+        }
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        const { access_token } = await refreshToken();
+        originalRequest.headers.Authorization = `Bearer ${access_token}`;
+        processQueue(null, access_token);
+        return api(originalRequest);
+      } catch (refreshError) {
+        await clearTokens();
+        processQueue(refreshError, null);
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
     return Promise.reject(error);
   }
 );
 
-export default api; 
+export default api;

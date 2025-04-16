@@ -1,9 +1,11 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity, Animated, Modal, TextInput, SafeAreaView, Platform, FlatList, PanResponder, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { G, Path, Circle, Text as SvgText } from 'react-native-svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../services/apiService';
+import { PieChart } from 'react-native-chart-kit';
+import { getPieChartData } from '../services/transactionsService';
 
 const { width } = Dimensions.get('window');
 const screenWidth = Dimensions.get('window').width;
@@ -61,36 +63,7 @@ const availableIcons = [
 // Predefined colors
 const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#8C9EFF', '#FF5252'];
 
-const categoryData = [
-  {
-    name: 'Food',
-    amount: 450,
-    color: '#FF6384',
-    legendFontColor: '#FFFFFF',
-    legendFontSize: 12,
-  },
-  {
-    name: 'Transport',
-    amount: 250,
-    color: '#36A2EB',
-    legendFontColor: '#FFFFFF',
-    legendFontSize: 12,
-  },
-  {
-    name: 'Shopping',
-    amount: 200,
-    color: '#FFCE56',
-    legendFontColor: '#FFFFFF',
-    legendFontSize: 12,
-  },
-  {
-    name: 'Bills',
-    amount: 150,
-    color: '#4BC0C0',
-    legendFontColor: '#FFFFFF',
-    legendFontSize: 12,
-  },
-];
+
 
 // Function to generate pie chart slices
 const generatePieChartPath = (index, data, radius, innerRadius) => {
@@ -107,7 +80,7 @@ const generatePieChartPath = (index, data, radius, innerRadius) => {
   const angle = (data[index].amount / total) * 2 * Math.PI;
   const endAngle = startAngle + angle;
 
-  // Calculate coordinates
+  // Calculate coordinatesа 
   const centerX = radius;
   const centerY = radius;
 
@@ -171,6 +144,9 @@ const recentExpenses = [
 const HomeScreen = ({ navigation }) => {
   const [activeIndex, setActiveIndex] = useState(null);
   const fadeAnim = useRef(new Animated.Value(1)).current;
+  const [pieChartData, setPieChartData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // State for modals
   const [expenseModalVisible, setExpenseModalVisible] = useState(false);
@@ -230,11 +206,16 @@ const HomeScreen = ({ navigation }) => {
   const [incomeSources, setIncomeSources] = useState(initialIncomeSources);
 
   // Calculate percentages and prepare data
-  const total = categoryData.reduce((acc, item) => acc + item.amount, 0);
-  const formattedCategoryData = categoryData.map((item) => ({
-    ...item,
-    percentage: Math.round((item.amount / total) * 100),
-  }));
+  const formattedPieChartData = useMemo(() => {
+    if (!pieChartData || pieChartData.length === 0) return [];
+  
+    const total = pieChartData.reduce((acc, item) => acc + item.amount, 0);
+  
+    return pieChartData.map((item) => ({
+      ...item,
+      percentage: Math.round((item.amount / total) * 100),
+    }));
+  }, [pieChartData]);
 
   // Add feedback state for buttons
   const [earnedTilePressed, setEarnedTilePressed] = useState(false);
@@ -607,6 +588,37 @@ const HomeScreen = ({ navigation }) => {
     fetchRecentExpenses();
   }, []);
 
+  useEffect(() => {
+    const fetchPieChartData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        console.log('Attempting to call getPieChartData...'); // <--- Add this log
+        const response = await getPieChartData('expense');
+        console.log('API Response:', response);
+        const serverData = response?.data?.data || [];
+        console.log('Server Data:', serverData); // <--- Re-add this log
+  
+        const formattedData = serverData.map((item, index) => ({
+          name: item.category,
+          amount: item.amount,
+          color: colors[index % colors.length],
+          legendFontColor: '#FFFFFF',
+          legendFontSize: 12,
+        }));
+        console.log('Formatted Data:', formattedData); // <--- Re-add this log
+  
+        setPieChartData(formattedData);
+      } catch (error) {
+        console.error('Error fetching pie chart data:', error);
+        setError('Failed to load chart data');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+  
+    fetchPieChartData();
+  }, []);
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
@@ -706,54 +718,47 @@ const HomeScreen = ({ navigation }) => {
             <View style={styles.chartAndLegendWrapper}>
               {/* Left side: Pie Chart */}
               <View style={styles.chartContainer}>
-                {/* Pie Chart */}
-                <Svg width={chartRadius * 2} height={chartRadius * 2}>
-                  <G>
-                    {formattedCategoryData.map((item, index) => (
-                      <Path
-                        key={index}
-                        d={generatePieChartPath(index, categoryData, chartRadius, innerRadius)}
-                        fill={item.color}
-                        opacity={activeIndex === null || activeIndex === index ? 1 : 0.3}
-                        stroke="#1a1a1a"
-                        strokeWidth={1}
-                        onPress={() => handleSlicePress(index)}
-                      />
-                    ))}
-                    <Circle
-                      cx={centerX}
-                      cy={centerY}
-                      r={innerRadius}
-                      fill="#1a1a1a"
-                      stroke="#333333"
-                      strokeWidth={2}
-                    />
-                  </G>
-                </Svg>
-
-                {/* Center Display */}
-                <Animated.View style={[styles.chartCenterView, { opacity: fadeAnim }]}>
-                  <View style={styles.chartCenterContent}>
-                    <Text style={styles.chartCenterValue} numberOfLines={1} adjustsFontSizeToFit>
-                      {activeIndex !== null
-                        ? `$${formattedCategoryData[activeIndex].amount.toFixed(2)}`
-                        : `$${total.toFixed(2)}`
-                      }
-                    </Text>
-                    <Text style={styles.chartCenterLabel} numberOfLines={1}>
-                      {activeIndex !== null
-                        ? formattedCategoryData[activeIndex].name
-                        : "Monthly Spent"
-                      }
-                    </Text>
-                  </View>
-                </Animated.View>
+                <Text style={styles.chartTitle}>PieChart by Category</Text>
+                {isLoading ? (
+                  <Text style={styles.noDataText}>Loading...</Text>
+                ) : error ? (
+                  <Text style={styles.noDataText}>{error}</Text>
+                ) : pieChartData.length > 0 ? (
+                  <PieChart
+                    data={pieChartData}
+                    width={Dimensions.get('window').width - 40}
+                    height={220}
+                    chartConfig={{
+                      backgroundColor: '#1a1a1a',
+                      backgroundGradientFrom: '#1a1a1a',
+                      backgroundGradientTo: '#1a1a1a',
+                      decimalPlaces: 0,
+                      color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+                      labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+                      style: {
+                        borderRadius: 16,
+                      },
+                      propsForDots: {
+                        r: '6',
+                        strokeWidth: '2',
+                        stroke: '#ffa726',
+                      },
+                    }}
+                    accessor="amount"
+                    backgroundColor="transparent"
+                    paddingLeft="15"
+                    absolute
+                    hasLegend={false}
+                  />
+                ) : (
+                  <Text style={styles.noDataText}>No data available</Text>
+                )}
               </View>
 
               {/* Categories below the chart */}
               <View style={styles.legendContainer}>
                 <View style={styles.legendGrid}>
-                  {formattedCategoryData.map((category, index) => (
+                  {formattedPieChartData.map((category, index) => (
                     <TouchableOpacity
                       key={index}
                       style={[
@@ -1609,10 +1614,10 @@ const HomeScreen = ({ navigation }) => {
                       <View style={styles.chartContainer}>
                         <Svg width={chartRadius * 2} height={chartRadius * 2}>
                           <G>
-                            {formattedCategoryData.map((item, index) => (
+                            {formattedPieChartData.map((item, index) => (
                               <Path
                                 key={index}
-                                d={generatePieChartPath(index, categoryData, chartRadius, innerRadius)}
+                                d={generatePieChartPath(index, pieChartData, chartRadius, innerRadius)}
                                 fill={item.color}
                                 stroke="#1a1a1a"
                                 strokeWidth={1}
@@ -1628,23 +1633,12 @@ const HomeScreen = ({ navigation }) => {
                             />
                           </G>
                         </Svg>
-
-                        <View style={styles.chartCenterView}>
-                          <View style={styles.chartCenterContent}>
-                            <Text style={styles.chartCenterValue} numberOfLines={1} adjustsFontSizeToFit>
-                              ${total.toFixed(2)}
-                            </Text>
-                            <Text style={styles.chartCenterLabel} numberOfLines={1}>
-                              Total Spent
-                            </Text>
-                          </View>
-                        </View>
                       </View>
                     </View>
 
                     {/* Category List */}
                     <View style={styles.statsBarContainer}>
-                      {formattedCategoryData.map((category, index) => (
+                      {formattedPieChartData.map((category, index) => (
                         <View key={index} style={styles.statsBarItemEnhanced}>
                           <View style={styles.statsBarHeader}>
                             <View style={styles.statsBarLabelContainer}>
@@ -2699,6 +2693,17 @@ const styles = StyleSheet.create({
   noTransactionsText: {
     color: '#888888',
     fontSize: 16,
+  },
+  chartTitle: {
+    fontSize: 18,
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  noDataText: {
+    color: '#888888',
+    fontSize: 16,
+    textAlign: 'center',
   },
 });
 

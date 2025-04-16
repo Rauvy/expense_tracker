@@ -13,6 +13,7 @@ const API_CONFIG = {
       login: '/auth/login', 
       register: '/auth/register',
       logout: '/auth/logout',
+      refresh: '/auth/refresh',
       google: '/auth/google', // TO-DO
     },
     user: {
@@ -26,7 +27,16 @@ const API_CONFIG = {
       getAll: '/transactions/all',
       getById: '/transactions/:id',
       update: '/transactions/:id',
-      delete: '/transactions/:id'
+      delete: '/transactions/:id',
+      
+    },
+    analytics: {
+      summary: '/analytics/summary',
+      pie: '/analytics/pie',
+      line: '/analytics/line',
+      compare: '/analytics/compare',
+      budgetAnalysis: '/analytics/budget-analysis',
+      compareTypes: '/analytics/compare-types'
     },
     categories: {
       list: '/categories',
@@ -62,15 +72,14 @@ export const getBaseURL = () => {
 };
 
 // Get full URL for an endpoint
-export const getEndpoint = (section, endpoint, params = {}) => {
-  let url = API_CONFIG.endpoints[section][endpoint];
+export const getEndpoint = (section, endpoint) => {
+  const group = API_CONFIG.endpoints[section];
+  if (!group || !group[endpoint]) {
+    console.warn(`⚠️ Endpoint not found: ${section}.${endpoint}`);
+    return '/';
+  }
   
-  // Replace URL parameters if any
-  Object.keys(params).forEach(key => {
-    url = url.replace(`:${key}`, params[key]);
-  });
-  
-  return url;
+  return getBaseURL() + group[endpoint];
 };
 
 // Get API settings

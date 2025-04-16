@@ -1,222 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity, PanResponder, Platform, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Path, Circle, Line, Text as SvgText, G, Rect } from 'react-native-svg';
 
+import { 
+  getSummary, 
+  getPieChartData, 
+  getLineChartData, 
+  getMonthComparison, 
+  getBudgetAnalysis 
+} from '../services/analyticsService';
+
 const { width } = Dimensions.get('window');
 
-// Mock data for statistics
-const statisticsData = {
-  weekly: {
-    totalSpent: 524.35,
-    previousPeriodSpent: 560.20,
-    improvementPercentage: 6.4,
-    topCategories: [
-      { name: 'Food', amount: 215.75, percentage: 41, color: '#FF6384', icon: 'fast-food' },
-      { name: 'Transport', amount: 148.50, percentage: 28, color: '#36A2EB', icon: 'car' },
-      { name: 'Shopping', amount: 95.40, percentage: 18, color: '#FFCE56', icon: 'cart' },
-    ],
-    paymentMethods: [
-      { name: 'Credit Card', amount: 320.25, percentage: 61, color: '#FF6384', icon: 'card' },
-      { name: 'Cash', amount: 145.60, percentage: 28, color: '#4BC0C0', icon: 'cash' },
-      { name: 'Mobile Pay', amount: 58.50, percentage: 11, color: '#9966FF', icon: 'phone-portrait' },
-    ],
-    trend: {
-      labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-      datasets: [
-        {
-          data: [65, 45, 112, 78, 98, 75, 51],
-          color: (opacity = 1) => `rgba(39, 110, 241, ${opacity})`,
-        }
-      ]
-    },
-    monthComparison: {
-      currentMonth: 'May',
-      previousMonth: 'April',
-      categories: [
-        { name: 'Food', current: 215.75, previous: 236.30, improvement: 8.7 },
-        { name: 'Transport', current: 148.50, previous: 162.75, improvement: 8.8 },
-        { name: 'Shopping', current: 95.40, previous: 101.25, improvement: 5.8 },
-      ]
-    }
-  },
-  monthly: {
-    totalSpent: 2150.80,
-    previousPeriodSpent: 2320.45,
-    improvementPercentage: 7.3,
-    topCategories: [
-      { name: 'Food', amount: 750.25, percentage: 35, color: '#FF6384', icon: 'fast-food' },
-      { name: 'Bills', amount: 435.65, percentage: 20, color: '#4BC0C0', icon: 'flash' },
-      { name: 'Shopping', amount: 395.75, percentage: 18, color: '#FFCE56', icon: 'cart' },
-    ],
-    paymentMethods: [
-      { name: 'Credit Card', amount: 1290.45, percentage: 60, color: '#FF6384', icon: 'card' },
-      { name: 'Cash', amount: 537.70, percentage: 25, color: '#4BC0C0', icon: 'cash' },
-      { name: 'Mobile Pay', amount: 322.65, percentage: 15, color: '#9966FF', icon: 'phone-portrait' },
-    ],
-    trend: {
-      labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-      datasets: [
-        {
-          data: [485, 590, 512, 563],
-          color: (opacity = 1) => `rgba(39, 110, 241, ${opacity})`,
-        }
-      ]
-    },
-    monthComparison: {
-      currentMonth: 'May',
-      previousMonth: 'April',
-      categories: [
-        { name: 'Food', current: 750.25, previous: 820.50, improvement: 8.6 },
-        { name: 'Bills', current: 435.65, previous: 445.20, improvement: 2.1 },
-        { name: 'Shopping', current: 395.75, previous: 440.30, improvement: 10.1 },
-        { name: 'Transport', current: 320.40, previous: 350.70, improvement: 8.6 },
-        { name: 'Other', current: 248.75, previous: 263.75, improvement: 5.7 }
-      ]
-    }
-  },
-  yearly: {
-    totalSpent: 24680.55,
-    previousPeriodSpent: 26540.80,
-    improvementPercentage: 7.0,
-    topCategories: [
-      { name: 'Bills', amount: 7850.45, percentage: 32, color: '#4BC0C0', icon: 'flash' },
-      { name: 'Food', amount: 6750.80, percentage: 27, color: '#FF6384', icon: 'fast-food' },
-      { name: 'Shopping', amount: 4250.65, percentage: 17, color: '#FFCE56', icon: 'cart' },
-    ],
-    paymentMethods: [
-      { name: 'Credit Card', amount: 15802.75, percentage: 64, color: '#FF6384', icon: 'card' },
-      { name: 'Cash', amount: 4936.10, percentage: 20, color: '#4BC0C0', icon: 'cash' },
-      { name: 'Mobile Pay', amount: 2469.65, percentage: 10, color: '#9966FF', icon: 'phone-portrait' },
-      { name: 'Bank Transfer', amount: 1472.05, percentage: 6, color: '#FFCE56', icon: 'sync' },
-    ],
-    trend: {
-      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-      datasets: [
-        {
-          data: [1850, 1720, 2105, 1960, 2085, 1995, 2230, 2150, 1980, 2305, 2180, 2120],
-          color: (opacity = 1) => `rgba(39, 110, 241, ${opacity})`,
-        }
-      ]
-    },
-    monthComparison: {
-      currentMonth: 'This Year',
-      previousMonth: 'Last Year',
-      categories: [
-        { name: 'Bills', current: 7850.45, previous: 8320.25, improvement: 5.6 },
-        { name: 'Food', current: 6750.80, previous: 7430.55, improvement: 9.1 },
-        { name: 'Shopping', current: 4250.65, previous: 4780.30, improvement: 11.1 },
-        { name: 'Transport', current: 2980.35, previous: 3150.70, improvement: 5.4 },
-        { name: 'Entertainment', current: 1548.20, previous: 1660.45, improvement: 6.8 },
-        { name: 'Other', current: 1300.10, previous: 1198.55, improvement: -8.5 }
-      ]
-    }
-  }
+// Helper functions for data formatting
+const formatNumber = (value, defaultValue = 0) => {
+  if (value === undefined || value === null) return defaultValue;
+  return value.toFixed(2);
 };
 
-// Add income statistics mock data
-const incomeStatisticsData = {
-  weekly: {
-    totalEarned: 750.00,
-    previousPeriodEarned: 725.00,
-    growthPercentage: 3.4,
-    topCategories: [
-      { name: 'Salary', amount: 580.00, percentage: 77, color: '#4BC0C0', icon: 'cash' },
-      { name: 'Freelance', amount: 120.00, percentage: 16, color: '#36A2EB', icon: 'laptop' },
-      { name: 'Other', amount: 50.00, percentage: 7, color: '#9966FF', icon: 'add-circle' },
-    ],
-    incomeSources: [
-      { name: 'Employer', amount: 580.00, percentage: 77, color: '#4BC0C0', icon: 'business' },
-      { name: 'Clients', amount: 120.00, percentage: 16, color: '#36A2EB', icon: 'person' },
-      { name: 'Investments', amount: 50.00, percentage: 7, color: '#FFCE56', icon: 'stats-chart' },
-    ],
-    trend: {
-      labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-      datasets: [
-        {
-          data: [120, 0, 0, 0, 580, 50, 0],
-          color: (opacity = 1) => `rgba(75, 192, 192, ${opacity})`,
-        }
-      ]
-    },
-    monthComparison: {
-      currentMonth: 'May',
-      previousMonth: 'April',
-      categories: [
-        { name: 'Salary', current: 580.00, previous: 580.00, improvement: 0 },
-        { name: 'Freelance', current: 120.00, previous: 95.00, improvement: -26.3 },
-        { name: 'Other', current: 50.00, previous: 50.00, improvement: 0 },
-      ]
-    }
-  },
-  monthly: {
-    totalEarned: 3180.00,
-    previousPeriodEarned: 3050.00,
-    growthPercentage: 4.3,
-    topCategories: [
-      { name: 'Salary', amount: 2500.00, percentage: 79, color: '#4BC0C0', icon: 'cash' },
-      { name: 'Freelance', amount: 550.00, percentage: 17, color: '#36A2EB', icon: 'laptop' },
-      { name: 'Investments', amount: 130.00, percentage: 4, color: '#FFCE56', icon: 'trending-up' },
-    ],
-    incomeSources: [
-      { name: 'Employer', amount: 2500.00, percentage: 79, color: '#4BC0C0', icon: 'business' },
-      { name: 'Clients', amount: 550.00, percentage: 17, color: '#36A2EB', icon: 'person' },
-      { name: 'Investments', amount: 130.00, percentage: 4, color: '#FFCE56', icon: 'stats-chart' },
-    ],
-    trend: {
-      labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-      datasets: [
-        {
-          data: [750, 760, 870, 800],
-          color: (opacity = 1) => `rgba(75, 192, 192, ${opacity})`,
-        }
-      ]
-    },
-    monthComparison: {
-      currentMonth: 'May',
-      previousMonth: 'April',
-      categories: [
-        { name: 'Salary', current: 2500.00, previous: 2500.00, improvement: 0 },
-        { name: 'Freelance', current: 550.00, previous: 430.00, improvement: -27.9 },
-        { name: 'Investments', current: 130.00, previous: 120.00, improvement: -8.3 },
-      ]
-    }
-  },
-  yearly: {
-    totalEarned: 38150.00,
-    previousPeriodEarned: 36500.00,
-    growthPercentage: 4.5,
-    topCategories: [
-      { name: 'Salary', amount: 30000.00, percentage: 79, color: '#4BC0C0', icon: 'cash' },
-      { name: 'Freelance', amount: 6450.00, percentage: 17, color: '#36A2EB', icon: 'laptop' },
-      { name: 'Investments', amount: 1700.00, percentage: 4, color: '#FFCE56', icon: 'trending-up' },
-    ],
-    incomeSources: [
-      { name: 'Employer', amount: 30000.00, percentage: 79, color: '#4BC0C0', icon: 'business' },
-      { name: 'Clients', amount: 6450.00, percentage: 17, color: '#36A2EB', icon: 'person' },
-      { name: 'Investments', amount: 1700.00, percentage: 4, color: '#FFCE56', icon: 'stats-chart' },
-    ],
-    trend: {
-      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-      datasets: [
-        {
-          data: [3050, 3050, 3100, 3050, 3180, 3200, 3150, 3200, 3250, 3300, 3320, 3300],
-          color: (opacity = 1) => `rgba(75, 192, 192, ${opacity})`,
-        }
-      ]
-    },
-    monthComparison: {
-      currentMonth: 'This Year',
-      previousMonth: 'Last Year',
-      categories: [
-        { name: 'Salary', current: 30000.00, previous: 29000.00, improvement: -3.4 },
-        { name: 'Freelance', current: 6450.00, previous: 5800.00, improvement: -11.2 },
-        { name: 'Investments', current: 1700.00, previous: 1700.00, improvement: 0 },
-      ]
-    }
-  }
+const getPercentage = (value, total, defaultValue = 0) => {
+  if (!value || !total || total === 0) return defaultValue;
+  return ((value / total) * 100).toFixed(1);
 };
+
+// Helper functions for default data
+const getDefaultTrendData = () => ({
+  labels: [],
+  datasets: [{
+    data: []
+  }]
+});
+
+const getDefaultCategories = () => [];
 
 // Simple Line Chart Component
 const SimpleLineChart = ({ data, labels, width, height }) => {
@@ -751,12 +568,15 @@ const SimpleBarChart = ({ data, labels, width, height, colors }) => {
 
 // New Component for Month-to-Month Comparison - COMPLETELY OVERHAULED DESIGN
 const MonthComparisonChart = ({ data, width, height }) => {
-  const { currentMonth, previousMonth, categories } = data;
+  // Add default values and data validation
+  const categories = data?.categories || [];
+  const currentMonth = data?.current_month || { total_amount: 0 };
+  const previousMonth = data?.previous_month || { total_amount: 0 };
   
-  // Calculate overall totals and improvement
-  const currentTotal = categories.reduce((sum, cat) => sum + cat.current, 0);
-  const previousTotal = categories.reduce((sum, cat) => sum + cat.previous, 0);
-  const overallChange = ((previousTotal - currentTotal) / previousTotal) * 100;
+  // Calculate overall totals and improvement with safe defaults
+  const currentTotal = categories.reduce((sum, cat) => sum + (cat.current || 0), 0);
+  const previousTotal = categories.reduce((sum, cat) => sum + (cat.previous || 0), 0);
+  const overallChange = previousTotal > 0 ? ((previousTotal - currentTotal) / previousTotal) * 100 : 0;
   const isOverallImprovement = overallChange > 0;
   
   return (
@@ -796,14 +616,14 @@ const MonthComparisonChart = ({ data, width, height }) => {
           <View style={{ width: '46%' }}>
             <Text style={{ color: '#999', fontSize: 13, marginBottom: 8 }}>Current</Text>
             <Text style={{ color: '#4BC0C0', fontSize: 24, fontWeight: 'bold' }}>
-              ${currentTotal.toFixed(0)}
+              ${formatNumber(currentMonth.total_amount)}
             </Text>
           </View>
           
           <View style={{ width: '46%' }}>
             <Text style={{ color: '#999', fontSize: 13, marginBottom: 8 }}>Previous</Text>
             <Text style={{ color: '#FF6384', fontSize: 24, fontWeight: 'bold' }}>
-              ${previousTotal.toFixed(0)}
+              ${formatNumber(previousMonth.total_amount)}
             </Text>
           </View>
         </View>
@@ -815,7 +635,10 @@ const MonthComparisonChart = ({ data, width, height }) => {
         showsVerticalScrollIndicator={false}
       >
         {categories.map((category, index) => {
-          const isImprovement = category.improvement > 0;
+          const current = category.current || 0;
+          const previous = category.previous || 0;
+          const improvement = previous > 0 ? ((previous - current) / previous) * 100 : 0;
+          const isImprovement = improvement > 0;
           const changeColor = isImprovement ? '#4BC0C0' : '#FF6384';
           const improvementText = isImprovement ? 'less than' : 'more than';
           
@@ -835,7 +658,7 @@ const MonthComparisonChart = ({ data, width, height }) => {
                 fontWeight: 'bold', 
                 marginBottom: 12
               }}>
-                {category.name}
+                {category.name || 'Unknown Category'}
               </Text>
               
               {/* SEPARATED comparison row with improvement bar */}
@@ -847,14 +670,14 @@ const MonthComparisonChart = ({ data, width, height }) => {
                 <View style={{ width: '46%' }}>
                   <Text style={{ color: '#999', fontSize: 12, marginBottom: 6 }}>Current</Text>
                   <Text style={{ color: '#4BC0C0', fontSize: 18, fontWeight: '600' }}>
-                    ${category.current.toFixed(0)}
+                    ${formatNumber(current)}
                   </Text>
                 </View>
                 
                 <View style={{ width: '46%' }}>
                   <Text style={{ color: '#999', fontSize: 12, marginBottom: 6 }}>Previous</Text>
                   <Text style={{ color: '#FF6384', fontSize: 18, fontWeight: '600' }}>
-                    ${category.previous.toFixed(0)}
+                    ${formatNumber(previous)}
                   </Text>
                 </View>
               </View>
@@ -867,7 +690,7 @@ const MonthComparisonChart = ({ data, width, height }) => {
               }}>
                 <Text style={{ color: changeColor, fontWeight: '500' }}>
                   <Text style={{ fontWeight: 'bold' }}>
-                    {isImprovement ? '↓' : '↑'} {Math.abs(category.improvement).toFixed(1)}%
+                    {isImprovement ? '↓' : '↑'} {Math.abs(improvement).toFixed(1)}%
                   </Text>
                   {' '}{improvementText} previous period
                 </Text>
@@ -882,11 +705,135 @@ const MonthComparisonChart = ({ data, width, height }) => {
 
 const StatisticsScreen = () => {
   const [timeframe, setTimeframe] = useState('weekly');
-  const [statType, setStatType] = useState('expense'); // 'expense' or 'income'
+  const [statType, setStatType] = useState('expense');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [data, setData] = useState({
+    summary: null,
+    pieChart: null,
+    lineChart: null,
+    monthComparison: null,
+    budgetAnalysis: null,
+    trend: getDefaultTrendData(),
+    topCategories: getDefaultCategories(),
+    paymentMethods: getDefaultCategories(),
+    incomeSources: getDefaultCategories(),
+    improvementPercentage: 0,
+    growthPercentage: 0
+  });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const [summary, pieChart, lineChart, monthComparison, budgetAnalysis] = await Promise.all([
+          getSummary(statType),
+          getPieChartData(statType),
+          getLineChartData(timeframe, statType),
+          getMonthComparison(statType),
+          getBudgetAnalysis()
+        ]);
+
+        // Process line chart data into trend format
+        const trendData = lineChart ? {
+          labels: lineChart.labels || [],
+          datasets: [{
+            data: lineChart.data || []
+          }]
+        } : getDefaultTrendData();
+
+        // Process categories data
+        const categories = pieChart?.categories || [];
+        const topCategories = categories.map(category => ({
+          name: category.name || 'Unknown',
+          amount: category.amount || 0,
+          percentage: category.percentage || 0,
+          color: category.color || '#007AFF',
+          icon: category.icon || 'md-cash'
+        }));
+
+        // Process payment methods or income sources
+        const sources = statType === 'expense' ? 
+          (summary?.payment_methods || []).map(method => ({
+            name: method.name || 'Unknown',
+            amount: method.amount || 0,
+            percentage: method.percentage || 0,
+            color: method.color || '#007AFF',
+            icon: method.icon || 'md-card'
+          })) :
+          (summary?.income_sources || []).map(source => ({
+            name: source.name || 'Unknown',
+            amount: source.amount || 0,
+            percentage: source.percentage || 0,
+            color: source.color || '#007AFF',
+            icon: source.icon || 'md-business'
+          }));
+
+        setData({
+          summary,
+          pieChart,
+          lineChart,
+          monthComparison,
+          budgetAnalysis,
+          trend: trendData,
+          topCategories,
+          paymentMethods: statType === 'expense' ? sources : [],
+          incomeSources: statType === 'income' ? sources : [],
+          improvementPercentage: lineChart?.change_percentage || 0,
+          growthPercentage: lineChart?.change_percentage || 0
+        });
+      } catch (err) {
+        console.error('Error fetching statistics:', err);
+        setError('Failed to load statistics');
+        setData({
+          summary: null,
+          pieChart: null,
+          lineChart: null,
+          monthComparison: null,
+          budgetAnalysis: null,
+          trend: getDefaultTrendData(),
+          topCategories: getDefaultCategories(),
+          paymentMethods: getDefaultCategories(),
+          incomeSources: getDefaultCategories(),
+          improvementPercentage: 0,
+          growthPercentage: 0
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [timeframe, statType]);
+
+  const currentData = data.summary; // там будет totalSpent / totalEarned
+  const lineChart = data.lineChart;
+  const pieChart = data.pieChart;
+  const monthComparison = data.monthComparison;
+  const budgetAnalysis = data.budgetAnalysis;
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <Text style={{ color: 'white', textAlign: 'center', marginTop: 50, fontSize: 16 }}>
+          Loading analytics...
+        </Text>
+      </View>
+    );
+  }
   
-  const data = statType === 'expense' 
-    ? statisticsData[timeframe] 
-    : incomeStatisticsData[timeframe];
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <Text style={{ color: 'red', textAlign: 'center', marginTop: 50, fontSize: 16 }}>
+          {error}
+        </Text>
+      </View>
+    );
+  }
+  
 
   // Chart colors
   const barChartColors = ['#FF6384', '#4BC0C0', '#FFCE56', '#36A2EB', '#9966FF', '#FF9F40'];
@@ -968,12 +915,12 @@ const StatisticsScreen = () => {
             <Text style={styles.cardLabel}>
               {timeframe === 'weekly' ? 'This Week' : timeframe === 'monthly' ? 'This Month' : 'This Year'}
             </Text>
-            <Text style={[
-              styles.totalAmount,
-              {color: statType === 'expense' ? '#FF6384' : '#4BC0C0'}
-            ]}>
-              ${statType === 'expense' ? data.totalSpent.toFixed(2) : data.totalEarned.toFixed(2)}
-            </Text>
+            <View style={styles.overviewItem}>
+              <Text style={styles.overviewLabel}>Total {statType === 'expense' ? 'Spent' : 'Earned'}</Text>
+              <Text style={styles.overviewValue}>
+                ${formatNumber(data?.summary?.total_amount)}
+              </Text>
+            </View>
             <Text style={styles.totalLabel}>
               {statType === 'expense' ? 'Total Expenses' : 'Total Income'}
             </Text>
@@ -1233,8 +1180,18 @@ const styles = StyleSheet.create({
     color: '#666666',
     marginBottom: 10,
   },
-  totalAmount: {
-    fontSize: 36,
+  overviewItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  overviewLabel: {
+    fontSize: 14,
+    color: '#666666',
+  },
+  overviewValue: {
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#ffffff',
   },
