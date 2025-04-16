@@ -2,7 +2,7 @@
 const API_CONFIG = {
   // Base URLs for different environments
   baseURL: {
-    development: 'http://localhost:3000',
+    development: 'http://127.0.0.1:8000',
     staging: 'https://staging-api.yourdomain.com',
     production: 'https://api.yourdomain.com'
   },
@@ -10,18 +10,21 @@ const API_CONFIG = {
   // API endpoints
   endpoints: {
     auth: {
-      login: '/auth/login',
-      signup: '/auth/signup',
+      login: '/auth/login', 
+      register: '/auth/register',
       logout: '/auth/logout',
-      refreshToken: '/auth/refresh-token'
+      google: '/auth/google', // TO-DO
     },
     user: {
-      profile: '/user/profile',
-      settings: '/user/settings'
+      profile: '/account/me',
+      updatePassword: '/account/update-password',
+      delete: '/account/delete',
+      balance: '/account/balance'
     },
     transactions: {
-      list: '/transactions',
-      create: '/transactions',
+      create: '/transactions/',
+      getAll: '/transactions/all',
+      getById: '/transactions/:id',
       update: '/transactions/:id',
       delete: '/transactions/:id'
     },

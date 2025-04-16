@@ -13,28 +13,48 @@ import {
   Keyboard
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { signup } from '../services/authService';
 
 const SignupScreen = ({ navigation }) => {
-  const [username, setUsername] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [birthDate, setBirthDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [initialBalance, setInitialBalance] = useState('0');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSignup = () => {
-    if (!username || !email || !password || !confirmPassword) {
-      Alert.alert('Error', 'Please fill in all fields');
+  const handleSignup = async () => {
+    if (!firstName || !lastName || !email || !password || !confirmPassword || !birthDate) {
+      setError('Please fill in all fields');
       return;
     }
-    
     if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
+      setError('Passwords do not match');
       return;
     }
-    
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'MainApp' }],
-    });
+    setIsLoading(true);
+    setError('');
+    try {
+      await signup({
+        email,
+        password,
+        first_name: firstName,
+        last_name: lastName,
+        birth_date: birthDate.toISOString(),
+        initial_balance: parseFloat(initialBalance) || 0
+      });
+      navigation.replace('MainApp');
+    } catch (err) {
+      console.log('Signup error:', err.response?.data, err.message);
+      setError(err.response?.data?.detail || 'Failed to sign up. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -53,14 +73,26 @@ const SignupScreen = ({ navigation }) => {
               <Text style={styles.subtitle}>Sign up to get started</Text>
               
               <View style={styles.inputContainer}>
-                <Text style={styles.label}>Username</Text>
+                <Text style={styles.label}>First Name</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="Enter username"
+                  placeholder="Enter first name"
                   placeholderTextColor="#666666"
-                  value={username}
-                  onChangeText={setUsername}
-                  showSoftInputOnFocus={true}
+                  value={firstName}
+                  onChangeText={setFirstName}
+                  editable={!isLoading}
+                />
+              </View>
+              
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Last Name</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter last name"
+                  placeholderTextColor="#666666"
+                  value={lastName}
+                  onChangeText={setLastName}
+                  editable={!isLoading}
                 />
               </View>
               
@@ -73,7 +105,39 @@ const SignupScreen = ({ navigation }) => {
                   keyboardType="email-address"
                   value={email}
                   onChangeText={setEmail}
-                  showSoftInputOnFocus={true}
+                  editable={!isLoading}
+                  autoCapitalize="none"
+                />
+              </View>
+              
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Birth Date</Text>
+                <TouchableOpacity onPress={() => setShowDatePicker(true)} disabled={isLoading}>
+                  <Text style={[styles.input, { color: '#fff' }]}>{birthDate.toDateString()}</Text>
+                </TouchableOpacity>
+                {showDatePicker && (
+                  <DateTimePicker
+                    value={birthDate}
+                    mode="date"
+                    display="default"
+                    onChange={(event, selectedDate) => {
+                      setShowDatePicker(false);
+                      if (selectedDate) setBirthDate(selectedDate);
+                    }}
+                  />
+                )}
+              </View>
+              
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Initial Balance</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter initial balance"
+                  placeholderTextColor="#666666"
+                  keyboardType="numeric"
+                  value={initialBalance}
+                  onChangeText={setInitialBalance}
+                  editable={!isLoading}
                 />
               </View>
               
@@ -86,7 +150,7 @@ const SignupScreen = ({ navigation }) => {
                   secureTextEntry
                   value={password}
                   onChangeText={setPassword}
-                  showSoftInputOnFocus={true}
+                  editable={!isLoading}
                 />
               </View>
               
@@ -99,12 +163,18 @@ const SignupScreen = ({ navigation }) => {
                   secureTextEntry
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
-                  showSoftInputOnFocus={true}
+                  editable={!isLoading}
                 />
               </View>
               
-              <TouchableOpacity style={styles.button} onPress={handleSignup}>
-                <Text style={styles.buttonText}>Sign Up</Text>
+              {error ? (
+                <View style={styles.errorContainer}>
+                  <Text style={styles.errorText}>{error}</Text>
+                </View>
+              ) : null}
+              
+              <TouchableOpacity style={styles.button} onPress={handleSignup} disabled={isLoading}>
+                <Text style={styles.buttonText}>{isLoading ? 'Signing Up...' : 'Sign Up'}</Text>
               </TouchableOpacity>
               
               <View style={styles.loginContainer}>
@@ -182,6 +252,17 @@ const styles = StyleSheet.create({
   },
   loginLink: {
     color: '#276EF1',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  errorContainer: {
+    backgroundColor: '#ff3b30',
+    borderRadius: 10,
+    padding: 15,
+    marginBottom: 20,
+  },
+  errorText: {
+    color: '#ffffff',
     fontSize: 16,
     fontWeight: 'bold',
   },

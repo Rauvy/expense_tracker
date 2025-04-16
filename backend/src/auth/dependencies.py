@@ -10,6 +10,9 @@ from fastapi.security import OAuth2PasswordBearer
 # JWTError — ошибка, которую выбрасывает библиотека при проблемах с токеном
 from jose import JWTError
 
+# Импорт функций для обработки ошибок
+from src.auth.exceptions import raise_unauthorized_error
+
 # Импорт нашей функции для верификации токена
 from src.auth.jwt import verify_access_token
 
@@ -33,24 +36,25 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]) -> Use
 
         # Если ID нет в payload, значит токен невалидный
         if user_id is None:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,  # 401 — Unauthorized
-                detail="Invalid token: user ID not found",  # Сообщение об ошибке
-            )
+            raise_unauthorized_error("Invalid token: user ID not found")
 
         # Ищем пользователя по ID в базе данных
         user = await User.get(user_id)
 
         # Если пользователь не найден — значит токен "указал" на несуществующего
         if user is None:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+            raise_unauthorized_error("User not found")
 
-    # Если при декодировании токена произошла ошибка — выбрасываем исключение
     except JWTError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate credentials"
-        ) from None
-
-    # Если всё в порядке — возвращаем найденного пользователя
+        raise_unauthorized_error("Could not validate credentials")
     else:
         return user
+
+
+def validate_google_names(given_name: str | None, family_name: str | None) -> None:
+    """Проверяет наличие имени и фамилии в профиле Google."""
+    if not given_name or not family_name:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Google profile must include first and last name",
+        )

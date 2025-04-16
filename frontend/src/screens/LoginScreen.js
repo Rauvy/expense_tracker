@@ -18,13 +18,14 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
-import { login } from '../services/authService';
+import { login, logout } from '../services/authService';
+import api from '../services/apiService';
 
 // Initialize WebBrowser
 WebBrowser.maybeCompleteAuthSession();
 
 const LoginScreen = ({ navigation }) => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -41,21 +42,42 @@ const LoginScreen = ({ navigation }) => {
     }
   }, [response]);
 
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = await AsyncStorage.getItem('access_token');
+      if (!token) {
+        navigation.replace('Login');
+      }
+    };
+    checkAuth();
+  }, []);
+
+  useEffect(() => {
+    api.get('/account/me')
+      .then(res => console.log('User data:', res.data))
+      .catch(err => console.log('Protected data error:', err.response?.status));
+  }, []);
+
   const handleLogin = async () => {
-    if (!username || !password) {
-      setError('Please enter both username and password');
+    if (!email || !password) {
+      setError('Please enter both email and password');
       return;
     }
-
     setIsLoading(true);
     setError('');
-
     try {
-      const { user } = await login({ username, password });
+      const { access_token, refresh_token } = await login({ email, password });
+      await AsyncStorage.setItem('access_token', access_token);
+      await AsyncStorage.setItem('refresh_token', refresh_token);
       navigation.replace('MainApp');
     } catch (error) {
-      console.error('Login Error:', error);
-      setError(error.response?.data?.message || 'Failed to login. Please try again.');
+      console.log('Login error:', error.response?.data, error.message);
+      setError(
+        error.response?.data?.detail ||
+        error.response?.data?.message ||
+        error.message ||
+        'Failed to login. Please try again.'
+      );
     } finally {
       setIsLoading(false);
     }
@@ -84,6 +106,15 @@ const LoginScreen = ({ navigation }) => {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigation.replace('Login'); // or navigation.navigate('Login')
+    } catch (error) {
+      Alert.alert('Logout failed', error.response?.data?.detail || 'Please try again.');
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView 
@@ -106,17 +137,19 @@ const LoginScreen = ({ navigation }) => {
               ) : null}
               
               <View style={styles.inputContainer}>
-                <Text style={styles.label}>Username</Text>
+                <Text style={styles.label}>Email</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="Enter username"
+                  placeholder="Enter email"
                   placeholderTextColor="#666666"
-                  value={username}
+                  value={email}
                   onChangeText={(text) => {
-                    setUsername(text);
+                    setEmail(text);
                     setError('');
                   }}
                   editable={!isLoading}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
                 />
               </View>
               
@@ -293,6 +326,18 @@ const styles = StyleSheet.create({
   signupLink: {
     color: '#276EF1',
     fontSize: 14,
+    fontWeight: 'bold',
+  },
+  logoutButton: {
+    backgroundColor: '#FF3B30',
+    borderRadius: 10,
+    padding: 15,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  logoutButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
     fontWeight: 'bold',
   },
 });

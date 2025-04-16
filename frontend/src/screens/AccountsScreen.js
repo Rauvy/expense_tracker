@@ -4,6 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LineChart } from 'react-native-chart-kit';
 import { Dimensions } from 'react-native';
+import api from '../services/apiService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -374,7 +376,7 @@ const AccountsScreen = ({ navigation }) => {
 
         <TouchableOpacity 
           style={styles.addAccountButton}
-          onPress={() => navigation.navigate('AddAccount')}
+          onPress={() => setNewAccountVisible(true)}
         >
           <Ionicons name="add" size={20} color="#bdc3c7" />
           <Text style={styles.addAccountButtonText}>Add Account</Text>

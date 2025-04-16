@@ -7,33 +7,29 @@ from datetime import (  # Работа с текущим временем и в�
 from typing import Any  # Removed Union import as it's no longer needed
 
 import jwt
+from beanie import PydanticObjectId
 from fastapi import HTTPException, status
 
 from src.config import config
 from src.models import RefreshToken
 
 
-def create_access_token(data: dict[str, Any], expires_delta: timedelta | None = None) -> str:
+def create_access_token(data: dict[str, Any]) -> str:
     """
-    Создание access токена.
-    Аргументы:
-    - data: данные, которые надо зашифровать (например, {"sub": user_id})
-    - expires_delta: сколько токен живёт (по умолчанию 30 минут)
+    🔑 Создаёт JWT access token на основе переданных данных
     """
+    # Копируем данные, чтобы не изменять оригинал
+    to_encode = data.copy()
 
-    # Проверяем: если ключ не установлен — выбрасываем ошибку
-    if not config.SECRET_KEY:
-        raise ValueError(
-            "❌ SECRET_KEY is not set in your .env file!"
-        )  # Без ключа нельзя генерировать токены
+    # Конвертируем PydanticObjectId в строку, если он есть
+    if "sub" in to_encode and isinstance(to_encode["sub"], (PydanticObjectId, str)):
+        to_encode["sub"] = str(to_encode["sub"])
 
-    to_encode = data.copy()  # Копируем, чтобы не изменять оригинальный словарь
-    expire = datetime.now(UTC) + (
-        expires_delta or timedelta(minutes=config.ACCESS_TOKEN_EXPIRE_MINUTES)
-    )  # Считаем время истечения токена
-    to_encode.update({"exp": expire})  # Добавляем в токен ключ "exp" (expiration)
+    # Добавляем время истечения токена
+    expire = datetime.now(UTC) + timedelta(minutes=config.ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
 
-    # Генерируем токен с помощью секретного ключа и выбранного алгоритма
+    # Кодируем данные в JWT
     return jwt.encode(
         to_encode, config.SECRET_KEY, algorithm=config.JWT_ALGORITHM
     )  # Возвращаем сгенерированный токен (строка)
@@ -88,7 +84,7 @@ async def verify_refresh_token(token: str) -> RefreshToken:
 
     # ⏳ Если токен просрочен
     if token_doc.expires_at.replace(tzinfo=UTC) < datetime.now(UTC):
-        await token_doc.delete()  # 💀 Удаляем просроченный токен из базы
+        _ = await token_doc.delete()  # 💀 Удаляем просроченный токен из базы
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token expired"
         )
@@ -104,10 +100,10 @@ async def save_refresh_token_to_db(
     Создаёт документ RefreshToken и сохраняет его в коллекции MongoDB.
     """
     refresh_token_doc = RefreshToken(
-        user_id=user_id,  # ID пользователя, которому принадлежит токен
+        user_id=PydanticObjectId(user_id),  # Convert string ID to PydanticObjectId
         token=token,  # Уникальный токен, безопасно сгенерированный
         created_at=created_at,  # Время создания токена
         expires_at=expires_at,  # Время, когда токен истекает
     )
 
-    _ = await refresh_token_doc.insert()  # 🧠 Сохраняем документ в MongoD
+    _ = await refresh_token_doc.insert()  # 🧠 Сохраняем документ в MongoDB

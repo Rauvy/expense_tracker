@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity, Animated, Modal, TextInput, SafeAreaView, Platform, FlatList, PanResponder } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity, Animated, Modal, TextInput, SafeAreaView, Platform, FlatList, PanResponder, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { G, Path, Circle, Text as SvgText } from 'react-native-svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import api from '../services/apiService';
 
 const { width } = Dimensions.get('window');
 const screenWidth = Dimensions.get('window').width;
@@ -350,25 +351,63 @@ const HomeScreen = ({ navigation }) => {
   const centerY = chartRadius;
 
   // Handle add expense
-  const handleAddExpense = () => {
-    // Here you would add the expense to your data
-    // Then clear the form and close the modal
-    setExpenseAmount('');
-    setExpenseDescription('');
-    setSelectedCategory(null);
-    setSelectedPaymentMethod(null);
-    setExpenseModalVisible(false);
+  const handleAddExpense = async () => {
+    if (!expenseAmount || !selectedCategory || !selectedPaymentMethod) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+    try {
+      const token = await AsyncStorage.getItem('access_token');
+      await api.post('/transactions/', {
+        type: 'expense',
+        amount: parseFloat(expenseAmount),
+        category: selectedCategory,
+        payment_method: selectedPaymentMethod,
+        description: expenseDescription,
+        date: new Date().toISOString(),
+        source: 'manual',
+      }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      Alert.alert('Success', 'Expense added!');
+      setExpenseAmount('');
+      setExpenseDescription('');
+      setSelectedCategory(null);
+      setSelectedPaymentMethod(null);
+      setExpenseModalVisible(false);
+    } catch (err) {
+      Alert.alert('Error', 'Failed to add expense.');
+    }
   };
 
   // Handle add income
-  const handleAddIncome = () => {
-    // Here you would add the income to your data
-    // Then clear the form and close the modal
-    setIncomeAmount('');
-    setIncomeDescription('');
-    setSelectedIncomeCategory(null);
-    setSelectedIncomeSource(null);
-    setIncomeModalVisible(false);
+  const handleAddIncome = async () => {
+    if (!incomeAmount || !selectedIncomeCategory || !selectedIncomeSource) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+    try {
+      const token = await AsyncStorage.getItem('access_token');
+      await api.post('/transactions/', {
+        type: 'income',
+        amount: parseFloat(incomeAmount),
+        category: selectedIncomeCategory,
+        payment_method: selectedIncomeSource,
+        description: incomeDescription,
+        date: new Date().toISOString(),
+        source: 'manual',
+      }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      Alert.alert('Success', 'Income added!');
+      setIncomeAmount('');
+      setIncomeDescription('');
+      setSelectedIncomeCategory(null);
+      setSelectedIncomeSource(null);
+      setIncomeModalVisible(false);
+    } catch (err) {
+      Alert.alert('Error', 'Failed to add income.');
+    }
   };
 
   // Handle transaction click
@@ -545,6 +584,29 @@ const HomeScreen = ({ navigation }) => {
     </View>
   );
 
+  const [recentExpenses, setRecentExpenses] = useState([]);
+
+  useEffect(() => {
+    const fetchRecentExpenses = async () => {
+      try {
+        const token = await AsyncStorage.getItem('access_token');
+        const response = await api.get('/transactions/all', {
+          headers: { Authorization: `Bearer ${token}` },
+          params: {
+            transaction_type: 'expense',
+            source_filter: 'manual',
+            limit: 3,
+          },
+        });
+        setRecentExpenses(response.data.items || []);
+        console.log('Fetched expenses:', response.data.items); // <--- Add this
+      } catch (err) {
+        setRecentExpenses([]);
+      }
+    };
+    fetchRecentExpenses();
+  }, []);
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
@@ -717,29 +779,34 @@ const HomeScreen = ({ navigation }) => {
           {/* Recent Expenses */}
           <View style={styles.expenseContainer}>
             <Text style={styles.sectionTitle}>Recent Expenses</Text>
-
-            {recentExpenses.map((expense) => (
-              <TouchableOpacity
-                key={expense.id}
-                style={styles.expenseItem}
-                activeOpacity={0.7}
-                onPress={() => handleTransactionClick(expense)}
-              >
-                <View style={[styles.expenseIcon, { backgroundColor: expense.color }]}>
-                  <Ionicons name={expense.icon} size={20} color="#FFFFFF" />
-                </View>
-
-                <View style={styles.expenseInfo}>
-                  <Text style={styles.expenseTitle}>{expense.title}</Text>
-                  <Text style={styles.expenseCategory}>{expense.category}</Text>
-                </View>
-
-                <View style={styles.expenseDetails}>
-                  <Text style={styles.expenseAmount}>-${expense.amount.toFixed(2)}</Text>
-                  <Text style={styles.expenseDate}>{expense.date}</Text>
-                </View>
-              </TouchableOpacity>
-            ))}
+            {recentExpenses.length > 0 ? (
+              recentExpenses.map((expense) => (
+                <TouchableOpacity
+                  key={expense.id}
+                  style={styles.expenseItem}
+                  activeOpacity={0.7}
+                  onPress={() => handleTransactionClick(expense)}
+                >
+                  <View style={[styles.expenseIcon, { backgroundColor: expense.color || '#FF6384' }]}> 
+                    <Ionicons name={expense.icon || 'card'} size={20} color="#FFFFFF" />
+                  </View>
+                  <View style={styles.expenseInfo}>
+                    <Text style={styles.expenseTitle}>{expense.title || expense.description}</Text>
+                    <Text style={styles.expenseCategory}>{expense.category}</Text>
+                  </View>
+                  <View style={styles.expenseDetails}>
+                    <Text style={styles.expenseAmount}>
+                      -${!isNaN(Number(expense.amount)) ? Number(expense.amount).toFixed(2) : '0.00'}
+                    </Text>
+                    <Text style={styles.expenseDate}>{expense.date ? new Date(expense.date).toLocaleDateString() : ''}</Text>
+                  </View>
+                </TouchableOpacity>
+              ))
+            ) : (
+              <View style={styles.noTransactionsContainer}>
+                <Text style={styles.noTransactionsText}>No expenses found</Text>
+              </View>
+            )}
           </View>
         </View>
       </ScrollView>
@@ -1651,7 +1718,7 @@ const HomeScreen = ({ navigation }) => {
                 <Text style={styles.transactionDetailsCategory}>{selectedTransaction.category}</Text>
 
                 <Text style={styles.transactionDetailsAmount}>
-                  -${selectedTransaction.amount.toFixed(2)}
+                  -${typeof selectedTransaction.amount === 'number' ? selectedTransaction.amount.toFixed(2) : '0.00'}
                 </Text>
 
                 <View style={styles.transactionDetailsRow}>
@@ -2623,6 +2690,15 @@ const styles = StyleSheet.create({
   categoryText: {
     color: '#FFFFFF',
     fontSize: 13,
+  },
+  noTransactionsContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  noTransactionsText: {
+    color: '#888888',
+    fontSize: 16,
   },
 });
 
