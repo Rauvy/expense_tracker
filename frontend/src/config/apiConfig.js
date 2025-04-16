@@ -31,12 +31,12 @@ const API_CONFIG = {
       
     },
     analytics: {
-      summary: '/analytics/summary',
-      pie: '/analytics/pie',
-      line: '/analytics/line',
-      compare: '/analytics/compare',
-      budgetAnalysis: '/analytics/budget-analysis',
-      compareTypes: '/analytics/compare-types'
+      summary: '/transactions/summary',
+      pie: '/transactions/pie',
+      line: '/transactions/line',
+      compare: '/transactions/compare',
+      budgetAnalysis: '/transactions/budget-analysis',
+      compareTypes: '/transactions/compare-types'
     },
     categories: {
       list: '/categories',
