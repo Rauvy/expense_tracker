@@ -1,6 +1,5 @@
-import axios from 'axios';
-import { getBaseURL } from '../config/apiConfig';
-import { refreshToken, getAccessToken, clearTokens } from '../services/tokenService';
+import baseApi from './baseApi';
+import { refreshToken, getAccessToken, clearTokens } from './tokenService';
 
 let isRefreshing = false;
 let failedQueue = [];
@@ -16,12 +15,7 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
-const api = axios.create({
-  baseURL: getBaseURL(),
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+const api = baseApi;
 
 api.interceptors.request.use(
   async (config) => {

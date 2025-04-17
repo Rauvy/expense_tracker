@@ -179,13 +179,13 @@ const AccountsScreen = ({ navigation }) => {
                 borderRadius: 0,
               },
               propsForDots: {
-                r: '0',
-                strokeWidth: '0',
+                r: 0,
+                strokeWidth: 0
               },
               propsForBackgroundLines: {
                 strokeDasharray: '',
                 stroke: 'transparent',
-                strokeWidth: 0,
+                strokeWidth: 0
               },
               propsForLabels: {
                 fontSize: 10,
@@ -257,7 +257,7 @@ const AccountsScreen = ({ navigation }) => {
     return (
       <View style={styles.accountTilesContainer}>
         <View>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.accountTile, isCashExpanded && styles.accountTileActive]}
             onPress={() => setIsCashExpanded(!isCashExpanded)}
           >
@@ -283,7 +283,7 @@ const AccountsScreen = ({ navigation }) => {
           {isCashExpanded && (
             <View style={styles.expandedAccounts}>
               {cashAccounts.map(account => (
-                <TouchableOpacity 
+                <TouchableOpacity
                   key={account.id}
                   style={styles.expandedAccount}
                   onPress={() => handleAccountPress(account)}
@@ -316,7 +316,7 @@ const AccountsScreen = ({ navigation }) => {
         </View>
 
         <View>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.accountTile, isCreditCardsExpanded && styles.accountTileActive]}
             onPress={() => setIsCreditCardsExpanded(!isCreditCardsExpanded)}
           >
@@ -342,7 +342,7 @@ const AccountsScreen = ({ navigation }) => {
           {isCreditCardsExpanded && (
             <View style={styles.expandedAccounts}>
               {creditCardAccounts.map(account => (
-                <TouchableOpacity 
+                <TouchableOpacity
                   key={account.id}
                   style={styles.expandedAccount}
                   onPress={() => handleAccountPress(account)}
@@ -374,7 +374,7 @@ const AccountsScreen = ({ navigation }) => {
           )}
         </View>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.addAccountButton}
           onPress={() => setNewAccountVisible(true)}
         >

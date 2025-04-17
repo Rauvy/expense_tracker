@@ -24,22 +24,22 @@ const initialUserData = {
 
 const ProfileScreen = ({ navigation }) => {
   const [userData, setUserData] = useState(initialUserData);
-  
+
   // Profile editing states
   const [editProfileVisible, setEditProfileVisible] = useState(false);
   const [firstName, setFirstName] = useState(userData.firstName);
   const [lastName, setLastName] = useState(userData.lastName);
   const [email, setEmail] = useState(userData.email);
-  
+
   // Profile picture states
   const [profilePictureOptionsVisible, setProfilePictureOptionsVisible] = useState(false);
   const [loading, setLoading] = useState(false);
-  
+
   // Preferences states
   const [categoriesModalVisible, setCategoriesModalVisible] = useState(false);
   const [budgetPeriodModalVisible, setBudgetPeriodModalVisible] = useState(false);
   const [budgetPeriod, setBudgetPeriod] = useState('month');
-  
+
   // Category Management States
   const [activeTab, setActiveTab] = useState('expense');
   const [categories, setCategories] = useState([
@@ -69,11 +69,11 @@ const ProfileScreen = ({ navigation }) => {
       try {
         const savedExpenseCategories = await AsyncStorage.getItem('expenseCategories');
         const savedIncomeCategories = await AsyncStorage.getItem('incomeCategories');
-        
+
         if (savedExpenseCategories) {
           setCategories(JSON.parse(savedExpenseCategories));
         }
-        
+
         if (savedIncomeCategories) {
           setIncomeCategories(JSON.parse(savedIncomeCategories));
         }
@@ -81,7 +81,7 @@ const ProfileScreen = ({ navigation }) => {
         console.error('Error loading categories:', error);
       }
     };
-    
+
     loadCategories();
   }, []);
 
@@ -97,7 +97,7 @@ const ProfileScreen = ({ navigation }) => {
         console.error('Error loading budget period:', error);
       }
     };
-    
+
     loadBudgetPeriod();
   }, []);
 
@@ -127,19 +127,19 @@ const ProfileScreen = ({ navigation }) => {
       name: `${firstName} ${lastName}`,
       email
     };
-    
+
     setUserData(updatedUserData);
     setEditProfileVisible(false);
-    
+
     // In a real app, you would make an API call here to update the user's profile
     Alert.alert('Success', 'Profile updated successfully');
   };
-  
+
   const takePhotoFromCamera = async () => {
     try {
       setLoading(true);
       setProfilePictureOptionsVisible(false);
-      
+
       // Check camera permission before proceeding
       const { status } = await ImagePicker.getCameraPermissionsAsync();
       if (status !== 'granted') {
@@ -151,14 +151,14 @@ const ProfileScreen = ({ navigation }) => {
         setLoading(false);
         return;
       }
-      
+
       const result = await ImagePicker.launchCameraAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.7,
       });
-      
+
       if (!result.canceled && result.assets && result.assets.length > 0) {
         updateProfilePicture(result.assets[0].uri);
       } else {
@@ -170,12 +170,12 @@ const ProfileScreen = ({ navigation }) => {
       setLoading(false);
     }
   };
-  
+
   const selectPhotoFromGallery = async () => {
     try {
       setLoading(true);
       setProfilePictureOptionsVisible(false);
-      
+
       // Check media library permission before proceeding
       const { status } = await ImagePicker.getMediaLibraryPermissionsAsync();
       if (status !== 'granted') {
@@ -187,14 +187,14 @@ const ProfileScreen = ({ navigation }) => {
         setLoading(false);
         return;
       }
-      
+
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.7,
       });
-      
+
       if (!result.canceled && result.assets && result.assets.length > 0) {
         updateProfilePicture(result.assets[0].uri);
       } else {
@@ -206,17 +206,17 @@ const ProfileScreen = ({ navigation }) => {
       setLoading(false);
     }
   };
-  
+
   const updateProfilePicture = async (uri) => {
     try {
       // In a real app, you would upload the image to a server here
-      
+
       // For now, we'll just update the local state
       setUserData({
         ...userData,
         profilePhoto: uri
       });
-      
+
       Alert.alert('Success', 'Profile picture updated successfully');
       setLoading(false);
     } catch (error) {
@@ -225,16 +225,16 @@ const ProfileScreen = ({ navigation }) => {
       setLoading(false);
     }
   };
-  
+
   const removeProfilePicture = () => {
     setProfilePictureOptionsVisible(false);
-    
+
     if (userData.profilePhoto) {
       setUserData({
         ...userData,
         profilePhoto: null
       });
-      
+
       Alert.alert('Success', 'Profile picture removed');
     }
   };
@@ -265,21 +265,21 @@ const ProfileScreen = ({ navigation }) => {
       setIncomeCategories([...incomeCategories, newCategory]);
       AsyncStorage.setItem('incomeCategories', JSON.stringify([...incomeCategories, newCategory]));
     }
-    
+
     // Reset form fields
     setCustomCategoryName('');
     setSelectedIcon('');
     setSelectedColor('');
-    
+
     Alert.alert(
-      "Success", 
+      "Success",
       `New ${activeTab === 'expense' ? 'expense' : 'income'} category added!`,
       [{ text: "OK" }]
     );
   };
 
   const renderMenuItem = (icon, title, subtitle, onPress, rightElement) => (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={styles.menuItem}
       onPress={onPress}
       activeOpacity={0.7}
@@ -295,12 +295,12 @@ const ProfileScreen = ({ navigation }) => {
       <Ionicons name="chevron-forward" size={20} color="#666666" />
     </TouchableOpacity>
   );
-  
+
   const renderPreferencesSection = () => (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>Preferences</Text>
       <View style={styles.tilesContainer}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.preferenceTile}
           onPress={() => navigation.navigate('Categories')}
         >
@@ -313,7 +313,7 @@ const ProfileScreen = ({ navigation }) => {
           <Ionicons name="chevron-forward" size={24} color="#666666" />
         </TouchableOpacity>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.preferenceTile}
           onPress={() => navigation.navigate('IncomeSource')}
         >
@@ -326,7 +326,7 @@ const ProfileScreen = ({ navigation }) => {
           <Ionicons name="chevron-forward" size={24} color="#666666" />
         </TouchableOpacity>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.preferenceTile}
           onPress={() => navigation.navigate('Subscription')}
         >
@@ -339,7 +339,7 @@ const ProfileScreen = ({ navigation }) => {
           <Ionicons name="chevron-forward" size={24} color="#666666" />
         </TouchableOpacity>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.preferenceTile}
           onPress={() => setBudgetPeriodModalVisible(true)}
         >
@@ -357,8 +357,8 @@ const ProfileScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView 
-        style={styles.content} 
+      <ScrollView
+        style={styles.content}
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
@@ -385,7 +385,7 @@ const ProfileScreen = ({ navigation }) => {
                     <Ionicons name="camera" size={16} color="#FFFFFF" />
                   </View>
                 </View>
-                
+
                 <View style={styles.profileInfo}>
                   <Text style={styles.profileName}>{userData.name}</Text>
                   <Text style={styles.profileEmail}>{userData.email}</Text>
@@ -393,7 +393,7 @@ const ProfileScreen = ({ navigation }) => {
                 </View>
               </View>
 
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.settingsButton}
                 onPress={navigateToSettings}
                 activeOpacity={0.7}
@@ -401,34 +401,34 @@ const ProfileScreen = ({ navigation }) => {
                 <Ionicons name="settings-outline" size={24} color="#FFFFFF" />
               </TouchableOpacity>
             </View>
-            
+
             <View style={styles.statsContainer}>
               <View style={styles.statItem}>
                 <Text style={styles.statValue}>${userData.stats.totalSaved}</Text>
                 <Text style={styles.statLabel}>Total Saved</Text>
               </View>
-              
+
               <View style={styles.statDivider} />
-              
+
               <View style={styles.statItem}>
                 <Text style={styles.statValue}>{userData.stats.expenseCount}</Text>
                 <Text style={styles.statLabel}>Expenses</Text>
               </View>
-              
+
               <View style={styles.statDivider} />
-              
+
               <View style={styles.statItem}>
                 <Text style={styles.statValue}>{userData.stats.streakDays}</Text>
                 <Text style={styles.statLabel}>Day Streak</Text>
               </View>
             </View>
           </View>
-          
+
           {/* Preferences Section */}
           {renderPreferencesSection()}
 
           {/* Logout Button */}
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.logoutButton}
             onPress={handleLogout}
           >
@@ -452,7 +452,7 @@ const ProfileScreen = ({ navigation }) => {
                   <Ionicons name="close" size={24} color="#FFFFFF" />
                 </TouchableOpacity>
               </View>
-              
+
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>First Name</Text>
                 <TextInput
@@ -463,7 +463,7 @@ const ProfileScreen = ({ navigation }) => {
                   placeholderTextColor="#666666"
                 />
               </View>
-              
+
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>Last Name</Text>
                 <TextInput
@@ -474,7 +474,7 @@ const ProfileScreen = ({ navigation }) => {
                   placeholderTextColor="#666666"
                 />
               </View>
-              
+
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>Email</Text>
                 <TextInput
@@ -487,8 +487,8 @@ const ProfileScreen = ({ navigation }) => {
                   autoCapitalize="none"
                 />
               </View>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={styles.saveButton}
                 onPress={handleSaveProfile}
               >
@@ -497,7 +497,7 @@ const ProfileScreen = ({ navigation }) => {
             </View>
           </View>
         </Modal>
-        
+
         {/* Profile Picture Options Modal */}
         <Modal
           animationType="slide"
@@ -513,25 +513,25 @@ const ProfileScreen = ({ navigation }) => {
                   <Ionicons name="close" size={24} color="#FFFFFF" />
                 </TouchableOpacity>
               </View>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={styles.pictureOption}
                 onPress={() => handleSelectProfilePicture('camera')}
               >
                 <Ionicons name="camera" size={22} color="#FFFFFF" style={styles.pictureOptionIcon} />
                 <Text style={styles.pictureOptionText}>Take a Photo</Text>
               </TouchableOpacity>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={styles.pictureOption}
                 onPress={() => handleSelectProfilePicture('gallery')}
               >
                 <Ionicons name="images" size={22} color="#FFFFFF" style={styles.pictureOptionIcon} />
                 <Text style={styles.pictureOptionText}>Choose from Gallery</Text>
               </TouchableOpacity>
-              
+
               {userData.profilePhoto && (
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={[styles.pictureOption, styles.removePictureOption]}
                   onPress={() => handleSelectProfilePicture('remove')}
                 >
@@ -558,9 +558,9 @@ const ProfileScreen = ({ navigation }) => {
                   <Ionicons name="close" size={24} color="#FFFFFF" />
                 </TouchableOpacity>
               </View>
-              
+
               <ScrollView>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.periodOption}
                   onPress={() => handleBudgetPeriodChange('week')}
                 >
@@ -570,13 +570,13 @@ const ProfileScreen = ({ navigation }) => {
                     </View>
                     <Text style={styles.periodOptionText}>Weekly</Text>
                   </View>
-                  
+
                   {budgetPeriod === 'week' && (
                     <Ionicons name="checkmark-circle" size={22} color="#276EF1" />
                   )}
                 </TouchableOpacity>
-                
-                <TouchableOpacity 
+
+                <TouchableOpacity
                   style={styles.periodOption}
                   onPress={() => handleBudgetPeriodChange('month')}
                 >
@@ -586,13 +586,13 @@ const ProfileScreen = ({ navigation }) => {
                     </View>
                     <Text style={styles.periodOptionText}>Monthly</Text>
                   </View>
-                  
+
                   {budgetPeriod === 'month' && (
                     <Ionicons name="checkmark-circle" size={22} color="#276EF1" />
                   )}
                 </TouchableOpacity>
-                
-                <TouchableOpacity 
+
+                <TouchableOpacity
                   style={styles.periodOption}
                   onPress={() => handleBudgetPeriodChange('quarter')}
                 >
@@ -602,13 +602,13 @@ const ProfileScreen = ({ navigation }) => {
                     </View>
                     <Text style={styles.periodOptionText}>Quarterly</Text>
                   </View>
-                  
+
                   {budgetPeriod === 'quarter' && (
                     <Ionicons name="checkmark-circle" size={22} color="#276EF1" />
                   )}
                 </TouchableOpacity>
-                
-                <TouchableOpacity 
+
+                <TouchableOpacity
                   style={styles.periodOption}
                   onPress={() => handleBudgetPeriodChange('year')}
                 >
@@ -618,13 +618,13 @@ const ProfileScreen = ({ navigation }) => {
                     </View>
                     <Text style={styles.periodOptionText}>Yearly</Text>
                   </View>
-                  
+
                   {budgetPeriod === 'year' && (
                     <Ionicons name="checkmark-circle" size={22} color="#276EF1" />
                   )}
                 </TouchableOpacity>
-                
-                <TouchableOpacity 
+
+                <TouchableOpacity
                   style={styles.applyButton}
                   onPress={() => setBudgetPeriodModalVisible(false)}
                 >
@@ -739,7 +739,7 @@ const ProfileScreen = ({ navigation }) => {
           </View>
         </Modal>
       </ScrollView>
-    </SafeAreaView> 
+    </SafeAreaView>
   );
 };
 
@@ -1195,4 +1195,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ProfileScreen; 
+export default ProfileScreen;

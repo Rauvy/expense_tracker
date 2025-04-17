@@ -6,11 +6,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../services/apiService';
 import { PieChart } from 'react-native-chart-kit';
 import { getPieChartData } from '../services/transactionsService';
+import { getTransactions } from '../services/transactionsService';
 
 const { width } = Dimensions.get('window');
 const screenWidth = Dimensions.get('window').width;
 
-// Create an animated version of FlatList
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 
 // Constants for the chart size
@@ -23,11 +23,11 @@ const monthlySpent = 950;
 
 // Initial categories
 const initialCategories = [
-  { name: 'Food', icon: 'fast-food', color: '#FF6384' },
-  { name: 'Transport', icon: 'car', color: '#36A2EB' },
-  { name: 'Shopping', icon: 'cart', color: '#FFCE56' },
-  { name: 'Bills', icon: 'flash', color: '#4BC0C0' },
-  { name: 'Entertainment', icon: 'film', color: '#9966FF' },
+  { name: 'Food', icon: 'fast-food', color: '#FF6B6B' },  // Более приглушенный красный
+  { name: 'Transport', icon: 'car', color: '#4ECDC4' },   // Приглушенный голубой
+  { name: 'Shopping', icon: 'cart', color: '#45B7D1' },   // Приглушенный синий
+  { name: 'Bills', icon: 'flash', color: '#96CEB4' },     // Приглушенный зеленый
+  { name: 'Entertainment', icon: 'film', color: '#D4A5A5' }, // Приглушенный розовый
 ];
 
 // Initial payment methods
@@ -61,54 +61,81 @@ const availableIcons = [
 ];
 
 // Predefined colors
-const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#8C9EFF', '#FF5252'];
+const colors = [
+  '#FF6B6B',   // Приглушенный красный
+  '#4ECDC4',   // Приглушенный голубой
+  '#45B7D1',   // Приглушенный синий
+  '#96CEB4',   // Приглушенный зеленый
+  '#D4A5A5',   // Приглушенный розовый
+  '#FFB6B9',   // Приглушенный коралловый
+  '#957DAD',   // Приглушенный фиолетовый
+  '#E7B7C8'    // Приглушенный розово-лиловый
+];
 
+// Default categories
+const defaultCategories = [
+  { name: 'Food', icon: 'fast-food', color: '#FF6B6B' },
+  { name: 'Transport', icon: 'car', color: '#4ECDC4' },
+  { name: 'Shopping', icon: 'cart', color: '#45B7D1' },
+  { name: 'Bills', icon: 'receipt', color: '#96CEB4' },
+  { name: 'Entertainment', icon: 'film', color: '#D4A5A5' },
+  { name: 'Health', icon: 'medical', color: '#FFB6B9' },
+  { name: 'Education', icon: 'school', color: '#957DAD' },
+  { name: 'Other', icon: 'ellipsis-horizontal', color: '#E7B7C8' },
+];
 
+// Default income categories
+const defaultIncomeCategories = [
+  { name: 'Salary', icon: 'cash', color: '#96CEB4' },       // Приглушенный зеленый
+  { name: 'Freelance', icon: 'laptop', color: '#4ECDC4' },  // Приглушенный голубой
+  { name: 'Investments', icon: 'trending-up', color: '#45B7D1' }, // Приглушенный синий
+  { name: 'Gifts', icon: 'gift', color: '#D4A5A5' },        // Приглушенный розовый
+];
 
 // Function to generate pie chart slices
 const generatePieChartPath = (index, data, radius, innerRadius) => {
   // Calculate total
-  const total = data.reduce((acc, item) => acc + item.amount, 0);
+  const total = data.reduce((acc, item) => acc + (Number(item.amount) || 0), 0);
+
+  // Return empty path if total is zero or data is invalid
+  if (!total || !data || !data[index]) return '';
 
   // Calculate start and end angles
   let startAngle = 0;
   for (let i = 0; i < index; i++) {
-    const angle = (data[i].amount / total) * 2 * Math.PI;
-    startAngle += angle;
+    const amount = Number(data[i].amount) || 0;
+    startAngle += (amount / total) * 2 * Math.PI;
   }
 
-  const angle = (data[index].amount / total) * 2 * Math.PI;
+  const amount = Number(data[index].amount) || 0;
+  const angle = (amount / total) * 2 * Math.PI;
   const endAngle = startAngle + angle;
 
-  // Calculate coordinatesа 
+  // Calculate coordinates
   const centerX = radius;
   const centerY = radius;
 
-  // Starting point
-  const startX = centerX + Math.cos(startAngle) * radius;
-  const startY = centerY + Math.sin(startAngle) * radius;
-
-  // End point
-  const endX = centerX + Math.cos(endAngle) * radius;
-  const endY = centerY + Math.sin(endAngle) * radius;
-
-  // Inner points for donut
-  const innerStartX = centerX + Math.cos(startAngle) * innerRadius;
-  const innerStartY = centerY + Math.sin(startAngle) * innerRadius;
-  const innerEndX = centerX + Math.cos(endAngle) * innerRadius;
-  const innerEndY = centerY + Math.sin(endAngle) * innerRadius;
+  // Convert angles to coordinates
+  const startOuterX = centerX + Math.cos(startAngle) * radius;
+  const startOuterY = centerY + Math.sin(startAngle) * radius;
+  const endOuterX = centerX + Math.cos(endAngle) * radius;
+  const endOuterY = centerY + Math.sin(endAngle) * radius;
+  const startInnerX = centerX + Math.cos(startAngle) * innerRadius;
+  const startInnerY = centerY + Math.sin(startAngle) * innerRadius;
+  const endInnerX = centerX + Math.cos(endAngle) * innerRadius;
+  const endInnerY = centerY + Math.sin(endAngle) * innerRadius;
 
   // Large arc flag
   const largeArcFlag = angle > Math.PI ? 1 : 0;
 
-  // Create SVG path with slightly adjusted padding for better appearance
-  return `
-    M ${startX} ${startY}
-    A ${radius} ${radius} 0 ${largeArcFlag} 1 ${endX} ${endY}
-    L ${innerEndX} ${innerEndY}
-    A ${innerRadius} ${innerRadius} 0 ${largeArcFlag} 0 ${innerStartX} ${innerStartY}
-    Z
-  `;
+  // Generate SVG path
+  return [
+    `M ${startOuterX.toFixed(2)} ${startOuterY.toFixed(2)}`,
+    `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${endOuterX.toFixed(2)} ${endOuterY.toFixed(2)}`,
+    `L ${endInnerX.toFixed(2)} ${endInnerY.toFixed(2)}`,
+    `A ${innerRadius} ${innerRadius} 0 ${largeArcFlag} 0 ${startInnerX.toFixed(2)} ${startInnerY.toFixed(2)}`,
+    'Z'
+  ].join(' ');
 };
 
 const recentExpenses = [
@@ -147,6 +174,7 @@ const HomeScreen = ({ navigation }) => {
   const [pieChartData, setPieChartData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [recentTransactions, setRecentTransactions] = useState([]);
 
   // State for modals
   const [expenseModalVisible, setExpenseModalVisible] = useState(false);
@@ -208,9 +236,9 @@ const HomeScreen = ({ navigation }) => {
   // Calculate percentages and prepare data
   const formattedPieChartData = useMemo(() => {
     if (!pieChartData || pieChartData.length === 0) return [];
-  
+
     const total = pieChartData.reduce((acc, item) => acc + item.amount, 0);
-  
+
     return pieChartData.map((item) => ({
       ...item,
       percentage: Math.round((item.amount / total) * 100),
@@ -414,14 +442,14 @@ const HomeScreen = ({ navigation }) => {
         } else {
           // Set default categories if none found
           const defaultCategories = [
-            { name: 'Food', icon: 'fast-food', color: '#FF9500' },
-            { name: 'Transport', icon: 'car', color: '#5856D6' },
-            { name: 'Shopping', icon: 'cart', color: '#FF2D55' },
-            { name: 'Bills', icon: 'receipt', color: '#4BC0C0' },
-            { name: 'Entertainment', icon: 'film', color: '#FF3B30' },
-            { name: 'Health', icon: 'medical', color: '#34C759' },
-            { name: 'Education', icon: 'school', color: '#007AFF' },
-            { name: 'Other', icon: 'ellipsis-horizontal', color: '#8E8E93' },
+            { name: 'Food', icon: 'fast-food', color: '#FF6B6B' },
+            { name: 'Transport', icon: 'car', color: '#4ECDC4' },
+            { name: 'Shopping', icon: 'cart', color: '#45B7D1' },
+            { name: 'Bills', icon: 'receipt', color: '#96CEB4' },
+            { name: 'Entertainment', icon: 'film', color: '#D4A5A5' },
+            { name: 'Health', icon: 'medical', color: '#FFB6B9' },
+            { name: 'Education', icon: 'school', color: '#957DAD' },
+            { name: 'Other', icon: 'ellipsis-horizontal', color: '#E7B7C8' },
           ];
           setCategories(defaultCategories);
           await AsyncStorage.setItem('expenseCategories', JSON.stringify(defaultCategories));
@@ -432,10 +460,10 @@ const HomeScreen = ({ navigation }) => {
         } else {
           // Set default income categories if none found
           const defaultIncomeCategories = [
-            { name: 'Salary', icon: 'cash', color: '#4CD964' },
-            { name: 'Freelance', icon: 'laptop', color: '#007AFF' },
-            { name: 'Investments', icon: 'trending-up', color: '#FFCC00' },
-            { name: 'Gifts', icon: 'gift', color: '#FF2D55' },
+            { name: 'Salary', icon: 'cash', color: '#96CEB4' },
+            { name: 'Freelance', icon: 'laptop', color: '#4ECDC4' },
+            { name: 'Investments', icon: 'trending-up', color: '#45B7D1' },
+            { name: 'Gifts', icon: 'gift', color: '#D4A5A5' },
           ];
           setIncomeCategories(defaultIncomeCategories);
           await AsyncStorage.setItem('incomeCategories', JSON.stringify(defaultIncomeCategories));
@@ -489,8 +517,8 @@ const HomeScreen = ({ navigation }) => {
 
   const renderSwipeableSection = () => (
     <View style={styles.swipeableSection}>
-      <ScrollView 
-        horizontal 
+      <ScrollView
+        horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.swipeableContent}
       >
@@ -565,58 +593,86 @@ const HomeScreen = ({ navigation }) => {
     </View>
   );
 
-  const [recentExpenses, setRecentExpenses] = useState([]);
+  // Load recent transactions
+  const fetchRecentTransactions = async () => {
+    try {
+      const data = await getTransactions({
+        limit: 3,
+        offset: 0
+      });
 
+      const transactionsWithStyle = (data.items || []).map((tx) => {
+        const categoryList = tx.type === 'income' ? incomeCategories : categories;
+        const categoryInfo = categoryList.find((cat) => cat.name === tx.category) || {
+          icon: 'ellipsis-horizontal',
+          color: colors[0]
+        };
+
+        return {
+          ...tx,
+          amount: Number(tx.amount) || 0,
+          icon: categoryInfo.icon,
+          color: categoryInfo.color,
+        };
+      });
+      setRecentTransactions(transactionsWithStyle);
+    } catch (err) {
+      console.log('❌ Failed to load recent transactions:', err);
+    }
+  };
+
+  // Initial load and refresh on focus
   useEffect(() => {
-    const fetchRecentExpenses = async () => {
-      try {
-        const token = await AsyncStorage.getItem('access_token');
-        const response = await api.get('/transactions/all', {
-          headers: { Authorization: `Bearer ${token}` },
-          params: {
-            transaction_type: 'expense',
-            source_filter: 'manual',
-            limit: 3,
-          },
-        });
-        setRecentExpenses(response.data.items || []);
-        console.log('Fetched expenses:', response.data.items); // <--- Add this
-      } catch (err) {
-        setRecentExpenses([]);
-      }
-    };
-    fetchRecentExpenses();
-  }, []);
+    fetchRecentTransactions();
+
+    const unsubscribe = navigation.addListener('focus', () => {
+      console.log('🔄 Refreshing recent transactions...');
+      fetchRecentTransactions();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
 
   useEffect(() => {
     const fetchPieChartData = async () => {
       try {
         setIsLoading(true);
         setError(null);
-        console.log('Attempting to call getPieChartData...'); // <--- Add this log
         const response = await getPieChartData('expense');
-        console.log('API Response:', response);
-        const serverData = response?.data?.data || [];
-        console.log('Server Data:', serverData); // <--- Re-add this log
-  
+
+        if (!response || !response.data) {
+          console.log('Invalid response structure:', response);
+          setError('Invalid data structure received');
+          return;
+        }
+
+        const serverData = response.data || [];
+        console.log('Processing pie chart data:', serverData);
+
+        if (!Array.isArray(serverData) || serverData.length === 0) {
+          console.log('No valid data in response');
+          setPieChartData([]);
+          return;
+        }
+
         const formattedData = serverData.map((item, index) => ({
-          name: item.category,
-          amount: item.amount,
+          name: item.category || 'Unknown',
+          amount: Number(item.amount) || 0,
           color: colors[index % colors.length],
           legendFontColor: '#FFFFFF',
           legendFontSize: 12,
-        }));
-        console.log('Formatted Data:', formattedData); // <--- Re-add this log
-  
+        })).filter(item => item.amount > 0); // Фильтруем только положительные значения
+
+        console.log('Formatted pie chart data:', formattedData);
         setPieChartData(formattedData);
       } catch (error) {
-        console.error('Error fetching pie chart data:', error);
+        console.error('Error in fetchPieChartData:', error);
         setError('Failed to load chart data');
       } finally {
         setIsLoading(false);
       }
     };
-  
+
     fetchPieChartData();
   }, []);
   return (
@@ -718,38 +774,51 @@ const HomeScreen = ({ navigation }) => {
             <View style={styles.chartAndLegendWrapper}>
               {/* Left side: Pie Chart */}
               <View style={styles.chartContainer}>
-                <Text style={styles.chartTitle}>PieChart by Category</Text>
                 {isLoading ? (
                   <Text style={styles.noDataText}>Loading...</Text>
                 ) : error ? (
                   <Text style={styles.noDataText}>{error}</Text>
                 ) : pieChartData.length > 0 ? (
-                  <PieChart
-                    data={pieChartData}
-                    width={Dimensions.get('window').width - 40}
-                    height={220}
-                    chartConfig={{
-                      backgroundColor: '#1a1a1a',
-                      backgroundGradientFrom: '#1a1a1a',
-                      backgroundGradientTo: '#1a1a1a',
-                      decimalPlaces: 0,
-                      color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-                      labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-                      style: {
-                        borderRadius: 16,
-                      },
-                      propsForDots: {
-                        r: '6',
-                        strokeWidth: '2',
-                        stroke: '#ffa726',
-                      },
-                    }}
-                    accessor="amount"
-                    backgroundColor="transparent"
-                    paddingLeft="15"
-                    absolute
-                    hasLegend={false}
-                  />
+                  <>
+                    <View style={styles.totalSpentBox}>
+                      <Text style={styles.totalSpentAmount}>
+                        ${pieChartData.reduce((sum, item) => sum + item.amount, 0).toFixed(2)}
+                      </Text>
+                      <Text style={styles.totalSpentLabel}>Total Spent</Text>
+                    </View>
+                    <View style={styles.chartWrapper}>
+                      <PieChart
+                        data={pieChartData.map((item, index) => ({
+                          ...item,
+                          color: activeIndex === index ? item.color : `${item.color}99`,
+                        }))}
+                        width={Dimensions.get('window').width}
+                        height={420}
+                        chartConfig={{
+                          backgroundColor: '#1a1a1a',
+                          backgroundGradientFrom: '#1a1a1a',
+                          backgroundGradientTo: '#1a1a1a',
+                          decimalPlaces: 0,
+                          color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+                          labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+                          style: {
+                            borderRadius: 16,
+                          },
+                          propsForDots: {
+                            r: '6',
+                            strokeWidth: '2',
+                            stroke: '#ffa726',
+                          },
+                        }}
+                        accessor="amount"
+                        backgroundColor="transparent"
+                        paddingLeft="0"
+                        center={[Dimensions.get('window').width / 4, 0]}
+                        absolute
+                        hasLegend={false}
+                      />
+                    </View>
+                  </>
                 ) : (
                   <Text style={styles.noDataText}>No data available</Text>
                 )}
@@ -783,33 +852,39 @@ const HomeScreen = ({ navigation }) => {
 
           {/* Recent Expenses */}
           <View style={styles.expenseContainer}>
-            <Text style={styles.sectionTitle}>Recent Expenses</Text>
-            {recentExpenses.length > 0 ? (
-              recentExpenses.map((expense) => (
+            <Text style={styles.sectionTitle}>Recent Transactions</Text>
+            {recentTransactions.length > 0 ? (
+              recentTransactions.map((transaction) => (
                 <TouchableOpacity
-                  key={expense.id}
+                  key={transaction.id}
                   style={styles.expenseItem}
-                  activeOpacity={0.7}
-                  onPress={() => handleTransactionClick(expense)}
+                  onPress={() => navigation.navigate('Transactions', { selectedTransaction: transaction })}
                 >
-                  <View style={[styles.expenseIcon, { backgroundColor: expense.color || '#FF6384' }]}> 
-                    <Ionicons name={expense.icon || 'card'} size={20} color="#FFFFFF" />
+                  <View style={[styles.expenseIcon, { backgroundColor: transaction.color }]}>
+                    <Ionicons name={transaction.icon} size={20} color="#FFFFFF" />
                   </View>
+
                   <View style={styles.expenseInfo}>
-                    <Text style={styles.expenseTitle}>{expense.title || expense.description}</Text>
-                    <Text style={styles.expenseCategory}>{expense.category}</Text>
+                    <Text style={styles.expenseTitle}>{transaction.description}</Text>
+                    <Text style={styles.expenseCategory}>{transaction.category}</Text>
                   </View>
-                  <View style={styles.expenseDetails}>
-                    <Text style={styles.expenseAmount}>
-                      -${!isNaN(Number(expense.amount)) ? Number(expense.amount).toFixed(2) : '0.00'}
+
+                  <View style={styles.expenseAmount}>
+                    <Text style={[
+                      styles.expenseValue,
+                      { color: transaction.type === 'income' ? '#4BC0C0' : '#FF6384' }
+                    ]}>
+                      {transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)}
                     </Text>
-                    <Text style={styles.expenseDate}>{expense.date ? new Date(expense.date).toLocaleDateString() : ''}</Text>
+                    <Text style={styles.expenseDate}>
+                      {new Date(transaction.date).toLocaleDateString()}
+                    </Text>
                   </View>
                 </TouchableOpacity>
               ))
             ) : (
-              <View style={styles.noTransactionsContainer}>
-                <Text style={styles.noTransactionsText}>No expenses found</Text>
+              <View style={styles.noExpensesContainer}>
+                <Text style={styles.noExpensesText}>No recent transactions</Text>
               </View>
             )}
           </View>
@@ -1617,7 +1692,7 @@ const HomeScreen = ({ navigation }) => {
                             {formattedPieChartData.map((item, index) => (
                               <Path
                                 key={index}
-                                d={generatePieChartPath(index, pieChartData, chartRadius, innerRadius)}
+                                d={generatePieChartPath(index, formattedPieChartData, chartRadius, innerRadius)}
                                 fill={item.color}
                                 stroke="#1a1a1a"
                                 strokeWidth={1}
@@ -1890,12 +1965,34 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
   },
   chartContainer: {
-    position: 'relative',
-    height: CHART_RADIUS * 2,
-    width: CHART_RADIUS * 2,
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  totalSpentBox: {
+    backgroundColor: '#252525',
+    borderRadius: 12,
+    padding: 15,
+    alignItems: 'center',
+    marginBottom: 25,
+    width: '60%',
+  },
+  totalSpentAmount: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 5,
+  },
+  totalSpentLabel: {
+    fontSize: 14,
+    color: '#999999',
+  },
+  chartWrapper: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 25,
+    width: '100%',
+    paddingHorizontal: 0,
+    marginVertical: 15,
   },
   chartCenterView: {
     position: 'absolute',
@@ -1937,26 +2034,27 @@ const styles = StyleSheet.create({
   legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
-    marginBottom: 8,
+    padding: 16,
+    marginBottom: 10,
     backgroundColor: '#252525',
-    borderRadius: 10,
+    borderRadius: 12,
   },
   legendColorDot: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    marginRight: 12,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    marginRight: 15,
   },
   legendLabel: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#ffffff',
     flex: 1,
+    fontWeight: '500',
   },
   legendValue: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#ffffff',
-    fontWeight: '500',
+    fontWeight: '600',
   },
   activeLegendItem: {
     backgroundColor: '#333333',
@@ -1965,6 +2063,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 3,
     elevation: 3,
+    transform: [{ scale: 1.02 }],
   },
   expenseContainer: {
     backgroundColor: '#1a1a1a',
@@ -1994,24 +2093,23 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#ffffff',
     fontWeight: '500',
+    marginBottom: 3,
   },
   expenseCategory: {
-    fontSize: 13,
-    color: '#666666',
-    marginTop: 3,
-  },
-  expenseDetails: {
-    alignItems: 'flex-end',
+    fontSize: 14,
+    color: '#888888',
   },
   expenseAmount: {
+    alignItems: 'flex-end',
+  },
+  expenseValue: {
     fontSize: 16,
-    color: '#FF6384',
     fontWeight: '600',
+    marginBottom: 3,
   },
   expenseDate: {
     fontSize: 13,
-    color: '#666666',
-    marginTop: 3,
+    color: '#888888',
   },
   modalContainer: {
     flex: 1,
@@ -2704,6 +2802,153 @@ const styles = StyleSheet.create({
     color: '#888888',
     fontSize: 16,
     textAlign: 'center',
+  },
+  expenseValue: {
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  noExpensesContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  noExpensesText: {
+    color: '#888888',
+    fontSize: 16,
+  },
+  chartWrapper: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  centerLabel: {
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
+    top: '40%',
+    left: '35%',
+    backgroundColor: '#1a1a1a',
+    borderRadius: 40,
+    padding: 15,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  centerLabelTotal: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  centerLabelText: {
+    fontSize: 12,
+    color: '#999999',
+    marginTop: 4,
+  },
+  chartWithDetailsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  chartWrapper: {
+    flex: 2,
+  },
+  chartDetails: {
+    flex: 1,
+    paddingLeft: 15,
+    justifyContent: 'center',
+  },
+  totalContainer: {
+    backgroundColor: '#252525',
+    padding: 15,
+    borderRadius: 12,
+    marginBottom: 10,
+  },
+  totalLabel: {
+    fontSize: 14,
+    color: '#999999',
+    marginBottom: 5,
+  },
+  totalAmount: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  selectedCategoryContainer: {
+    backgroundColor: '#252525',
+    padding: 15,
+    borderRadius: 12,
+  },
+  selectedCategoryLabel: {
+    fontSize: 12,
+    color: '#999999',
+    marginBottom: 5,
+  },
+  selectedCategoryName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  selectedCategoryAmount: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 3,
+  },
+  selectedCategoryPercentage: {
+    fontSize: 14,
+    color: '#999999',
+  },
+  totalInfoContainer: {
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 20,
+    backgroundColor: '#252525',
+    padding: 15,
+    borderRadius: 12,
+  },
+  totalSpentTitle: {
+    fontSize: 16,
+    color: '#999999',
+    marginBottom: 8,
+  },
+  totalSpentAmount: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  chartWrapper: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    marginBottom: 20,
+  },
+  selectedCategoryInfo: {
+    width: '100%',
+    backgroundColor: '#252525',
+    borderRadius: 12,
+    marginTop: 10,
+  },
+  selectedCategoryHeader: {
+    borderLeftWidth: 4,
+    padding: 15,
+  },
+  selectedCategoryName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  selectedCategoryAmount: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 3,
+  },
+  selectedCategoryPercentage: {
+    fontSize: 14,
+    color: '#999999',
   },
 });
 

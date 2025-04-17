@@ -6,11 +6,11 @@ const API_CONFIG = {
     staging: 'https://staging-api.yourdomain.com',
     production: 'https://api.yourdomain.com'
   },
-  
+
   // API endpoints
   endpoints: {
     auth: {
-      login: '/auth/login', 
+      login: '/auth/login',
       register: '/auth/register',
       logout: '/auth/logout',
       refresh: '/auth/refresh',
@@ -28,11 +28,11 @@ const API_CONFIG = {
       getById: '/transactions/:id',
       update: '/transactions/:id',
       delete: '/transactions/:id',
-      
+
     },
     analytics: {
       summary: '/transactions/summary',
-      pie: '/transactions/pie',
+      pie: '/analytics/transactions/pie',
       line: '/transactions/line',
       compare: '/transactions/compare',
       budgetAnalysis: '/transactions/budget-analysis',
@@ -51,7 +51,7 @@ const API_CONFIG = {
       delete: '/accounts/:id'
     }
   },
-  
+
   // API settings
   settings: {
     timeout: 30000, // 30 seconds
@@ -78,7 +78,7 @@ export const getEndpoint = (section, endpoint) => {
     console.warn(`⚠️ Endpoint not found: ${section}.${endpoint}`);
     return '/';
   }
-  
+
   return getBaseURL() + group[endpoint];
 };
 
@@ -87,4 +87,4 @@ export const getApiSettings = () => {
   return API_CONFIG.settings;
 };
 
-export default API_CONFIG; 
+export default API_CONFIG;

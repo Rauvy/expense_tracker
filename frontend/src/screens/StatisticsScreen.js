@@ -222,327 +222,197 @@ const incomeStatisticsData = {
 // Simple Line Chart Component
 const SimpleLineChart = ({ data, labels, width, height }) => {
   const [activePointIndex, setActivePointIndex] = useState(null);
-  
-  // MUCH more aggressive margins to absolutely guarantee all labels fit
-  const paddingLeft = 50; 
-  const paddingRight = 25; 
+
+  // Validate input data
+  if (!Array.isArray(data) || data.length === 0 || !Array.isArray(labels)) {
+    return (
+      <Svg width={width} height={height}>
+        <SvgText
+          x={width / 2}
+          y={height / 2}
+          fill="#fff"
+          fontSize="12"
+          textAnchor="middle"
+        >
+          No data available
+        </SvgText>
+      </Svg>
+    );
+  }
+
+  // Padding values
+  const paddingLeft = 50;
+  const paddingRight = 20;
   const paddingTop = 40;
-  const paddingBottom = 30;
-  
+  const paddingBottom = 40;
+
   // Calculate available space for the chart
   const chartWidth = width - paddingLeft - paddingRight;
   const chartHeight = height - paddingTop - paddingBottom;
-  
-  // Safe max value calculation
-  const dataMax = Math.max(...data);
-  const maxValue = Math.ceil(dataMax * 1.2); // Simple 20% buffer
-  
-  // Function to convert data point to coordinates
-  const getX = (index) => paddingLeft + (index * chartWidth) / (data.length - 1);
-  const getY = (value) => paddingTop + chartHeight - (value / maxValue) * chartHeight;
-  
-  // Function to find closest point to a given x coordinate - safely handle out of bounds
-  const findClosestPoint = (x) => {
-    // Ensure x is within chart bounds
-    const safeX = Math.max(paddingLeft, Math.min(paddingLeft + chartWidth, x));
-    
-    // Convert the x coordinate to a chart position
-    const chartX = safeX - paddingLeft;
-    
-    // Calculate the position of each data point
-    const distances = data.map((_, index) => {
-      const pointX = (index * chartWidth) / (data.length - 1);
-      return Math.abs(pointX - chartX);
-    });
-    
-    // Find the index of the closest point
-    return distances.indexOf(Math.min(...distances));
+
+  // Find max value in data with validation
+  const validData = data.filter(value => typeof value === 'number' && !isNaN(value));
+  const maxValue = validData.length > 0
+    ? Math.max(...validData) * 1.1 // Add 10% padding
+    : 100; // Default max value if no valid data
+
+  // Get coordinates for a data point with validation
+  const getX = (index) => {
+    const x = paddingLeft + (index * chartWidth) / (data.length - 1);
+    return isNaN(x) ? paddingLeft : x;
   };
-  
-  // Create pan responder for drag interaction, safely handling events
-  const panResponder = React.useMemo(() => PanResponder.create({
+
+  const getY = (value) => {
+    if (typeof value !== 'number' || isNaN(value)) return paddingTop + chartHeight;
+    const y = paddingTop + chartHeight - (value / maxValue) * chartHeight;
+    return isNaN(y) ? paddingTop + chartHeight : y;
+  };
+
+  // Create pan responder for touch interaction
+  const panResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => true,
     onMoveShouldSetPanResponder: () => true,
-    onPanResponderGrant: (evt) => {
-      try {
-        const { locationX } = evt.nativeEvent;
-        const closestIndex = findClosestPoint(locationX);
-        if (closestIndex >= 0 && closestIndex < data.length) {
-          setActivePointIndex(closestIndex);
-        }
-      } catch (error) {
-        console.log('Chart interaction error:', error);
-      }
-    },
     onPanResponderMove: (evt) => {
-      try {
-        const { locationX } = evt.nativeEvent;
-        const closestIndex = findClosestPoint(locationX);
-        if (closestIndex >= 0 && closestIndex < data.length) {
-          setActivePointIndex(closestIndex);
+      const x = evt.nativeEvent.locationX - paddingLeft;
+      if (x >= 0 && x <= chartWidth) {
+        const index = Math.round((x / chartWidth) * (data.length - 1));
+        if (index >= 0 && index < data.length) {
+          setActivePointIndex(index);
         }
-      } catch (error) {
-        console.log('Chart interaction error:', error);
       }
     },
     onPanResponderRelease: () => {
-      // Keep the tooltip visible after release
-    }
-  }), [data, chartWidth, paddingLeft]);
-  
-  // Generate path for the line
-  let linePath = '';
-  data.forEach((value, index) => {
-    const x = getX(index);
-    const y = getY(value);
-    if (index === 0) {
-      linePath += `M ${x} ${y}`;
-    } else {
-      linePath += ` L ${x} ${y}`;
-    }
+      setActivePointIndex(null);
+    },
   });
-  
-  // Handle point press (still keep this for tap functionality)
-  const handlePointPress = (index) => {
-    setActivePointIndex(prev => prev === index ? null : index);
-  };
-  
-  // Generate Y-axis labels - simplified for guaranteed visibility
-  const generateYLabels = () => {
-    // Use exactly 4 labels - 0, 1/3, 2/3, and max
-    return [0, Math.round(maxValue/3), Math.round(maxValue*2/3), maxValue];
-  };
-  
-  const yAxisLabels = generateYLabels();
-  
+
   // Format value with appropriate suffix
   const formatValue = (value) => {
+    if (!value || isNaN(value)) return '0';
     if (value >= 1000000) {
       return (value / 1000000).toFixed(1) + 'M';
     } else if (value >= 1000) {
       return (value / 1000).toFixed(1) + 'K';
     }
-    return value.toString();
+    return value.toFixed(0);
   };
-  
-  // Safely render chart content
+
   const renderChart = () => {
     try {
+      // Generate path for the line with validation
+      let path = '';
+      let hasValidPoints = false;
+
+      data.forEach((value, index) => {
+        if (typeof value === 'number' && !isNaN(value)) {
+          const x = getX(index);
+          const y = getY(value);
+
+          if (!hasValidPoints) {
+            path += `M ${x.toFixed(2)} ${y.toFixed(2)}`;
+            hasValidPoints = true;
+          } else {
+            path += ` L ${x.toFixed(2)} ${y.toFixed(2)}`;
+          }
+        }
+      });
+
+      // If no valid points were found, return empty chart
+      if (!hasValidPoints) {
+        return (
+          <Svg width={width} height={height}>
+            <SvgText
+              x={width / 2}
+              y={height / 2}
+              fill="#fff"
+              fontSize="12"
+              textAnchor="middle"
+            >
+              Invalid data
+            </SvgText>
+          </Svg>
+        );
+      }
+
       return (
         <Svg width={width} height={height}>
-          {/* Chart background */}
-          <Rect
-            x={0}
-            y={0}
-            width={width}
-            height={height}
-            fill="#1a1a1a"
-            rx={12}
-          />
-          
-          {/* Y-axis title - moved lower to ensure visibility */}
-          <SvgText
-            x={12}
-            y={paddingTop - 20}
-            fill="#999999"
-            fontSize="9"
-            textAnchor="start"
-          >
-            Amount ($)
-          </SvgText>
-          
-          {/* Y-axis line */}
-          <Line
-            x1={paddingLeft}
-            y1={paddingTop}
-            x2={paddingLeft}
-            y2={paddingTop + chartHeight}
-            stroke="#333"
-            strokeWidth="1"
-          />
-          
-          {/* X-axis line */}
-          <Line
-            x1={paddingLeft}
-            y1={paddingTop + chartHeight}
-            x2={paddingLeft + chartWidth}
-            y2={paddingTop + chartHeight}
-            stroke="#333"
-            strokeWidth="1"
-          />
-          
           {/* Grid lines */}
-          {yAxisLabels.map((value, i) => (
-            <Line
-              key={`grid-${i}`}
-              x1={paddingLeft}
-              y1={getY(value)}
-              x2={paddingLeft + chartWidth}
-              y2={getY(value)}
-              stroke="rgba(255, 255, 255, 0.1)"
-              strokeWidth="1"
-            />
-          ))}
-          
-          {/* Y-axis labels - now with guaranteed spacing */}
-          {yAxisLabels.map((value, i) => (
+          {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
+            const y = getY(maxValue * ratio);
+            return (
+              <G key={`grid-${i}`}>
+                <Line
+                  x1={paddingLeft}
+                  y1={y}
+                  x2={width - paddingRight}
+                  y2={y}
+                  stroke="rgba(255, 255, 255, 0.1)"
+                  strokeWidth="1"
+                />
+                <SvgText
+                  x={paddingLeft - 10}
+                  y={y + 4}
+                  fill="#666666"
+                  fontSize="10"
+                  textAnchor="end"
+                >
+                  {formatValue(maxValue * ratio)}
+                </SvgText>
+              </G>
+            );
+          })}
+
+          {/* X-axis labels */}
+          {labels.map((label, i) => (
             <SvgText
-              key={`y-label-${i}`}
-              x={paddingLeft - 10}
-              y={getY(value) + 3}
-              fill="#999999"
-              fontSize="9"
-              fontWeight="500"
-              textAnchor="end"
+              key={`label-${i}`}
+              x={getX(i)}
+              y={height - paddingBottom + 20}
+              fill="#666666"
+              fontSize="10"
+              textAnchor="middle"
             >
-              {formatValue(value)}
+              {label}
             </SvgText>
           ))}
-          
-          {/* Area under the curve */}
+
+          {/* Line path */}
           <Path
-            d={`${linePath} L ${getX(data.length - 1)} ${getY(0)} L ${getX(0)} ${getY(0)} Z`}
-            fill="#276EF1"
-            fillOpacity="0.1"
-          />
-          
-          {/* Line */}
-          <Path
-            d={linePath}
+            d={path}
             stroke="#276EF1"
-            strokeWidth="2.5"
+            strokeWidth="2"
             fill="none"
           />
-          
-          {/* Visual indicator line for active point */}
-          {activePointIndex !== null && (
-            <Line
-              x1={getX(activePointIndex)}
-              y1={paddingTop}
-              x2={getX(activePointIndex)}
-              y2={paddingTop + chartHeight}
-              stroke="rgba(255, 255, 255, 0.3)"
-              strokeWidth="1"
-              strokeDasharray="3, 3"
-            />
-          )}
-          
-          {/* Visible dots */}
-          {data.map((value, index) => (
-            <Circle
-              key={`dot-${index}`}
-              cx={getX(index)}
-              cy={getY(value)}
-              r={activePointIndex === index ? "6" : "3.5"}
-              fill={activePointIndex === index ? "#276EF1" : "#1a1a1a"}
-              stroke="#276EF1"
-              strokeWidth="2"
-            />
-          ))}
-          
-          {/* Better aligned X-axis label background for yearly view */}
-          {labels.length >= 10 && (
-            <Rect
-              x={paddingLeft - 5}
-              y={paddingTop + chartHeight + 2}
-              width={chartWidth + 10}
-              height={25}
-              fill="#1a1a1a"
-            />
-          )}
-          
-          {/* Perfectly aligned X-axis labels */}
-          {labels.map((label, index) => {
-            // Calculate precise position
-            const x = getX(index);
-            
-            // Adjust x-coordinate for the last label
-            const adjustedX = index === labels.length - 1 
-              ? (labels.length >= 10 && label === 'Dec' 
-                ? x + 0.1  // More space for December in yearly view
-                : x - 10) // Default adjustment for other last labels
-              : x;
-            
-            if (labels.length >= 10) {
-              // Annual view - show all months with better alignment
-              return (
-                <G key={`label-container-${index}`}>
-                  {/* Small tick mark to show exact position */}
-                  <Line
-                    x1={adjustedX}
-                    y1={paddingTop + chartHeight}
-                    x2={adjustedX}
-                    y2={paddingTop + chartHeight + 3}
-                    stroke={activePointIndex === index ? "#fff" : "#555"}
-                    strokeWidth="1"
-                  />
-                  <SvgText
-                    key={`label-${index}`}
-                    x={adjustedX}
-                    y={paddingTop + chartHeight + 15}
-                    fill={activePointIndex === index ? "#fff" : "#999999"}
-                    fontSize="8"
-                    fontWeight={activePointIndex === index ? "bold" : "normal"}
-                    textAnchor="middle"
-                  >
-                    {label}
-                  </SvgText>
-                </G>
-              );
-            } else {
-              // Weekly/Monthly view - standard horizontal labels
-              return (
-                <G key={`label-container-${index}`}>
-                  {/* Small tick mark to show exact position */}
-                  <Line
-                    x1={adjustedX}
-                    y1={paddingTop + chartHeight}
-                    x2={adjustedX}
-                    y2={paddingTop + chartHeight + 3}
-                    stroke={activePointIndex === index ? "#fff" : "#555"}
-                    strokeWidth="1"
-                  />
-                  <SvgText
-                    key={`label-${index}`}
-                    x={adjustedX}
-                    y={paddingTop + chartHeight + 15}
-                    fill={activePointIndex === index ? "#fff" : "#999999"}
-                    fontSize="9"
-                    fontWeight={activePointIndex === index ? "bold" : "normal"}
-                    textAnchor="middle"
-                  >
-                    {label}
-                  </SvgText>
-                </G>
-              );
-            }
+
+          {/* Data points */}
+          {data.map((value, index) => {
+            if (typeof value !== 'number' || isNaN(value)) return null;
+            return (
+              <Circle
+                key={`point-${index}`}
+                cx={getX(index)}
+                cy={getY(value)}
+                r={activePointIndex === index ? 6 : 4}
+                fill={activePointIndex === index ? "#fff" : "#276EF1"}
+                stroke="#276EF1"
+                strokeWidth="2"
+              />
+            );
           })}
-          
-          {/* HUGE Touch target areas */}
-          {data.map((value, index) => (
-            <Circle
-              key={`touch-${index}`}
-              cx={getX(index)}
-              cy={getY(value)}
-              r="25"
-              fill="transparent"
-              onPress={() => handlePointPress(index)}
-            />
-          ))}
-          
-          {/* Active point value display */}
-          {activePointIndex !== null && activePointIndex >= 0 && activePointIndex < data.length && (
+
+          {/* Active point value */}
+          {activePointIndex !== null && typeof data[activePointIndex] === 'number' && !isNaN(data[activePointIndex]) && (
             <G>
-              <Rect
-                x={getX(activePointIndex) - 35}
-                y={getY(data[activePointIndex]) - 25}
-                width="70"
-                height="18"
-                rx="4"
-                fill="#333"
+              <Circle
+                cx={getX(activePointIndex)}
+                cy={getY(data[activePointIndex])}
+                r="6"
+                fill="#fff"
+                stroke="#276EF1"
+                strokeWidth="2"
               />
               <SvgText
-                x={getX(activePointIndex) - 23}
+                x={getX(activePointIndex) - 25}
                 y={getY(data[activePointIndex]) - 12}
                 fill="#fff"
                 fontSize="9"
@@ -582,9 +452,9 @@ const SimpleLineChart = ({ data, labels, width, height }) => {
       );
     }
   };
-  
+
   return (
-    <View 
+    <View
       style={{ width, height, backgroundColor: '#1a1a1a', borderRadius: 12 }}
       {...panResponder.panHandlers}
     >
@@ -596,29 +466,29 @@ const SimpleLineChart = ({ data, labels, width, height }) => {
 // Simple Bar Chart Component
 const SimpleBarChart = ({ data, labels, width, height, colors }) => {
   const [activeBarIndex, setActiveBarIndex] = useState(null);
-  
+
   // Padding values - increase significantly to make room for labels
   const paddingLeft = 80;
   const paddingRight = 20;
   const paddingTop = 40;
   const paddingBottom = 40;
-  
+
   // Calculate available space for the chart
   const chartWidth = width - paddingLeft - paddingRight;
   const chartHeight = height - paddingTop - paddingBottom;
-  
+
   // Find max value in data
   const maxValue = Math.max(...data);
-  
+
   // Bar width calculation
   const barWidth = chartWidth / data.length / 2;
   const barSpacing = chartWidth / data.length;
-  
+
   // Handle bar press
   const handleBarPress = (index) => {
     setActiveBarIndex(prev => prev === index ? null : index);
   };
-  
+
   // Generate Y-axis labels with proper formatting
   const yAxisLabels = [];
   const numYLabels = 5;
@@ -626,10 +496,10 @@ const SimpleBarChart = ({ data, labels, width, height, colors }) => {
     const value = Math.round((maxValue / (numYLabels - 1)) * i);
     yAxisLabels.push(value);
   }
-  
+
   // Function to get Y coordinate based on value
   const getY = (value) => paddingTop + chartHeight - (value / maxValue) * chartHeight;
-  
+
   // Format value with appropriate suffix
   const formatValue = (value) => {
     if (value >= 1000000) {
@@ -639,7 +509,7 @@ const SimpleBarChart = ({ data, labels, width, height, colors }) => {
     }
     return value.toString();
   };
-  
+
   return (
     <View style={{ width, height, backgroundColor: '#1a1a1a', borderRadius: 12 }}>
       <Svg width={width} height={height}>
@@ -652,7 +522,7 @@ const SimpleBarChart = ({ data, labels, width, height, colors }) => {
           stroke="#333"
           strokeWidth="1"
         />
-        
+
         {/* X-axis line */}
         <Line
           x1={paddingLeft}
@@ -662,7 +532,7 @@ const SimpleBarChart = ({ data, labels, width, height, colors }) => {
           stroke="#333"
           strokeWidth="1"
         />
-        
+
         {/* Grid lines */}
         {yAxisLabels.map((value, i) => (
           <Line
@@ -675,7 +545,7 @@ const SimpleBarChart = ({ data, labels, width, height, colors }) => {
             strokeWidth="1"
           />
         ))}
-        
+
         {/* Y-axis title showing currency */}
         <SvgText
           x={paddingLeft - 40}
@@ -686,7 +556,7 @@ const SimpleBarChart = ({ data, labels, width, height, colors }) => {
         >
           Amount ($)
         </SvgText>
-        
+
         {/* Y-axis labels */}
         {yAxisLabels.map((value, i) => (
           <SvgText
@@ -700,7 +570,7 @@ const SimpleBarChart = ({ data, labels, width, height, colors }) => {
             {formatValue(value)}
           </SvgText>
         ))}
-        
+
         {/* Bars */}
         {data.map((value, index) => {
           const barHeight = (value / maxValue) * chartHeight;
@@ -708,7 +578,7 @@ const SimpleBarChart = ({ data, labels, width, height, colors }) => {
           const barY = paddingTop + chartHeight - barHeight;
           const color = colors[index % colors.length];
           const isActive = activeBarIndex === index;
-          
+
           return (
             <G key={`bar-${index}`} onPress={() => handleBarPress(index)}>
               <Rect
@@ -720,7 +590,7 @@ const SimpleBarChart = ({ data, labels, width, height, colors }) => {
                 fillOpacity={isActive ? 1 : 0.7}
                 rx={5}
               />
-              
+
               <SvgText
                 x={barX + barWidth/2}
                 y={barY - 5}
@@ -731,7 +601,7 @@ const SimpleBarChart = ({ data, labels, width, height, colors }) => {
               >
                 ${formatValue(value)}
               </SvgText>
-              
+
               <SvgText
                 x={barX + barWidth/2}
                 y={paddingTop + chartHeight + 20}
@@ -777,8 +647,8 @@ const MonthComparisonChart = ({ data, width, height, isIncome = false }) => {
   return (
     <View style={{ width: '100%', backgroundColor: '#111', borderRadius: 12, padding: 0, overflow: 'hidden' }}>
       {/* Summary header */}
-      <View style={{ 
-        backgroundColor: '#181818', 
+      <View style={{
+        backgroundColor: '#181818',
         padding: 20,
         marginBottom: 15,
         borderBottomWidth: 1,
@@ -786,8 +656,8 @@ const MonthComparisonChart = ({ data, width, height, isIncome = false }) => {
       }}>
         <View style={{ marginBottom: 15 }}>
           <Text style={{ color: '#999', fontSize: 13, marginBottom: 8 }}>Overall Change</Text>
-          <View style={{ 
-            backgroundColor: isOverallImprovement 
+          <View style={{
+            backgroundColor: isOverallImprovement
               ? (isIncome ? 'rgba(75, 192, 192, 0.1)' : 'rgba(255, 99, 132, 0.1)')
               : (isIncome ? 'rgba(255, 99, 132, 0.1)' : 'rgba(75, 192, 192, 0.1)'),
             paddingHorizontal: 15,
@@ -797,16 +667,16 @@ const MonthComparisonChart = ({ data, width, height, isIncome = false }) => {
             borderLeftColor: isOverallImprovement ? improvementColor : declineColor,
             width: '100%',
           }}>
-            <Text style={{ 
-              color: isOverallImprovement ? improvementColor : declineColor, 
-              fontSize: 18, 
+            <Text style={{
+              color: isOverallImprovement ? improvementColor : declineColor,
+              fontSize: 18,
               fontWeight: 'bold'
             }}>
               {isOverallImprovement ? '↑' : '↓'} {Math.abs(calculateGrowth(currentTotal, previousTotal)).toFixed(1)}% from previous period
             </Text>
           </View>
         </View>
-        
+
         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
           <View style={{ width: '46%' }}>
             <Text style={{ color: '#999', fontSize: 13, marginBottom: 8 }}>Current</Text>
@@ -814,7 +684,7 @@ const MonthComparisonChart = ({ data, width, height, isIncome = false }) => {
               ${currentTotal.toFixed(0)}
             </Text>
           </View>
-          
+
           <View style={{ width: '46%' }}>
             <Text style={{ color: '#999', fontSize: 13, marginBottom: 8 }}>Previous</Text>
             <Text style={{ color: '#FF6384', fontSize: 24, fontWeight: 'bold' }}>
@@ -823,9 +693,9 @@ const MonthComparisonChart = ({ data, width, height, isIncome = false }) => {
           </View>
         </View>
       </View>
-      
-      <ScrollView 
-        style={{ maxHeight: 350, paddingHorizontal: 15, marginBottom: 15 }} 
+
+      <ScrollView
+        style={{ maxHeight: 350, paddingHorizontal: 15, marginBottom: 15 }}
         showsVerticalScrollIndicator={false}
       >
         {categories.map((category, index) => {
@@ -839,9 +709,9 @@ const MonthComparisonChart = ({ data, width, height, isIncome = false }) => {
           const isImprovement = isIncome ? growth > 0 : growth < 0; // For income, positive growth is improvement
           const changeColor = isImprovement ? improvementColor : declineColor;
           const improvementText = isImprovement ? 'more than' : 'less than';
-          
+
           return (
-            <View key={index} style={{ 
+            <View key={index} style={{
               backgroundColor: '#181818',
               borderRadius: 10,
               padding: 15,
@@ -849,17 +719,17 @@ const MonthComparisonChart = ({ data, width, height, isIncome = false }) => {
               borderLeftWidth: 4,
               borderLeftColor: changeColor,
             }}>
-              <Text style={{ 
-                color: '#fff', 
-                fontSize: 16, 
-                fontWeight: 'bold', 
+              <Text style={{
+                color: '#fff',
+                fontSize: 16,
+                fontWeight: 'bold',
                 marginBottom: 12
               }}>
                 {name}
               </Text>
-              
-              <View style={{ 
-                flexDirection: 'row', 
+
+              <View style={{
+                flexDirection: 'row',
                 justifyContent: 'space-between',
                 marginBottom: 12,
               }}>
@@ -869,7 +739,7 @@ const MonthComparisonChart = ({ data, width, height, isIncome = false }) => {
                     ${current.toFixed(0)}
                   </Text>
                 </View>
-                
+
                 <View style={{ width: '46%' }}>
                   <Text style={{ color: '#999', fontSize: 12, marginBottom: 6 }}>Previous</Text>
                   <Text style={{ color: declineColor, fontSize: 18, fontWeight: '600' }}>
@@ -877,9 +747,9 @@ const MonthComparisonChart = ({ data, width, height, isIncome = false }) => {
                   </Text>
                 </View>
               </View>
-              
-              <View style={{ 
-                backgroundColor: isImprovement 
+
+              <View style={{
+                backgroundColor: isImprovement
                   ? (isIncome ? 'rgba(75, 192, 192, 0.1)' : 'rgba(255, 99, 132, 0.1)')
                   : (isIncome ? 'rgba(255, 99, 132, 0.1)' : 'rgba(75, 192, 192, 0.1)'),
                 padding: 10,
@@ -956,7 +826,7 @@ const StatisticsScreen = () => {
     previousMonth: '',
     categories: []
   });
-  
+
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
@@ -1012,8 +882,8 @@ const StatisticsScreen = () => {
       // Filter transactions by date and type
       const filteredTransactions = transactions.filter(tx => {
         const txDate = new Date(tx.date);
-        return txDate >= startDate && 
-               txDate <= now && 
+        return txDate >= startDate &&
+               txDate <= now &&
                tx.type === (statType === 'expense' ? 'expense' : 'income');
       });
 
@@ -1077,7 +947,7 @@ const StatisticsScreen = () => {
       // Add colors and icons to categories
       const categoryColors = ['#FF6384', '#4BC0C0', '#FFCE56'];
       const categoryIcons = ['fast-food', 'car', 'cart'];
-      
+
       const categoriesWithStyle = sortedCategories.map((cat, index) => ({
         ...cat,
         color: categoryColors[index],
@@ -1109,7 +979,7 @@ const StatisticsScreen = () => {
       // Add colors and icons to payment methods
       const methodColors = ['#FF6384', '#4BC0C0', '#FFCE56'];
       const methodIcons = ['card', 'cash', 'phone-portrait'];
-      
+
       const methodsWithStyle = sortedMethods.map((method, index) => ({
         ...method,
         color: methodColors[index],
@@ -1147,25 +1017,25 @@ const StatisticsScreen = () => {
         // Get transactions for current and previous periods
         const currentTransactions = transactions.filter(tx => {
           const txDate = new Date(tx.date);
-          return txDate >= currentStartDate && 
-                 txDate <= currentEndDate && 
+          return txDate >= currentStartDate &&
+                 txDate <= currentEndDate &&
                  tx.type === (statType === 'expense' ? 'expense' : 'income');
         });
 
         const previousTransactions = transactions.filter(tx => {
           const txDate = new Date(tx.date);
-          return txDate >= previousStartDate && 
-                 txDate <= previousEndDate && 
+          return txDate >= previousStartDate &&
+                 txDate <= previousEndDate &&
                  tx.type === (statType === 'expense' ? 'expense' : 'income');
         });
 
         // Calculate overall totals for both periods
         const currentTotal = currentTransactions.reduce((sum, tx) => sum + Number(tx.amount), 0);
         const previousTotal = previousTransactions.reduce((sum, tx) => sum + Number(tx.amount), 0);
-        
+
         // Calculate overall growth percentage with proper handling of edge cases
-        const overallGrowth = previousTotal !== 0 
-          ? ((currentTotal - previousTotal) / Math.abs(previousTotal)) * 100 
+        const overallGrowth = previousTotal !== 0
+          ? ((currentTotal - previousTotal) / Math.abs(previousTotal)) * 100
           : currentTotal > 0 ? ((currentTotal - 1) / 1) * 100 : 0;
 
         // Calculate totals for each category in both periods
@@ -1198,7 +1068,7 @@ const StatisticsScreen = () => {
           .map(category => {
             const current = currentCategoryTotals[category] || 0;
             const previous = previousCategoryTotals[category] || 0;
-            
+
             // Calculate growth percentage with proper handling of edge cases
             let growth;
             if (previous === 0) {
@@ -1218,10 +1088,10 @@ const StatisticsScreen = () => {
           .slice(0, 5); // Get top 5 categories
 
         // Set month names for the comparison
-        const currentMonth = timeframe === 'yearly' 
-          ? 'This Year' 
+        const currentMonth = timeframe === 'yearly'
+          ? 'This Year'
           : new Date(currentStartDate).toLocaleDateString('en-US', { month: 'long' });
-        
+
         const previousMonth = timeframe === 'yearly'
           ? 'Last Year'
           : new Date(previousStartDate).toLocaleDateString('en-US', { month: 'long' });
@@ -1242,24 +1112,24 @@ const StatisticsScreen = () => {
     calculateData();
   }, [transactions, timeframe, statType]);
 
-  const data = statType === 'expense' 
-    ? statisticsData[timeframe] 
+  const data = statType === 'expense'
+    ? statisticsData[timeframe]
     : incomeStatisticsData[timeframe];
 
   // Chart colors
   const barChartColors = ['#FF6384', '#4BC0C0', '#FFCE56', '#36A2EB', '#9966FF', '#FF9F40'];
-  
+
   const renderTimeframeButton = (label, value) => (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={[
-        styles.timeframeButton, 
+        styles.timeframeButton,
         timeframe === value && styles.activeTimeframeButton
       ]}
       onPress={() => setTimeframe(value)}
     >
-      <Text 
+      <Text
         style={[
-          styles.timeframeText, 
+          styles.timeframeText,
           timeframe === value && styles.activeTimeframeText
         ]}
       >
@@ -1269,20 +1139,20 @@ const StatisticsScreen = () => {
   );
 
   const renderStatTypeButton = (label, value) => (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={[
-        styles.statTypeButton, 
+        styles.statTypeButton,
         statType === value && styles.activeStatTypeButton,
-        { backgroundColor: statType === value 
-          ? value === 'expense' ? '#FF6384' : '#4BC0C0' 
+        { backgroundColor: statType === value
+          ? value === 'expense' ? '#FF6384' : '#4BC0C0'
           : '#252525' }
       ]}
       onPress={() => setStatType(value)}
     >
-      <Ionicons 
-        name={value === 'expense' ? 'trending-down' : 'trending-up'} 
-        size={18} 
-        color="#FFFFFF" 
+      <Ionicons
+        name={value === 'expense' ? 'trending-down' : 'trending-up'}
+        size={18}
+        color="#FFFFFF"
       />
       <Text style={styles.statTypeText}>{label}</Text>
     </TouchableOpacity>
@@ -1291,9 +1161,9 @@ const StatisticsScreen = () => {
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.container} edges={['top']}>
-      
-      <ScrollView 
-        style={styles.content} 
+
+      <ScrollView
+        style={styles.content}
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
@@ -1303,24 +1173,24 @@ const StatisticsScreen = () => {
             {renderStatTypeButton('Expenses', 'expense')}
             {renderStatTypeButton('Income', 'income')}
           </View>
-          
+
           {/* Timeframe buttons */}
           <View style={styles.timeframeButtons}>
             {renderTimeframeButton('Weekly', 'weekly')}
             {renderTimeframeButton('Monthly', 'monthly')}
             {renderTimeframeButton('Yearly', 'yearly')}
           </View>
-          
+
           {/* Overview Card with integrated heading */}
           <View style={styles.card}>
             <View style={styles.cardHeader}>
               <Text style={styles.sectionTitle}>
                 {statType === 'expense' ? 'Expense Statistics' : 'Income Statistics'}
               </Text>
-              <Ionicons 
-                name="stats-chart" 
-                size={24} 
-                color={statType === 'expense' ? '#FF6384' : '#4BC0C0'} 
+              <Ionicons
+                name="stats-chart"
+                size={24}
+                color={statType === 'expense' ? '#FF6384' : '#4BC0C0'}
               />
             </View>
             <Text style={styles.cardLabel}>
@@ -1335,25 +1205,25 @@ const StatisticsScreen = () => {
             <Text style={styles.totalLabel}>
               {statType === 'expense' ? 'Total Expenses' : 'Total Income'}
             </Text>
-            
+
             {/* Adding improvement indicator */}
             <View style={styles.improvementContainer}>
               <Text style={[
-                styles.improvementText, 
+                styles.improvementText,
                 {
                   color: statType === 'expense'
                     ? (data.improvementPercentage > 0 ? '#4BC0C0' : '#FF6384')
                     : (data.growthPercentage > 0 ? '#4BC0C0' : '#FF6384')
                 }
               ]}>
-                {statType === 'expense' 
+                {statType === 'expense'
                   ? `${data.improvementPercentage > 0 ? '↓' : '↑'} ${Math.abs(data.improvementPercentage).toFixed(1)}% from previous ${timeframe.slice(0, -2)}`
                   : `${data.growthPercentage > 0 ? '↑' : '↓'} ${Math.abs(data.growthPercentage).toFixed(1)}% from previous ${timeframe.slice(0, -2)}`
                 }
               </Text>
             </View>
           </View>
-          
+
           {/* Trend Section */}
           <View style={styles.sectionCard}>
             <View style={styles.sectionHeader}>
@@ -1364,30 +1234,30 @@ const StatisticsScreen = () => {
                 {timeframe === 'weekly' ? 'Last 7 days' : timeframe === 'monthly' ? 'Last 4 weeks' : 'Last 12 months'}
               </Text>
             </View>
-            
+
             <View style={styles.chartLegend}>
               <View style={styles.legendItem}>
                 <View style={[
-                  styles.legendDot, 
+                  styles.legendDot,
                   { backgroundColor: statType === 'expense' ? '#276EF1' : '#4BC0C0' }
                 ]} />
                 <Text style={styles.legendText}>
                   {statType === 'expense'
-                    ? timeframe === 'weekly' 
-                      ? 'Daily Spending' 
-                      : timeframe === 'monthly' 
-                        ? 'Weekly Spending' 
+                    ? timeframe === 'weekly'
+                      ? 'Daily Spending'
+                      : timeframe === 'monthly'
+                        ? 'Weekly Spending'
                         : 'Monthly Spending'
-                    : timeframe === 'weekly' 
-                      ? 'Daily Income' 
-                      : timeframe === 'monthly' 
-                        ? 'Weekly Income' 
+                    : timeframe === 'weekly'
+                      ? 'Daily Income'
+                      : timeframe === 'monthly'
+                        ? 'Weekly Income'
                         : 'Monthly Income'
                   }
                 </Text>
               </View>
             </View>
-            
+
             <View style={styles.chartContainer}>
               <SimpleLineChart
                 data={lineChartData.datasets[0].data}
@@ -1397,7 +1267,7 @@ const StatisticsScreen = () => {
               />
             </View>
           </View>
-          
+
           {/* Top Categories Section */}
           <View style={styles.sectionCard}>
             <View style={styles.sectionHeader}>
@@ -1405,40 +1275,40 @@ const StatisticsScreen = () => {
                 {statType === 'expense' ? 'Top Categories' : 'Income Categories'}
               </Text>
               <Text style={styles.sectionSubtitle}>
-                {statType === 'expense' 
-                  ? 'Where you spend the most' 
+                {statType === 'expense'
+                  ? 'Where you spend the most'
                   : 'Sources of your income'
                 }
               </Text>
             </View>
-            
+
             {topCategories.map((category, index) => (
               <View key={index} style={styles.categoryItem}>
                 <View style={[styles.categoryIcon, { backgroundColor: category.color }]}>
                   <Ionicons name={getCategoryIcon(category.name)} size={20} color="#FFFFFF" />
                 </View>
-                
+
                 <View style={styles.categoryInfo}>
                   <View style={styles.categoryNameRow}>
                     <Text style={styles.categoryName}>{category.name}</Text>
                     <Text style={styles.categoryAmount}>${category.amount.toFixed(2)}</Text>
                   </View>
-                  
+
                   <View style={styles.progressBarContainer}>
-                    <View 
+                    <View
                       style={[
-                        styles.progressBar, 
+                        styles.progressBar,
                         { width: `${category.percentage}%`, backgroundColor: category.color }
-                      ]} 
+                      ]}
                     />
                   </View>
-                  
+
                   <Text style={styles.categoryPercentage}>{category.percentage.toFixed(1)}% of total</Text>
                 </View>
               </View>
             ))}
           </View>
-          
+
           {/* Payment Methods Section */}
           <View style={styles.sectionCard}>
             <View style={styles.sectionHeader}>
@@ -1452,34 +1322,34 @@ const StatisticsScreen = () => {
                 }
               </Text>
             </View>
-            
+
             {paymentMethods.map((method, index) => (
               <View key={index} style={styles.categoryItem}>
                 <View style={[styles.categoryIcon, { backgroundColor: method.color }]}>
                   <Ionicons name={getPaymentMethodIcon(method.name)} size={20} color="#FFFFFF" />
                 </View>
-                
+
                 <View style={styles.categoryInfo}>
                   <View style={styles.categoryNameRow}>
                     <Text style={styles.categoryName}>{method.name}</Text>
                     <Text style={styles.categoryAmount}>${method.amount.toFixed(2)}</Text>
                   </View>
-                  
+
                   <View style={styles.progressBarContainer}>
-                    <View 
+                    <View
                       style={[
-                        styles.progressBar, 
+                        styles.progressBar,
                         { width: `${method.percentage}%`, backgroundColor: method.color }
-                      ]} 
+                      ]}
                     />
                   </View>
-                  
+
                   <Text style={styles.categoryPercentage}>{method.percentage.toFixed(1)}% of total</Text>
                 </View>
               </View>
             ))}
           </View>
-          
+
           {/* Month-to-Month Comparison */}
           <View style={[styles.sectionCard, { padding: 0, overflow: 'hidden' }]}>
             <View style={{ padding: 15, paddingBottom: 10 }}>
@@ -1487,13 +1357,13 @@ const StatisticsScreen = () => {
                 {statType === 'expense' ? 'Spending Comparison' : 'Income Comparison'}
               </Text>
               <Text style={styles.sectionSubtitle}>
-                {statType === 'expense' 
-                  ? 'How you\'re improving over time' 
+                {statType === 'expense'
+                  ? 'How you\'re improving over time'
                   : 'How your income is changing'
                 }
               </Text>
             </View>
-            
+
             <View>
               <MonthComparisonChart
                 data={comparisonData}
@@ -1502,7 +1372,7 @@ const StatisticsScreen = () => {
               />
             </View>
           </View>
-          
+
           {/* Tips Card */}
           <View style={styles.tipsCard}>
             <View style={styles.tipsHeader}>
@@ -1513,7 +1383,7 @@ const StatisticsScreen = () => {
             </View>
             <Text style={styles.tipsText}>
               {statType === 'expense'
-                ? timeframe === 'weekly' 
+                ? timeframe === 'weekly'
                   ? "Try meal prepping on weekends to reduce food expenses on weekdays!"
                   : timeframe === 'monthly'
                   ? "Consider reviewing your subscription services - you might be paying for services you rarely use."
@@ -1768,5 +1638,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default StatisticsScreen; 
-
+export default StatisticsScreen;

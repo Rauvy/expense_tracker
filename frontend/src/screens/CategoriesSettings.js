@@ -38,7 +38,7 @@ const availableIcons = [
 ];
 
 const colorOptions = [
-  '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', 
+  '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
   '#FF9F40', '#FF6B6B', '#C9CB3F', '#4FFBDF', '#975FFF',
   '#E85D75', '#5DA5E8', '#F9F871', '#00B8A9', '#F08A5D',
   '#B83B5E', '#6A2C70', '#08D9D6', '#FF2E63', '#252A34'
@@ -46,23 +46,23 @@ const colorOptions = [
 
 const CategoriesSettings = () => {
   const navigation = useNavigation();
-  
+
   // Categories states
   const [categories, setCategories] = useState(initialCategories);
   const [searchQuery, setSearchQuery] = useState('');
   const [addCategoryVisible, setAddCategoryVisible] = useState(false);
-  
+
   // New category states
   const [newCategoryName, setNewCategoryName] = useState('');
   const [selectedIcon, setSelectedIcon] = useState('');
   const [selectedColor, setSelectedColor] = useState('');
-  
+
   // Load categories from storage
   useEffect(() => {
     const loadCategories = async () => {
       try {
         const savedCategories = await AsyncStorage.getItem('expenseCategories');
-        
+
         if (savedCategories) {
           setCategories(JSON.parse(savedCategories));
         } else {
@@ -73,28 +73,28 @@ const CategoriesSettings = () => {
         console.error('Error loading categories:', error);
       }
     };
-    
+
     loadCategories();
   }, []);
-  
+
   // Filter categories based on search query
-  const filteredCategories = categories.filter(category => 
+  const filteredCategories = categories.filter(category =>
     category.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
-  
+
   // Reset new category form
   const resetNewCategoryForm = () => {
     setNewCategoryName('');
     setSelectedIcon('');
     setSelectedColor('');
   };
-  
+
   // Open add category modal
   const openAddCategoryModal = () => {
     resetNewCategoryForm();
     setAddCategoryVisible(true);
   };
-  
+
   // Add new category
   const handleAddCategory = async () => {
     // Validate inputs
@@ -102,27 +102,27 @@ const CategoriesSettings = () => {
       Alert.alert('Error', 'Please enter a category name');
       return;
     }
-    
+
     if (!selectedIcon) {
       Alert.alert('Error', 'Please select an icon');
       return;
     }
-    
+
     if (!selectedColor) {
       Alert.alert('Error', 'Please select a color');
       return;
     }
-    
+
     // Check if category name already exists
     const categoryExists = categories.some(
       category => category.name.toLowerCase() === newCategoryName.toLowerCase()
     );
-    
+
     if (categoryExists) {
       Alert.alert('Error', 'A category with this name already exists');
       return;
     }
-    
+
     // Create new category
     const newCategory = {
       id: Date.now().toString(),
@@ -130,26 +130,26 @@ const CategoriesSettings = () => {
       icon: selectedIcon,
       color: selectedColor
     };
-    
+
     // Add to categories
     const updatedCategories = [...categories, newCategory];
     setCategories(updatedCategories);
-    
+
     try {
       // Save to AsyncStorage
       await AsyncStorage.setItem('expenseCategories', JSON.stringify(updatedCategories));
-      
+
       // Close modal and reset form
       setAddCategoryVisible(false);
       resetNewCategoryForm();
-      
+
       Alert.alert('Success', 'Category added successfully');
     } catch (error) {
       console.error('Error saving category:', error);
       Alert.alert('Error', 'Failed to save category');
     }
   };
-  
+
   // Delete category
   const handleDeleteCategory = (categoryId) => {
     Alert.alert(
@@ -168,20 +168,20 @@ const CategoriesSettings = () => {
               // Find the category to be deleted
               const categoryToDelete = categories.find(cat => cat.id === categoryId);
               if (!categoryToDelete) return;
-              
+
               // Make sure we're not deleting the last remaining category
               if (categories.length <= 1) {
                 Alert.alert('Error', 'Cannot delete the last category. At least one category must remain.');
                 return;
               }
-              
+
               // Filter out the category with the specified ID
               const updatedCategories = categories.filter(category => category.id !== categoryId);
               setCategories(updatedCategories);
-              
+
               // Save updated categories to AsyncStorage
               await AsyncStorage.setItem('expenseCategories', JSON.stringify(updatedCategories));
-              
+
               Alert.alert('Success', `Category "${categoryToDelete.name}" deleted successfully`);
             } catch (error) {
               console.error('Error deleting category:', error);
@@ -192,7 +192,7 @@ const CategoriesSettings = () => {
       ]
     );
   };
-  
+
   // Render category item
   const renderCategoryItem = ({ item }) => (
     <View style={styles.categoryItem}>
@@ -202,7 +202,7 @@ const CategoriesSettings = () => {
         </View>
         <Text style={styles.categoryName}>{item.name}</Text>
       </View>
-      
+
       <TouchableOpacity
         style={styles.deleteButton}
         onPress={() => handleDeleteCategory(item.id)}
@@ -215,17 +215,17 @@ const CategoriesSettings = () => {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
           activeOpacity={0.7}
         >
           <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
-        
+
         <Text style={styles.screenTitle}>Categories</Text>
-        
-        <TouchableOpacity 
+
+        <TouchableOpacity
           style={styles.addButton}
           onPress={openAddCategoryModal}
           activeOpacity={0.7}
@@ -233,7 +233,7 @@ const CategoriesSettings = () => {
           <Ionicons name="add" size={24} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
-      
+
       <View style={styles.searchContainer}>
         <Ionicons name="search" size={20} color="#666666" style={styles.searchIcon} />
         <TextInput
@@ -253,7 +253,7 @@ const CategoriesSettings = () => {
           </TouchableOpacity>
         )}
       </View>
-      
+
       {filteredCategories.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Ionicons name="folder-open-outline" size={80} color="#333333" />
@@ -280,7 +280,7 @@ const CategoriesSettings = () => {
           showsVerticalScrollIndicator={false}
         />
       )}
-      
+
       {/* Add Category Modal */}
       <Modal
         animationType="slide"
@@ -299,7 +299,7 @@ const CategoriesSettings = () => {
                 <Ionicons name="close" size={24} color="#FFFFFF" />
               </TouchableOpacity>
             </View>
-            
+
             <ScrollView style={styles.modalBody}>
               {/* Category Preview */}
               <View style={styles.categoryPreview}>
@@ -317,7 +317,7 @@ const CategoriesSettings = () => {
                   {newCategoryName || 'Category Name'}
                 </Text>
               </View>
-              
+
               {/* Category Name Input */}
               <View style={styles.formGroup}>
                 <Text style={styles.formLabel}>Category Name</Text>
@@ -329,14 +329,14 @@ const CategoriesSettings = () => {
                   placeholderTextColor="#666666"
                 />
               </View>
-              
+
               {/* Icon Selection */}
               <View style={styles.formGroup}>
                 <Text style={styles.formLabel}>Select Icon</Text>
                 <View style={styles.iconsGrid}>
-                  {availableIcons.map((icon, index) => (
+                  {availableIcons.map((icon) => (
                     <TouchableOpacity
-                      key={index}
+                      key={`icon-${icon}`}
                       style={[
                         styles.iconOption,
                         selectedIcon === icon && styles.selectedIconOption
@@ -352,14 +352,14 @@ const CategoriesSettings = () => {
                   ))}
                 </View>
               </View>
-              
+
               {/* Color Selection */}
               <View style={styles.formGroup}>
                 <Text style={styles.formLabel}>Select Color</Text>
                 <View style={styles.colorsGrid}>
-                  {colorOptions.map((color, index) => (
+                  {colorOptions.map((color) => (
                     <TouchableOpacity
-                      key={index}
+                      key={`color-${color}`}
                       style={[
                         styles.colorOption,
                         { backgroundColor: color },
@@ -370,8 +370,8 @@ const CategoriesSettings = () => {
                   ))}
                 </View>
               </View>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={styles.addCategoryButton}
                 onPress={handleAddCategory}
               >

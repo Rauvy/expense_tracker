@@ -31,6 +31,8 @@
     },
     "plugins": [
       "expo-local-authentication"
-    ]
+    ],
+    "sdkVersion": "52.0.0",
+    "newArchEnabled": true
   }
 }

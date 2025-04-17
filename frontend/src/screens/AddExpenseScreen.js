@@ -42,45 +42,59 @@ const AddExpenseScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Load transactions
+  const fetchTransactions = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const data = await getTransactions({
+        limit: 50,
+        offset: 0
+      });
+
+      const transactionsWithStyle = (data.items || []).map((tx) => {
+        const categoryList = tx.type === 'income' ? incomeCategories : categories;
+        const categoryInfo = categoryList.find((cat) => cat.name === tx.category) || {
+          icon: 'ellipsis-horizontal',
+          color: COLORS.BLUE
+        };
+
+        return {
+          ...tx,
+          amount: Number(tx.amount) || 0,
+          icon: categoryInfo.icon,
+          color: categoryInfo.color,
+          paymentIcon: 'card',
+          paymentColor: COLORS.EXPENSE,
+          sourceIcon: 'person',
+          sourceColor: COLORS.INCOME,
+        };
+      });
+      setAllTransactions(transactionsWithStyle);
+    } catch (err) {
+      console.log('❌ Failed to load transactions:', err);
+      setError('Failed to load transactions');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Initial load and refresh on focus
   useEffect(() => {
-    const fetchTransactions = async () => {
-      if (!categories.length || !incomeCategories.length) return;
-  
-      setLoading(true);
-      setError(null);
-  
-      try {
-        const data = await getTransactions();
-        const transactionsWithStyle = (data.items || []).map((tx) => {
-          const categoryList = tx.type === 'income' ? incomeCategories : categories;
-          const categoryInfo = categoryList.find((cat) => cat.name === tx.category);
-  
-          return {
-            ...tx,
-            amount: Number(tx.amount) || 0,
-            icon: categoryInfo?.icon || 'ellipsis-horizontal',
-            color: categoryInfo?.color || COLORS.BLUE,
-            paymentIcon: 'card',
-            paymentColor: COLORS.EXPENSE,
-            sourceIcon: 'person',
-            sourceColor: COLORS.INCOME,
-          };
-        });
-        setAllTransactions(transactionsWithStyle);
-      } catch (err) {
-        console.log('❌ Failed to load transactions:', err);
-        setError('Failed to load transactions');
-      } finally {
-        setLoading(false);
-      }
-    };
-  
     fetchTransactions();
-  }, [categories, incomeCategories]);
-  
 
+    // Add a focus listener to reload transactions when screen comes into focus
+    const unsubscribe = navigation.addListener('focus', () => {
+      console.log('🔄 Refreshing transactions...');
+      fetchTransactions();
+    });
 
-  // Load categories from AsyncStorage
+    // Cleanup subscription on unmount
+    return unsubscribe;
+  }, [navigation]);
+
+  // Load categories separately
   useEffect(() => {
     const loadCategories = async () => {
       try {
@@ -90,7 +104,6 @@ const AddExpenseScreen = ({ navigation }) => {
         if (storedExpenseCategories) {
           setCategories(JSON.parse(storedExpenseCategories));
         } else {
-          // Set default categories if none found
           const defaultCategories = [
             { name: 'Food', icon: 'fast-food', color: '#FF9500' },
             { name: 'Transport', icon: 'car', color: '#5856D6' },
@@ -102,14 +115,12 @@ const AddExpenseScreen = ({ navigation }) => {
             { name: 'Other', icon: 'ellipsis-horizontal', color: '#8E8E93' },
           ];
           setCategories(defaultCategories);
-          await fetchTransactions();
           await AsyncStorage.setItem('expenseCategories', JSON.stringify(defaultCategories));
         }
 
         if (storedIncomeCategories) {
           setIncomeCategories(JSON.parse(storedIncomeCategories));
         } else {
-          // Set default income categories if none found
           const defaultIncomeCategories = [
             { name: 'Salary', icon: 'cash', color: '#4CD964' },
             { name: 'Freelance', icon: 'laptop', color: '#007AFF' },
@@ -125,12 +136,7 @@ const AddExpenseScreen = ({ navigation }) => {
     };
 
     loadCategories();
-
-    // Add a focus listener to reload categories when screen comes into focus
-    const unsubscribe = navigation.addListener('focus', loadCategories);
-
-    return unsubscribe;
-  }, [navigation]);
+  }, []);
 
   // Get current categories based on filter type
   const categoriesToShow = useCallback(() => {
@@ -312,7 +318,7 @@ const totalExpenses = allTransactions?.length
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
-            {/* Search Section */} 
+            {/* Search Section */}
             <View style={styles.filterSection}>
               <Text style={styles.filterSectionTitle}>Search</Text>
               <View style={styles.searchInputContainer}>
@@ -478,7 +484,7 @@ const totalExpenses = allTransactions?.length
     try {
       await deleteTransaction(selectedTransaction.id);
       // Remove the transaction from the list
-      setAllTransactions(prevTransactions => 
+      setAllTransactions(prevTransactions =>
         prevTransactions.filter(tx => tx.id !== selectedTransaction.id)
       );
       // Close the modal
@@ -997,7 +1003,7 @@ const styles = StyleSheet.create({
     borderRadius: 13,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 0, 
+    marginTop: 0,
   },
   noTransactionsContainer: {
     padding: 20,

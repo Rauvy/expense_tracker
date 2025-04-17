@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import api from './apiService';
+import baseApi from './baseApi';
 
 export const getAccessToken = async () => {
   return await AsyncStorage.getItem('access_token');
@@ -19,7 +19,7 @@ export const refreshToken = async () => {
   const refresh_token = await getRefreshToken();
   if (!refresh_token) throw new Error('No refresh token found');
 
-  const response = await api.post('/auth/refresh', { refresh_token });
+  const response = await baseApi.post('/auth/refresh', { refresh_token });
   const { access_token } = response.data;
 
   if (access_token) {

@@ -56,19 +56,28 @@ export const deleteTransaction = async (id) => {
   }
 };
 
-export const getPieChartData = async (transactionType = null) => {
+export const getPieChartData = async (transactionType = 'expense') => {
   try {
-    const pieEndpoint = getEndpoint('transactions', 'pie');
-    console.log("Calling api.get with URL:", pieEndpoint);
-    const response = await api.get(pieEndpoint, {
+    // Проверяем тип транзакции
+    if (transactionType && !['expense', 'income'].includes(transactionType)) {
+      throw new Error('Invalid transaction type. Must be either "expense" or "income"');
+    }
+
+    const response = await api.get(getEndpoint('analytics', 'pie'), {
       params: {
-        transaction_type: transactionType
+        transaction_type: transactionType // Возвращаем snake_case для FastAPI
       }
     });
+
+    // Проверяем и форматируем данные
+    if (!response.data) {
+      console.warn('Empty response received from pie chart endpoint');
+      return { data: [] };
+    }
+
     return response.data;
   } catch (error) {
+    console.error('Error in getPieChartData:', error);
     throw error;
   }
 };
-
-
