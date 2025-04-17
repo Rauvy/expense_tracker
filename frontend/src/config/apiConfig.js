@@ -49,6 +49,9 @@ const API_CONFIG = {
       create: '/accounts',
       update: '/accounts/:id',
       delete: '/accounts/:id'
+    },
+    ai: {
+      tips: '/ai/tips'
     }
   },
 

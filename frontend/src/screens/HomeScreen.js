@@ -175,6 +175,8 @@ const HomeScreen = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [recentTransactions, setRecentTransactions] = useState([]);
+  const [monthlySpent, setMonthlySpent] = useState(0);
+  const [monthlyEarned, setMonthlyEarned] = useState(0);
 
   // State for modals
   const [expenseModalVisible, setExpenseModalVisible] = useState(false);
@@ -675,6 +677,61 @@ const HomeScreen = ({ navigation }) => {
 
     fetchPieChartData();
   }, []);
+
+  const calculateMonthlyTotals = useCallback(async () => {
+    try {
+      const currentDate = new Date();
+      const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+      
+      console.log('Fetching transactions...');
+      // Get all transactions for the current month
+      const response = await getTransactions({
+        limit: 1000, // Get a large number to ensure we have all transactions
+      });
+
+      console.log('Received response:', response);
+
+      // Check if we have transactions in the response
+      if (!response || !response.items) {
+        console.log('No transactions found in response:', response);
+        return;
+      }
+
+      // Filter transactions for current month and calculate totals
+      const monthlyTransactions = response.items.filter(transaction => {
+        const transactionDate = new Date(transaction.date);
+        return transactionDate >= firstDayOfMonth;
+      });
+
+      console.log('Monthly transactions:', monthlyTransactions);
+
+      const spent = monthlyTransactions
+        .filter(t => t.type === 'expense')
+        .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+
+      const earned = monthlyTransactions
+        .filter(t => t.type === 'income')
+        .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+
+      console.log('Calculated totals - Spent:', spent, 'Earned:', earned);
+
+      setMonthlySpent(spent);
+      setMonthlyEarned(earned);
+    } catch (error) {
+      console.error('Error calculating monthly totals:', error);
+    }
+  }, []);
+
+  // Add useEffect to call calculateMonthlyTotals on mount and when transactions change
+  useEffect(() => {
+    calculateMonthlyTotals();
+  }, [calculateMonthlyTotals]);
+
+  // Add a refresh function that can be called when new transactions are added
+  const refreshMonthlyTotals = useCallback(() => {
+    calculateMonthlyTotals();
+  }, [calculateMonthlyTotals]);
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView

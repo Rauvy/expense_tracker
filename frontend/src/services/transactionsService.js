@@ -81,3 +81,21 @@ export const getPieChartData = async (transactionType = 'expense') => {
     throw error;
   }
 };
+
+export const getSmartTip = async () => {
+  try {
+    const response = await api.get(getEndpoint('ai', 'tips'));
+    // Process the tips to remove everything before the colon
+    const processedTips = response.data.tips.map(tip => {
+      const colonIndex = tip.indexOf(':');
+      return colonIndex !== -1 ? tip.substring(colonIndex + 1).trim() : tip;
+    });
+    return {
+      ...response.data,
+      tips: processedTips
+    };
+  } catch (error) {
+    console.error('Error fetching smart tip:', error);
+    throw error;
+  }
+};

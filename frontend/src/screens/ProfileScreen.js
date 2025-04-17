@@ -3,33 +3,40 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Platform, 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import * as LocalAuthentication from 'expo-local-authentication';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as FileSystem from 'expo-file-system';
+import { getUserProfile, getUserBalance, updateUserProfile } from '../services/userService';
+import { useNavigation } from '@react-navigation/native';
+import { TextInput as PaperTextInput } from 'react-native-paper';
 
-// Mock user data
+// Initial user data structure
 const initialUserData = {
-  name: 'John Doe',
-  firstName: 'John',
-  lastName: 'Doe',
-  email: 'john.doe@example.com',
-  joined: 'June 2023',
-  profilePhoto: null, // In a real app, this would be a uri to an image
+  name: '',
+  firstName: '',
+  lastName: '',
+  email: '',
+  joined: '',
+  profilePhoto: null,
   stats: {
-    totalSaved: 1245.50,
-    expenseCount: 145,
-    streakDays: 28
+    totalSaved: 0,
+    expenseCount: 0,
+    streakDays: 0
   }
 };
 
-const ProfileScreen = ({ navigation }) => {
+const ProfileScreen = () => {
+  const navigation = useNavigation();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [error, setError] = useState(null);
   const [userData, setUserData] = useState(initialUserData);
 
   // Profile editing states
   const [editProfileVisible, setEditProfileVisible] = useState(false);
-  const [firstName, setFirstName] = useState(userData.firstName);
-  const [lastName, setLastName] = useState(userData.lastName);
-  const [email, setEmail] = useState(userData.email);
+  const [editData, setEditData] = useState({
+    firstName: '',
+    lastName: '',
+    email: ''
+  });
 
   // Profile picture states
   const [profilePictureOptionsVisible, setProfilePictureOptionsVisible] = useState(false);
@@ -63,76 +70,92 @@ const ProfileScreen = ({ navigation }) => {
   const [selectedIcon, setSelectedIcon] = useState('');
   const [selectedColor, setSelectedColor] = useState('');
 
-  // Load categories on mount
   useEffect(() => {
-    const loadCategories = async () => {
-      try {
-        const savedExpenseCategories = await AsyncStorage.getItem('expenseCategories');
-        const savedIncomeCategories = await AsyncStorage.getItem('incomeCategories');
-
-        if (savedExpenseCategories) {
-          setCategories(JSON.parse(savedExpenseCategories));
-        }
-
-        if (savedIncomeCategories) {
-          setIncomeCategories(JSON.parse(savedIncomeCategories));
-        }
-      } catch (error) {
-        console.error('Error loading categories:', error);
-      }
-    };
-
-    loadCategories();
+    fetchUserData();
   }, []);
 
-  // Load budget period on mount
-  useEffect(() => {
-    const loadBudgetPeriod = async () => {
-      try {
-        const savedPeriod = await AsyncStorage.getItem('budgetPeriod');
-        if (savedPeriod) {
-          setBudgetPeriod(savedPeriod);
-        }
-      } catch (error) {
-        console.error('Error loading budget period:', error);
-      }
-    };
-
-    loadBudgetPeriod();
-  }, []);
-
-  const handleBudgetPeriodChange = async (period) => {
+  const fetchUserData = async () => {
     try {
-      setBudgetPeriod(period);
-      await AsyncStorage.setItem('budgetPeriod', period);
-      setBudgetPeriodModalVisible(false);
-    } catch (error) {
-      console.error('Error saving budget period:', error);
-      Alert.alert('Error', 'Failed to save budget period');
+      setIsLoading(true);
+      console.log('Starting to fetch user data...');
+      
+      const profile = await getUserProfile();
+      console.log('Profile data:', profile);
+      
+      // Update the user data with the profile information
+      setUserData(prev => ({
+        ...prev,
+        name: profile.name || '',
+        firstName: profile.first_name || '',
+        lastName: profile.last_name || '',
+        email: profile.email || '',
+        joined: profile.joined || '',
+        profilePhoto: profile.profile_photo || null,
+        stats: {
+          ...prev.stats,
+          totalSaved: profile.total_saved || 0,
+          expenseCount: profile.expense_count || 0,
+          streakDays: profile.streak_days || 0
+        }
+      }));
+      
+      setError(null);
+    } catch (err) {
+      console.error('Error in fetchUserData:', err);
+      setError(err.message || 'Failed to load user data');
+      Alert.alert(
+        'Error',
+        err.response?.data?.detail || 'Failed to load user data. Please try again later.'
+      );
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
+
+  const handleSave = async () => {
+    try {
+      setIsLoading(true);
+      const updatedProfile = await updateUserProfile({
+        first_name: editData.firstName,
+        last_name: editData.lastName,
+        email: editData.email
+      });
+
+      setUserData(prev => ({
+        ...prev,
+        ...updatedProfile,
+        firstName: updatedProfile.first_name,
+        lastName: updatedProfile.last_name
+      }));
+      
+      setIsEditing(false);
+      Alert.alert('Success', 'Profile updated successfully');
+    } catch (err) {
+      Alert.alert('Error', 'Failed to update profile. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setEditData({
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      email: userData.email
+    });
+    setIsEditing(false);
+  };
+
   const handleLogout = () => {
+    // Clear any stored tokens or user data
     navigation.reset({
       index: 0,
       routes: [{ name: 'Login' }],
     });
-  };
-
-  const handleSaveProfile = () => {
-    const updatedUserData = {
-      ...userData,
-      firstName,
-      lastName,
-      name: `${firstName} ${lastName}`,
-      email
-    };
-
-    setUserData(updatedUserData);
-    setEditProfileVisible(false);
-
-    // In a real app, you would make an API call here to update the user's profile
-    Alert.alert('Success', 'Profile updated successfully');
   };
 
   const takePhotoFromCamera = async () => {
@@ -355,6 +378,14 @@ const ProfileScreen = ({ navigation }) => {
     </View>
   );
 
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView
@@ -387,9 +418,9 @@ const ProfileScreen = ({ navigation }) => {
                 </View>
 
                 <View style={styles.profileInfo}>
-                  <Text style={styles.profileName}>{userData.name}</Text>
+                  <Text style={styles.profileName}>{userData.firstName} {userData.lastName}</Text>
                   <Text style={styles.profileEmail}>{userData.email}</Text>
-                  <Text style={styles.profileJoined}>Member since {userData.joined}</Text>
+                  <Text style={styles.profileJoined}>Member since 2025</Text>
                 </View>
               </View>
 
@@ -455,42 +486,38 @@ const ProfileScreen = ({ navigation }) => {
 
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>First Name</Text>
-                <TextInput
+                <PaperTextInput
                   style={styles.input}
-                  value={firstName}
-                  onChangeText={setFirstName}
-                  placeholder="Enter first name"
-                  placeholderTextColor="#666666"
+                  value={editData.firstName}
+                  onChangeText={(text) => setEditData(prev => ({ ...prev, firstName: text }))}
+                  mode="outlined"
                 />
               </View>
 
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>Last Name</Text>
-                <TextInput
+                <PaperTextInput
                   style={styles.input}
-                  value={lastName}
-                  onChangeText={setLastName}
-                  placeholder="Enter last name"
-                  placeholderTextColor="#666666"
+                  value={editData.lastName}
+                  onChangeText={(text) => setEditData(prev => ({ ...prev, lastName: text }))}
+                  mode="outlined"
                 />
               </View>
 
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>Email</Text>
-                <TextInput
+                <PaperTextInput
                   style={styles.input}
-                  value={email}
-                  onChangeText={setEmail}
-                  placeholder="Enter email"
-                  placeholderTextColor="#666666"
+                  value={editData.email}
+                  onChangeText={(text) => setEditData(prev => ({ ...prev, email: text }))}
+                  mode="outlined"
                   keyboardType="email-address"
-                  autoCapitalize="none"
                 />
               </View>
 
               <TouchableOpacity
                 style={styles.saveButton}
-                onPress={handleSaveProfile}
+                onPress={handleSave}
               >
                 <Text style={styles.saveButtonText}>Save Changes</Text>
               </TouchableOpacity>
@@ -684,7 +711,7 @@ const ProfileScreen = ({ navigation }) => {
 
                 <View style={styles.addCategoryForm}>
                   <Text style={styles.formTitle}>Add New Category</Text>
-                  <TextInput
+                  <PaperTextInput
                     style={styles.input}
                     placeholder="Category Name"
                     placeholderTextColor="#666666"

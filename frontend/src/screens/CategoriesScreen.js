@@ -110,6 +110,58 @@ const CategoriesScreen = ({ navigation }) => {
     }
   };
 
+  const renderCategoryList = () => {
+    const categories = activeTab === 'expense' ? expenseCategories : incomeCategories;
+    
+    return (
+      <View style={styles.categoriesList}>
+        {categories.map((category) => (
+          <TouchableOpacity
+            key={category.id}
+            style={[styles.categoryItem, { backgroundColor: category.color }]}
+            onPress={() => handleCategoryPress(category)}
+          >
+            <Ionicons name={category.icon} size={24} color="#FFFFFF" />
+            <Text style={styles.categoryName}>{category.name}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    );
+  };
+
+  const renderIconOptions = () => (
+    <View style={styles.iconOptions}>
+      {availableIcons.map((icon) => (
+        <TouchableOpacity
+          key={icon}
+          style={[
+            styles.iconOption,
+            selectedIcon === icon && styles.selectedIconOption
+          ]}
+          onPress={() => setSelectedIcon(icon)}
+        >
+          <Ionicons name={icon} size={24} color={selectedIcon === icon ? '#FFFFFF' : '#666666'} />
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+
+  const renderColorOptions = () => (
+    <View style={styles.colorOptions}>
+      {colorOptions.map((color) => (
+        <TouchableOpacity
+          key={color}
+          style={[
+            styles.colorOption,
+            { backgroundColor: color },
+            selectedColor === color && styles.selectedColorOption
+          ]}
+          onPress={() => setSelectedColor(color)}
+        />
+      ))}
+    </View>
+  );
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
