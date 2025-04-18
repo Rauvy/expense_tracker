@@ -437,7 +437,7 @@ const SettingsScreen = () => {
             
             <ScrollView>
               <View style={styles.notificationSectionHeader}>
-                <Ionicons name="notifications" size={22} color="#276EF1" />
+                <Ionicons name="notifications" size={22} color="#D26A68" />
                 <Text style={styles.notificationSectionTitle}>Transaction Alerts</Text>
               </View>
               
@@ -449,7 +449,7 @@ const SettingsScreen = () => {
                 <Switch
                   value={expenseAlerts}
                   onValueChange={setExpenseAlerts}
-                  trackColor={{ false: '#333333', true: '#276EF1' }}
+                  trackColor={{ false: '#333333', true: '#D26A68' }}
                   thumbColor="#FFFFFF"
                 />
               </View>
@@ -462,13 +462,13 @@ const SettingsScreen = () => {
                 <Switch
                   value={budgetAlerts}
                   onValueChange={setBudgetAlerts}
-                  trackColor={{ false: '#333333', true: '#276EF1' }}
+                  trackColor={{ false: '#333333', true: '#D26A68' }}
                   thumbColor="#FFFFFF"
                 />
               </View>
               
               <View style={styles.notificationSectionHeader}>
-                <Ionicons name="document-text" size={22} color="#276EF1" />
+                <Ionicons name="document-text" size={22} color="#D26A68" />
                 <Text style={styles.notificationSectionTitle}>Reports & Summaries</Text>
               </View>
               
@@ -480,13 +480,13 @@ const SettingsScreen = () => {
                 <Switch
                   value={weeklyReports}
                   onValueChange={setWeeklyReports}
-                  trackColor={{ false: '#333333', true: '#276EF1' }}
+                  trackColor={{ false: '#333333', true: '#D26A68' }}
                   thumbColor="#FFFFFF"
                 />
               </View>
               
               <View style={styles.notificationSectionHeader}>
-                <Ionicons name="alarm" size={22} color="#276EF1" />
+                <Ionicons name="alarm" size={22} color="#D26A68" />
                 <Text style={styles.notificationSectionTitle}>Reminders</Text>
               </View>
               
@@ -498,7 +498,7 @@ const SettingsScreen = () => {
                 <Switch
                   value={reminderAlerts}
                   onValueChange={setReminderAlerts}
-                  trackColor={{ false: '#333333', true: '#276EF1' }}
+                  trackColor={{ false: '#333333', true: '#D26A68' }}
                   thumbColor="#FFFFFF"
                 />
               </View>
@@ -804,7 +804,7 @@ const SettingsScreen = () => {
                 >
                   <Text style={styles.optionText}>{language}</Text>
                   {currentLanguage === language && (
-                    <Ionicons name="checkmark-circle" size={22} color="#276EF1" />
+                    <Ionicons name="checkmark-circle" size={22} color="#D26A68" />
                   )}
                 </TouchableOpacity>
               ))}
@@ -846,7 +846,7 @@ const SettingsScreen = () => {
                   </View>
                   
                   {currentTheme === theme.id && (
-                    <Ionicons name="checkmark-circle" size={22} color="#276EF1" />
+                    <Ionicons name="checkmark-circle" size={22} color="#D26A68" />
                   )}
                 </TouchableOpacity>
               ))}
@@ -891,7 +891,7 @@ const SettingsScreen = () => {
                 </View>
                 
                 {budgetPeriod === 'week' && (
-                  <Ionicons name="checkmark-circle" size={22} color="#276EF1" />
+                  <Ionicons name="checkmark-circle" size={22} color="#D26A68" />
                 )}
               </TouchableOpacity>
               
@@ -907,7 +907,7 @@ const SettingsScreen = () => {
                 </View>
                 
                 {budgetPeriod === 'month' && (
-                  <Ionicons name="checkmark-circle" size={22} color="#276EF1" />
+                  <Ionicons name="checkmark-circle" size={22} color="#D26A68" />
                 )}
               </TouchableOpacity>
               
@@ -923,7 +923,7 @@ const SettingsScreen = () => {
                 </View>
                 
                 {budgetPeriod === 'quarter' && (
-                  <Ionicons name="checkmark-circle" size={22} color="#276EF1" />
+                  <Ionicons name="checkmark-circle" size={22} color="#D26A68" />
                 )}
               </TouchableOpacity>
               
@@ -939,7 +939,7 @@ const SettingsScreen = () => {
                 </View>
                 
                 {budgetPeriod === 'year' && (
-                  <Ionicons name="checkmark-circle" size={22} color="#276EF1" />
+                  <Ionicons name="checkmark-circle" size={22} color="#D26A68" />
                 )}
               </TouchableOpacity>
               
@@ -1136,7 +1136,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   saveButton: {
-    backgroundColor: '#276EF1',
+    backgroundColor: '#D26A68',
     borderRadius: 12,
     padding: 15,
     alignItems: 'center',
@@ -1157,7 +1157,7 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   forgotPasswordText: {
-    color: '#276EF1',
+    color: '#D26A68',
     fontSize: 14,
   },
   
@@ -1176,7 +1176,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   activeTabButton: {
-    backgroundColor: '#276EF1',
+    backgroundColor: '#D26A68',
   },
   tabButtonText: {
     color: '#FFFFFF',
@@ -1259,7 +1259,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   selectedIconOption: {
-    borderColor: '#276EF1',
+    borderColor: '#D26A68',
     borderWidth: 2,
   },
   colorsContainer: {
@@ -1280,7 +1280,7 @@ const styles = StyleSheet.create({
   },
   addButton: {
     marginTop: 20,
-    backgroundColor: '#276EF1',
+    backgroundColor: '#D26A68',
     borderRadius: 10,
     paddingVertical: 14,
     alignItems: 'center',

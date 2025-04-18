@@ -465,7 +465,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#276EF1',
+    backgroundColor: '#D26A68',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -548,7 +548,7 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   addCardButton: {
-    backgroundColor: '#276EF1',
+    backgroundColor: '#D26A68',
     borderRadius: 12,
     paddingVertical: 15,
     paddingHorizontal: 25,
@@ -652,7 +652,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   addCardSubmitButton: {
-    backgroundColor: '#276EF1',
+    backgroundColor: '#D26A68',
     borderRadius: 12,
     padding: 15,
     alignItems: 'center',
@@ -754,7 +754,7 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   subscribeButton: {
-    backgroundColor: '#276EF1',
+    backgroundColor: '#D26A68',
     borderRadius: 12,
     padding: 15,
     alignItems: 'center',

@@ -379,7 +379,7 @@ const SimpleLineChart = ({ data, labels, width, height }) => {
           {/* Line path */}
           <Path
             d={path}
-            stroke="#276EF1"
+            stroke="#D26A68"
             strokeWidth="2"
             fill="none"
           />
@@ -393,8 +393,8 @@ const SimpleLineChart = ({ data, labels, width, height }) => {
                 cx={getX(index)}
                 cy={getY(value)}
                 r={activePointIndex === index ? 6 : 4}
-                fill={activePointIndex === index ? "#fff" : "#276EF1"}
-                stroke="#276EF1"
+                fill={activePointIndex === index ? "#fff" : "#D26A68"}
+                stroke="#D26A68"
                 strokeWidth="2"
               />
             );
@@ -408,7 +408,7 @@ const SimpleLineChart = ({ data, labels, width, height }) => {
                 cy={getY(data[activePointIndex])}
                 r="6"
                 fill="#fff"
-                stroke="#276EF1"
+                stroke="#D26A68"
                 strokeWidth="2"
               />
               <SvgText
@@ -1258,7 +1258,7 @@ const StatisticsScreen = () => {
                 <View style={styles.legendItem}>
                   <View style={[
                     styles.legendDot,
-                    { backgroundColor: statType === 'expense' ? '#276EF1' : '#4BC0C0' }
+                    { backgroundColor: statType === 'expense' ? '#D26A68' : '#4BC0C0' }
                   ]} />
                   <Text style={styles.legendText}>
                     {statType === 'expense'
@@ -1447,7 +1447,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#1a1a1a',
   },
   activeTimeframeButton: {
-    backgroundColor: '#276EF1',
+    backgroundColor: '#D26A68',
   },
   timeframeText: {
     color: '#888888',

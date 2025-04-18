@@ -16,7 +16,7 @@ const COLORS = {
   SHOPPING: '#FFCE56',
   BILLS: '#4BC0C0',
   ENTERTAINMENT: '#9966FF',
-  BLUE: '#276EF1'
+  BLUE: '#D26A68'
 };
 
 const AddExpenseScreen = ({ navigation }) => {
@@ -152,7 +152,7 @@ const AddExpenseScreen = ({ navigation }) => {
     const categoryList = filterType === 'income' ? incomeCategories : categories;
     const category = categoryList.find(cat => cat.name === categoryName);
 
-    return category || { color: '#276EF1', icon: 'ellipsis-horizontal' };
+    return category || { color: '#D26A68', icon: 'ellipsis-horizontal' };
   }, [categories, incomeCategories, filterType]);
 
   // Filter transactions based on selected type and advanced filters

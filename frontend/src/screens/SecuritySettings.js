@@ -375,7 +375,7 @@ const SecuritySettings = () => {
       <Switch
         value={value}
         onValueChange={onToggle}
-        trackColor={{ false: '#333333', true: '#276EF1' }}
+        trackColor={{ false: '#333333', true: '#D26A68' }}
         thumbColor="#FFFFFF"
       />
     </View>
@@ -638,7 +638,7 @@ const SecuritySettings = () => {
                   </View>
                   
                   {appLockTimeout === option.id && (
-                    <Ionicons name="checkmark-circle" size={22} color="#276EF1" />
+                    <Ionicons name="checkmark-circle" size={22} color="#D26A68" />
                   )}
                 </TouchableOpacity>
               ))}
@@ -798,7 +798,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   saveButton: {
-    backgroundColor: '#276EF1',
+    backgroundColor: '#D26A68',
     borderRadius: 12,
     padding: 15,
     alignItems: 'center',

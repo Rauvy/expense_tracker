@@ -414,7 +414,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#276EF1',
+    backgroundColor: '#D26A68',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -456,7 +456,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   clearSearchText: {
-    color: '#276EF1',
+    color: '#D26A68',
     fontSize: 16,
   },
   categoriesList: {
@@ -567,7 +567,7 @@ const styles = StyleSheet.create({
     margin: 5,
   },
   selectedIconOption: {
-    backgroundColor: '#276EF1',
+    backgroundColor: '#D26A68',
   },
   colorsGrid: {
     flexDirection: 'row',
@@ -584,7 +584,7 @@ const styles = StyleSheet.create({
     borderColor: '#FFFFFF',
   },
   addCategoryButton: {
-    backgroundColor: '#276EF1',
+    backgroundColor: '#D26A68',
     borderRadius: 12,
     paddingVertical: 15,
     alignItems: 'center',

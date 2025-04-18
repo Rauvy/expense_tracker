@@ -496,7 +496,7 @@ const AccountsScreen = ({ navigation }) => {
                 <Ionicons
                   name="business"
                   size={22}
-                  color={accountType === 'bank' ? "#276EF1" : "#FFFFFF"}
+                  color={accountType === 'bank' ? "#D26A68" : "#FFFFFF"}
                 />
                 <Text style={[
                   styles.accountTypeText,
@@ -516,7 +516,7 @@ const AccountsScreen = ({ navigation }) => {
                 <Ionicons
                   name="card"
                   size={22}
-                  color={accountType === 'card' ? "#276EF1" : "#FFFFFF"}
+                  color={accountType === 'card' ? "#D26A68" : "#FFFFFF"}
                 />
                 <Text style={[
                   styles.accountTypeText,
@@ -536,7 +536,7 @@ const AccountsScreen = ({ navigation }) => {
                 <Ionicons
                   name="logo-paypal"
                   size={22}
-                  color={accountType === 'paypal' ? "#276EF1" : "#FFFFFF"}
+                  color={accountType === 'paypal' ? "#D26A68" : "#FFFFFF"}
                 />
                 <Text style={[
                   styles.accountTypeText,
@@ -556,7 +556,7 @@ const AccountsScreen = ({ navigation }) => {
                 <Ionicons
                   name="logo-bitcoin"
                   size={22}
-                  color={accountType === 'crypto' ? "#276EF1" : "#FFFFFF"}
+                  color={accountType === 'crypto' ? "#D26A68" : "#FFFFFF"}
                 />
                 <Text style={[
                   styles.accountTypeText,

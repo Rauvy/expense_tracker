@@ -209,10 +209,10 @@ const HomeScreen = ({ navigation }) => {
   const [selectedPaymentIcon, setSelectedPaymentIcon] = useState(null);
   const [selectedIncomeIcon, setSelectedIncomeIcon] = useState(null);
   const [selectedSourceIcon, setSelectedSourceIcon] = useState(null);
-  const [selectedColor, setSelectedColor] = useState('#276EF1');
-  const [selectedPaymentColor, setSelectedPaymentColor] = useState('#276EF1');
-  const [selectedIncomeColor, setSelectedIncomeColor] = useState('#276EF1');
-  const [selectedSourceColor, setSelectedSourceColor] = useState('#276EF1');
+  const [selectedColor, setSelectedColor] = useState('#D26A68');
+  const [selectedPaymentColor, setSelectedPaymentColor] = useState('#D26A68');
+  const [selectedIncomeColor, setSelectedIncomeColor] = useState('#D26A68');
+  const [selectedSourceColor, setSelectedSourceColor] = useState('#D26A68');
 
   // State for categories and payment methods
   const [categories, setCategories] = useState([
@@ -265,7 +265,7 @@ const HomeScreen = ({ navigation }) => {
   // Add state for financial overview
   const [activeCardIndex, setActiveCardIndex] = useState(0);
   const financialCards = [
-    { title: 'Net Worth', value: 2450.00, trend: '+3.2%', color: '#276EF1' },
+    { title: 'Net Worth', value: 2450.00, trend: '+3.2%', color: '#D26A68' },
     { title: 'Assets', value: 16750.00, trend: '+2.1%', color: '#4BC0C0' },
     { title: 'Liabilities', value: 14300.00, trend: '-1.5%', color: '#FF6384' }
   ];
@@ -785,7 +785,7 @@ const HomeScreen = ({ navigation }) => {
           {/* Monthly Stats Section */}
           <View style={styles.monthlyStatsHeader}>
             <Text style={styles.sectionTitle}>Monthly Statistics</Text>
-            <Ionicons name="stats-chart" size={22} color="#276EF1" />
+            <Ionicons name="stats-chart" size={22} color="#D26A68" />
           </View>
 
           {/* Tiles for Monthly Earned and Monthly Spent */}
@@ -1020,7 +1020,7 @@ const HomeScreen = ({ navigation }) => {
                   style={styles.addCategoryButton}
                   onPress={() => setCustomCategoryModalVisible(true)}
                 >
-                  <Ionicons name="add" size={20} color="#276EF1" />
+                  <Ionicons name="add" size={20} color="#D26A68" />
                   <Text style={styles.addCategoryText}>Custom</Text>
                 </TouchableOpacity>
               </View>
@@ -1047,7 +1047,7 @@ const HomeScreen = ({ navigation }) => {
                   style={styles.addCategoryButton}
                   onPress={() => setCustomPaymentMethodModalVisible(true)}
                 >
-                  <Ionicons name="add" size={20} color="#276EF1" />
+                  <Ionicons name="add" size={20} color="#D26A68" />
                   <Text style={styles.addCategoryText}>Custom</Text>
                 </TouchableOpacity>
               </View>
@@ -1135,7 +1135,7 @@ const HomeScreen = ({ navigation }) => {
                   style={styles.addCategoryButton}
                   onPress={() => setCustomIncomeCategoryModalVisible(true)}
                 >
-                  <Ionicons name="add" size={20} color="#276EF1" />
+                  <Ionicons name="add" size={20} color="#D26A68" />
                   <Text style={styles.addCategoryText}>Custom</Text>
                 </TouchableOpacity>
               </View>
@@ -1162,7 +1162,7 @@ const HomeScreen = ({ navigation }) => {
                   style={styles.addCategoryButton}
                   onPress={() => setCustomIncomeSourceModalVisible(true)}
                 >
-                  <Ionicons name="add" size={20} color="#276EF1" />
+                  <Ionicons name="add" size={20} color="#D26A68" />
                   <Text style={styles.addCategoryText}>Custom</Text>
                 </TouchableOpacity>
               </View>
@@ -1235,13 +1235,13 @@ const HomeScreen = ({ navigation }) => {
               </View>
 
               <TouchableOpacity
-                style={[styles.addButton, { backgroundColor: selectedColor || '#276EF1' }]}
+                style={[styles.addButton, { backgroundColor: selectedColor || '#D26A68' }]}
                 onPress={() => {
                   if (customCategoryName.trim() && selectedIcon) {
                     saveCategory({
                       name: customCategoryName.trim(),
                       icon: selectedIcon,
-                      color: selectedColor || '#276EF1'
+                      color: selectedColor || '#D26A68'
                     });
                   }
                 }}
@@ -1310,13 +1310,13 @@ const HomeScreen = ({ navigation }) => {
               </View>
 
               <TouchableOpacity
-                style={[styles.addButton, { backgroundColor: selectedPaymentColor || '#276EF1' }]}
+                style={[styles.addButton, { backgroundColor: selectedPaymentColor || '#D26A68' }]}
                 onPress={() => {
                   if (customPaymentMethodName.trim() && selectedPaymentIcon) {
                     const newPaymentMethod = {
                       name: customPaymentMethodName.trim(),
                       icon: selectedPaymentIcon,
-                      color: selectedPaymentColor || '#276EF1'
+                      color: selectedPaymentColor || '#D26A68'
                     };
 
                     setPaymentMethods([...paymentMethods, newPaymentMethod]);
@@ -2255,7 +2255,7 @@ const styles = StyleSheet.create({
   },
   addCategoryText: {
     fontSize: 14,
-    color: '#276EF1',
+    color: '#D26A68',
     marginLeft: 5,
   },
   addButton: {
@@ -2695,7 +2695,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   editTransactionButton: {
-    backgroundColor: '#276EF1',
+    backgroundColor: '#D26A68',
     width: '100%',
     paddingVertical: 15,
     borderRadius: 12,
@@ -2753,7 +2753,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
   },
   paginationDotActive: {
-    backgroundColor: '#276EF1',
+    backgroundColor: '#D26A68',
     width: 8,
     height: 8,
     borderRadius: 4,
