@@ -336,19 +336,19 @@ const CategoriesSettings = () => {
                 <View style={styles.iconsGrid}>
                   {availableIcons.map((icon) => (
                     <TouchableOpacity
-                      key={`icon-${icon}`}
-                      style={[
-                        styles.iconOption,
-                        selectedIcon === icon && styles.selectedIconOption
-                      ]}
-                      onPress={() => setSelectedIcon(icon)}
-                    >
-                      <Ionicons
-                        name={icon}
-                        size={24}
-                        color={selectedIcon === icon ? '#FFFFFF' : '#CCCCCC'}
-                      />
-                    </TouchableOpacity>
+                    key={`icon-${icon}`}
+                    style={[
+                      styles.iconOption,
+                      selectedIcon === icon && { backgroundColor: selectedColor || '#D26A68' }
+                    ]}
+                    onPress={() => setSelectedIcon(icon)}
+                  >
+                    <Ionicons
+                      name={icon}
+                      size={24}
+                      color={selectedIcon === icon ? '#FFFFFF' : '#CCCCCC'}
+                    />
+                  </TouchableOpacity>
                   ))}
                 </View>
               </View>
@@ -372,7 +372,10 @@ const CategoriesSettings = () => {
               </View>
 
               <TouchableOpacity
-                style={styles.addCategoryButton}
+                style={[
+                  styles.addCategoryButton,
+                  { backgroundColor: selectedColor || '#D26A68' }
+                ]}
                 onPress={handleAddCategory}
               >
                 <Text style={styles.addCategoryButtonText}>Add Category</Text>
@@ -567,7 +570,7 @@ const styles = StyleSheet.create({
     margin: 5,
   },
   selectedIconOption: {
-    backgroundColor: '#D26A68',
+    // backgroundColor: '#D26A68',
   },
   colorsGrid: {
     flexDirection: 'row',
@@ -584,7 +587,7 @@ const styles = StyleSheet.create({
     borderColor: '#FFFFFF',
   },
   addCategoryButton: {
-    backgroundColor: '#D26A68',
+    // backgroundColor: '#D26A68',
     borderRadius: 12,
     paddingVertical: 15,
     alignItems: 'center',
