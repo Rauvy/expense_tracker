@@ -37,11 +37,33 @@ const availableIcons = [
   'flower', 'leaf', 'paw', 'nutrition', 'basketball', 'football'
 ];
 
+// const colorOptions = [
+//   '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+//   '#FF9F40', '#FF6B6B', '#C9CB3F', '#4FFBDF', '#975FFF',
+//   '#E85D75', '#5DA5E8', '#F9F871', '#00B8A9', '#F08A5D',
+//   '#B83B5E', '#6A2C70', '#08D9D6', '#FF2E63', '#252A34'
+// ];
+
 const colorOptions = [
-  '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
-  '#FF9F40', '#FF6B6B', '#C9CB3F', '#4FFBDF', '#975FFF',
-  '#E85D75', '#5DA5E8', '#F9F871', '#00B8A9', '#F08A5D',
-  '#B83B5E', '#6A2C70', '#08D9D6', '#FF2E63', '#252A34'
+  '#E57373', // dark pastel red
+  '#4DB6AC', // muted teal
+  '#64B5F6', // medium soft blue
+  '#81C784', // soft green
+  '#F48FB1', // dusty pink
+  '#A1887F', // warm taupe
+  '#BA68C8', // muted lavender
+  '#F06292', // medium rose
+  '#7986CB', // faded indigo
+  '#9575CD', // medium violet
+  '#FF8A65', // pastel orange
+  '#4DD0E1', // darker aqua
+  '#4FC3F7', // ocean blue
+  '#FF8C94', // richer light red
+  '#FFD54F', // strong pastel yellow
+  '#AED581', // olive pastel
+  '#B39DDB', // gentle purple
+  '#A5D6A7', // medium mint
+  '#CE93D8'  // rich soft purple
 ];
 
 const CategoriesSettings = () => {
