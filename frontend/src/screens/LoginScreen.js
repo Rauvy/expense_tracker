@@ -191,7 +191,7 @@ const LoginScreen = ({ navigation }) => {
                 <Ionicons 
                   name="logo-google" 
                   size={24} 
-                  color="#4285F4" 
+                  color="#FFFFFF" 
                   style={styles.googleIcon}
                 />
                 <Text style={styles.googleButtonText}>Sign in with Google</Text>
@@ -297,7 +297,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#1A1A1A', // темный фон
+    borderColor: '#D26A68',     // фирменный цвет
+    borderWidth: 1.5,
     borderRadius: 10,
     padding: 15,
     marginBottom: 10,
@@ -306,7 +308,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   googleButtonText: {
-    color: '#000000',
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
   },
