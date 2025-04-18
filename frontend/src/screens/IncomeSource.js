@@ -339,7 +339,7 @@ const IncomeSource = () => {
                       key={`icon-${icon}`}
                       style={[
                         styles.iconOption,
-                        selectedIcon === icon && styles.selectedIconOption
+                        selectedIcon === icon && { backgroundColor: selectedColor || '#D26A68' }
                       ]}
                       onPress={() => setSelectedIcon(icon)}
                     >
@@ -372,7 +372,10 @@ const IncomeSource = () => {
               </View>
               
               <TouchableOpacity 
-                style={styles.addSourceButton}
+                style={[
+                  styles.addSourceButton,
+                  { backgroundColor: selectedColor || '#D26A68' }
+                ]}
                 onPress={handleAddSource}
               >
                 <Text style={styles.addSourceButtonText}>Add Income Source</Text>
