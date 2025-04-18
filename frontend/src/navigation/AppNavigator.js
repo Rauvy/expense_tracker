@@ -37,7 +37,7 @@ const MainAppNavigator = () => {
           height: Platform.OS === 'ios' ? 70 : 55,
           safeAreaInsets: { bottom: 0 }
         },
-        tabBarActiveTintColor: '#276EF1',
+        tabBarActiveTintColor: '#D26A68',
         tabBarInactiveTintColor: '#666666',
         headerShown: false,
         tabBarLabelStyle: {
@@ -105,8 +105,8 @@ const AppNavigator = () => {
         <Stack.Screen name="ProfileSettings" component={ProfileSettings} />
         <Stack.Screen name="SecuritySettings" component={SecuritySettings} />
         <Stack.Screen name="BackUpSettings" component={BackUpSettings} />
-        <Stack.Screen name="CategoriesSettings" component={CategoriesSettings} />
-        <Stack.Screen name="Categories" component={CategoriesScreen} />
+        <Stack.Screen name="Categories" component={CategoriesSettings} />
+        <Stack.Screen name="CategoriesSettings" component={CategoriesScreen} />
         <Stack.Screen name="IncomeSource" component={IncomeSource} />
         <Stack.Screen name="PaymentSettings" component={PaymentSettings} />
         <Stack.Screen name="Subscription" component={SubscriptionScreen} />
