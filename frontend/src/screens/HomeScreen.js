@@ -257,11 +257,15 @@ const HomeScreen = ({ navigation }) => {
 
   // Add state for financial overview
   const [activeCardIndex, setActiveCardIndex] = useState(0);
-  const financialCards = [
-    { title: 'Net Worth', value: 2450.00, trend: '+3.2%', color: '#D26A68' },
-    { title: 'Assets', value: 16750.00, trend: '+2.1%', color: '#4BC0C0' },
-    { title: 'Liabilities', value: 14300.00, trend: '-1.5%', color: '#FF6384' }
-  ];
+  const [financialCards, setFinancialCards] = useState([
+    { title: 'Net Worth', value: 0, trend: '0%', color: '#D26A68' },
+    { title: 'Assets', value: 0, trend: '0%', color: '#4BC0C0' },
+    { title: 'Liabilities', value: 0, trend: '0%', color: '#FF6384' }
+  ]);
+
+  const formatAmount = (value) => {
+    return Number(value).toFixed(2);
+  };
 
   // Set up refs for the carousel
   const carouselRef = useRef(null);
@@ -280,6 +284,35 @@ const HomeScreen = ({ navigation }) => {
       scrollX.removeListener(listener);
     };
   }, [scrollX, activeCardIndex, financialCards.length]);
+
+  const calculateFinancialOverview = async () => {
+    try {
+      const response = await getTransactions({ limit: 1000 });
+      const transactions = response.items || [];
+  
+      const assetsTotal = transactions
+        .filter(t => t.type === 'income')
+        .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+  
+      const liabilitiesTotal = transactions
+        .filter(t => t.type === 'expense')
+        .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+  
+      const netWorth = assetsTotal - liabilitiesTotal;
+  
+      setFinancialCards([
+        { title: 'Net Worth', value: netWorth, trend: '', color: '#D26A68' },
+        { title: 'Assets', value: assetsTotal, trend: '', color: '#4BC0C0' },
+        { title: 'Liabilities', value: liabilitiesTotal, trend: '', color: '#FF6384' }
+      ]);
+    } catch (err) {
+      console.error('Error calculating financial overview:', err);
+    }
+  };
+
+  useEffect(() => {
+    calculateFinancialOverview();
+  }, []);
 
   // Function to render financial card item
   const renderFinancialCard = ({ item, index }) => (
@@ -383,6 +416,7 @@ const HomeScreen = ({ navigation }) => {
       await fetchPieChartData();
       await calculateMonthlyTotals();
       await fetchRecentTransactions();
+      await calculateFinancialOverview();
     } catch (err) {
       Alert.alert('Error', 'Failed to add expense.');
     }
@@ -417,6 +451,7 @@ const HomeScreen = ({ navigation }) => {
       await fetchPieChartData();
       await calculateMonthlyTotals();
       await fetchRecentTransactions();
+      await calculateFinancialOverview();
     } catch (err) {
       Alert.alert('Error', 'Failed to add income.');
     }
