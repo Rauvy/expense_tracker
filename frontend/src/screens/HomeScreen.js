@@ -1018,7 +1018,14 @@ const HomeScreen = ({ navigation }) => {
 
                 <TouchableOpacity
                   style={styles.addCategoryButton}
-                  onPress={() => setCustomCategoryModalVisible(true)}
+                  onPress={() => {
+                    setExpenseModalVisible(false);
+                    setExpenseAmount('');
+                    setExpenseDescription('');
+                    setSelectedCategory(null);
+                    setSelectedPaymentMethod(null);
+                    navigation.navigate('Categories');
+                  }}
                 >
                   <Ionicons name="add" size={20} color="#D26A68" />
                   <Text style={styles.addCategoryText}>Custom</Text>
@@ -1045,7 +1052,14 @@ const HomeScreen = ({ navigation }) => {
 
                 <TouchableOpacity
                   style={styles.addCategoryButton}
-                  onPress={() => setCustomPaymentMethodModalVisible(true)}
+                  onPress={() => {
+                    setExpenseModalVisible(false);
+                    setExpenseAmount('');
+                    setExpenseDescription('');
+                    setSelectedCategory(null);
+                    setSelectedPaymentMethod(null);
+                    // navigation.navigate('PaymentMethod'); нема страницы пока что 
+                  }}
                 >
                   <Ionicons name="add" size={20} color="#D26A68" />
                   <Text style={styles.addCategoryText}>Custom</Text>
@@ -1133,7 +1147,14 @@ const HomeScreen = ({ navigation }) => {
 
                 <TouchableOpacity
                   style={styles.addCategoryButton}
-                  onPress={() => setCustomIncomeCategoryModalVisible(true)}
+                  onPress={() => {
+                    setIncomeModalVisible(false);
+                    setIncomeAmount('');
+                    setIncomeDescription('');
+                    setSelectedIncomeCategory(null);
+                    setSelectedIncomeSource(null);
+                    navigation.navigate('IncomeSource');
+                  }}
                 >
                   <Ionicons name="add" size={20} color="#D26A68" />
                   <Text style={styles.addCategoryText}>Custom</Text>
@@ -1160,7 +1181,14 @@ const HomeScreen = ({ navigation }) => {
 
                 <TouchableOpacity
                   style={styles.addCategoryButton}
-                  onPress={() => setCustomIncomeSourceModalVisible(true)}
+                  onPress={() => {
+                    setIncomeModalVisible(false);
+                    setIncomeAmount('');
+                    setIncomeDescription('');
+                    setSelectedIncomeCategory(null);
+                    setSelectedIncomeSource(null);
+                    navigation.navigate('IncomeSource');
+                  }}
                 >
                   <Ionicons name="add" size={20} color="#D26A68" />
                   <Text style={styles.addCategoryText}>Custom</Text>
@@ -1179,7 +1207,7 @@ const HomeScreen = ({ navigation }) => {
       </Modal>
 
       {/* Custom Category Modal */}
-      <Modal
+      {/* <Modal
         animationType="slide"
         transparent={true}
         visible={customCategoryModalVisible}
@@ -1251,10 +1279,10 @@ const HomeScreen = ({ navigation }) => {
             </ScrollView>
           </View>
         </View>
-      </Modal>
+      </Modal> */}
 
       {/* Custom Payment Method Modal */}
-      <Modal
+      {/* <Modal
         animationType="slide"
         transparent={true}
         visible={customPaymentMethodModalVisible}
@@ -1334,10 +1362,10 @@ const HomeScreen = ({ navigation }) => {
             </ScrollView>
           </View>
         </View>
-      </Modal>
+      </Modal> */}
 
       {/* Custom Income Category Modal */}
-      <Modal
+      {/* <Modal
         animationType="slide"
         transparent={true}
         visible={customIncomeCategoryModalVisible}
@@ -1409,10 +1437,10 @@ const HomeScreen = ({ navigation }) => {
             </ScrollView>
           </View>
         </View>
-      </Modal>
+      </Modal> */}
 
       {/* Custom Income Source Modal */}
-      <Modal
+      {/* <Modal
         animationType="slide"
         transparent={true}
         visible={customIncomeSourceModalVisible}
@@ -1492,7 +1520,7 @@ const HomeScreen = ({ navigation }) => {
             </ScrollView>
           </View>
         </View>
-      </Modal>
+      </Modal> */}
 
       {/* Statistics Modal */}
       <Modal
