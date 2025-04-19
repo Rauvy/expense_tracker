@@ -30,13 +30,6 @@ const initialCategories = [
   { name: 'Entertainment', icon: 'film', color: '#D4A5A5' }, // Приглушенный розовый
 ];
 
-// Initial payment methods
-const initialPaymentMethods = [
-  { name: 'Credit Card', icon: 'card', color: '#FF6384' },
-  { name: 'Cash', icon: 'cash', color: '#4BC0C0' },
-  { name: 'Mobile Pay', icon: 'phone-portrait', color: '#9966FF' },
-];
-
 // Income categories
 const initialIncomeCategories = [
   { name: 'Salary', icon: 'cash', color: '#4BC0C0' },
@@ -226,14 +219,14 @@ const HomeScreen = ({ navigation }) => {
     { name: 'Other', icon: 'ellipsis-horizontal', color: '#8E8E93' },
   ]);
 
-  const [paymentMethods, setPaymentMethods] = useState(initialPaymentMethods);
+  const [paymentMethods, setPaymentMethods] = useState([]);
   const [incomeCategories, setIncomeCategories] = useState([
     { name: 'Salary', icon: 'cash', color: '#4CD964' },
     { name: 'Freelance', icon: 'laptop', color: '#007AFF' },
     { name: 'Investments', icon: 'trending-up', color: '#FFCC00' },
     { name: 'Gifts', icon: 'gift', color: '#FF2D55' },
   ]);
-  const [incomeSources, setIncomeSources] = useState(initialIncomeSources);
+  const [incomeSources, setIncomeSources] = useState([]);
 
   // Calculate percentages and prepare data
   const formattedPieChartData = useMemo(() => {
@@ -732,6 +725,62 @@ const HomeScreen = ({ navigation }) => {
     calculateMonthlyTotals();
   }, [calculateMonthlyTotals]);
 
+  useEffect(() => {
+    const loadPaymentMethods = async () => {
+      try {
+        const savedMethods = await AsyncStorage.getItem('paymentMethods');
+        
+        if (savedMethods) {
+          setPaymentMethods(JSON.parse(savedMethods));
+        } else {
+          const defaultPaymentMethods = [
+            { id: '1', name: 'Credit Card', icon: 'card', color: '#FF6384' },
+            { id: '2', name: 'Cash', icon: 'cash', color: '#4BC0C0' },
+            { id: '3', name: 'Mobile Pay', icon: 'phone-portrait', color: '#9966FF' },
+          ];
+          setPaymentMethods(defaultPaymentMethods);
+          await AsyncStorage.setItem('paymentMethods', JSON.stringify(defaultPaymentMethods));
+        }
+      } catch (error) {
+        console.error('Error loading payment methods:', error);
+      }
+    };
+    
+    loadPaymentMethods();
+    
+    const unsubscribe = navigation.addListener('focus', loadPaymentMethods);
+    
+    return unsubscribe;
+  }, [navigation]);
+  
+  useEffect(() => {
+    const loadIncomeSources = async () => {
+      try {
+        const savedSources = await AsyncStorage.getItem('incomeSources');
+        
+        if (savedSources) {
+          setIncomeSources(JSON.parse(savedSources));
+        } else {
+          const defaultIncomeSources = [
+            { id: '1', name: 'Bank Account', icon: 'card', color: '#4BC0C0' },
+            { id: '2', name: 'Cash', icon: 'cash', color: '#FF6384' },
+            { id: '3', name: 'Mobile Wallet', icon: 'phone-portrait', color: '#9966FF' },
+          ];
+          setIncomeSources(defaultIncomeSources);
+          await AsyncStorage.setItem('incomeSources', JSON.stringify(defaultIncomeSources));
+        }
+      } catch (error) {
+        console.error('Error loading income sources:', error);
+      }
+    };
+    
+    loadIncomeSources();
+    
+    const unsubscribe = navigation.addListener('focus', loadIncomeSources);
+    
+    return unsubscribe;
+  }, [navigation]);
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
@@ -1058,7 +1107,7 @@ const HomeScreen = ({ navigation }) => {
                     setExpenseDescription('');
                     setSelectedCategory(null);
                     setSelectedPaymentMethod(null);
-                    // navigation.navigate('PaymentMethod'); нема страницы пока что 
+                    navigation.navigate('PaymentMethods');
                   }}
                 >
                   <Ionicons name="add" size={20} color="#D26A68" />
