@@ -50,6 +50,12 @@ const LoginScreen = ({ navigation }) => {
       setError('Please enter both email and password');
       return;
     }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
   
     setIsLoading(true);
     setError('');
@@ -67,12 +73,17 @@ const LoginScreen = ({ navigation }) => {
     } catch (error) {
       console.log('Login error:', error.response?.data, error.message);
   
-      setError(
-        error.response?.data?.detail ||
-        error.response?.data?.message ||
-        error.message ||
-        'Failed to login. Please try again.'
-      );
+      const detail = error.response?.data?.detail;
+
+      if (typeof detail === 'string') {
+        setError(detail);
+      } else if (typeof detail === 'object' && detail?.msg) {
+        setError(detail.msg);
+      } else if (error.response?.data?.message) {
+        setError(error.response.data.message);
+      } else {
+        setError(error.message || 'Failed to login. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }

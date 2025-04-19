@@ -32,6 +32,13 @@ const SignupScreen = ({ navigation }) => {
       setError('Please fill in all fields');
       return;
     }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError('Passwords do not match');
       return;
@@ -126,7 +133,7 @@ const SignupScreen = ({ navigation }) => {
                 />
               </View>
               
-              <View style={styles.inputContainer}>
+              {/* <View style={styles.inputContainer}>
                 <Text style={styles.label}>Initial Balance</Text>
                 <TextInput
                   style={styles.input}
@@ -137,7 +144,7 @@ const SignupScreen = ({ navigation }) => {
                   onChangeText={setInitialBalance}
                   editable={!isLoading}
                 />
-              </View>
+              </View> */}
               
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>Password</Text>
