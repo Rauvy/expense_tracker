@@ -23,7 +23,6 @@ const SignupScreen = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [birthDate, setBirthDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [initialBalance, setInitialBalance] = useState('0');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -112,20 +111,19 @@ const SignupScreen = ({ navigation }) => {
               
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>Birth Date</Text>
-                <TouchableOpacity onPress={() => setShowDatePicker(true)} disabled={isLoading}>
-                  <Text style={[styles.input, { color: '#fff' }]}>{birthDate.toDateString()}</Text>
-                </TouchableOpacity>
-                {showDatePicker && (
-                  <DateTimePicker
-                    value={birthDate}
-                    mode="date"
-                    display="default"
-                    onChange={(event, selectedDate) => {
-                      setShowDatePicker(false);
-                      if (selectedDate) setBirthDate(selectedDate);
-                    }}
-                  />
-                )}
+                <DateTimePicker
+                  value={birthDate}
+                  mode="date"
+                  display="default"
+                  themeVariant='dark'
+                  textColor={'#D26A68'}
+                  accentColor={"#D26A68"}
+                  maximumDate={new Date(new Date().setFullYear(new Date().getFullYear() - 14))} // 👈 здесь магия
+                  style={{ marginLeft: -10 }}
+                  onChange={(event, selectedDate) => {
+                    if (selectedDate) setBirthDate(selectedDate);
+                  }}
+                />
               </View>
               
               <View style={styles.inputContainer}>
