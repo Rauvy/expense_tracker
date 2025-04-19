@@ -7,7 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getUserProfile, getUserBalance, updateUserProfile } from '../services/userService';
 import { useNavigation } from '@react-navigation/native';
 import { TextInput as PaperTextInput } from 'react-native-paper';
-
+import { logout } from '../services/authService';
 // Initial user data structure
 const initialUserData = {
   name: '',
@@ -150,12 +150,16 @@ const ProfileScreen = () => {
     setIsEditing(false);
   };
 
-  const handleLogout = () => {
-    // Clear any stored tokens or user data
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'Login' }],
-    });
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }],
+      });
+    } catch (error) {
+      Alert.alert('Logout failed', error.response?.data?.detail || 'Please try again.');
+    }
   };
 
   const takePhotoFromCamera = async () => {

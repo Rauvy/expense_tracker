@@ -34,7 +34,7 @@ export const signup = async (userData) => {
 
 export const logout = async () => {
   try {
-    await api.post(getEndpoint('auth', 'logout'));
+    // await api.post(getEndpoint('auth', 'logout'));
     await AsyncStorage.removeItem('access_token');
     await AsyncStorage.removeItem('refresh_token');
     await AsyncStorage.removeItem('user');
