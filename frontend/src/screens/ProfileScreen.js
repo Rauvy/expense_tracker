@@ -408,7 +408,7 @@ const ProfileScreen = () => {
                   ) : (
                     <View style={styles.profilePhotoPlaceholder}>
                       <Text style={styles.profileInitials}>
-                        {userData.name.split(' ').map(n => n[0]).join('')}
+                        {userData.firstName?.[0]}{userData.lastName?.[0]}
                       </Text>
                     </View>
                   )}
@@ -418,7 +418,9 @@ const ProfileScreen = () => {
                 </View>
 
                 <View style={styles.profileInfo}>
-                  <Text style={styles.profileName}>{userData.firstName} {userData.lastName}</Text>
+                  <Text style={styles.profileName}>
+                    {userData.firstName} {userData.lastName}
+                  </Text>
                   <Text style={styles.profileEmail}>{userData.email}</Text>
                   <Text style={styles.profileJoined}>Member since 2025</Text>
                 </View>
@@ -678,29 +680,10 @@ const ProfileScreen = () => {
                 </TouchableOpacity>
               </View>
 
-              <View style={styles.tabContainer}>
-                <TouchableOpacity
-                  style={[styles.tab, activeTab === 'expense' && styles.activeTab]}
-                  onPress={() => handleTabSwitch('expense')}
-                >
-                  <Text style={[styles.tabText, activeTab === 'expense' && styles.activeTabText]}>
-                    Expense Categories
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.tab, activeTab === 'income' && styles.activeTab]}
-                  onPress={() => handleTabSwitch('income')}
-                >
-                  <Text style={[styles.tabText, activeTab === 'income' && styles.activeTabText]}>
-                    Income Categories
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
               <ScrollView style={styles.modalBody}>
                 <View style={styles.categoriesList}>
-                  {(activeTab === 'expense' ? categories : incomeCategories).map((category) => (
-                    <View key={category.name} style={styles.categoryItem}>
+                  {categories.map((category, index) => (
+                    <View key={`category-${category.name}-${index}`} style={styles.categoryItem}>
                       <View style={[styles.categoryIcon, { backgroundColor: category.color }]}>
                         <Ionicons name={category.icon} size={24} color="#FFFFFF" />
                       </View>
@@ -721,9 +704,9 @@ const ProfileScreen = () => {
 
                   <Text style={styles.formLabel}>Select Icon</Text>
                   <View style={styles.iconsGrid}>
-                    {['home', 'car', 'restaurant', 'shirt', 'airplane', 'gift', 'medical', 'school'].map((icon) => (
+                    {['home', 'car', 'restaurant', 'shirt', 'airplane', 'gift', 'medical', 'school'].map((icon, index) => (
                       <TouchableOpacity
-                        key={`icon-${icon}`}
+                        key={`icon-option-${icon}-${index}`}
                         style={[
                           styles.iconOption,
                           selectedIcon === icon && styles.selectedIconOption
@@ -741,9 +724,9 @@ const ProfileScreen = () => {
 
                   <Text style={styles.formLabel}>Select Color</Text>
                   <View style={styles.colorsGrid}>
-                    {['#FF3B30', '#FF9500', '#FFCC00', '#34C759', '#5AC8FA', '#007AFF', '#5856D6', '#FF2D55'].map((color) => (
+                    {['#FF3B30', '#FF9500', '#FFCC00', '#34C759', '#5AC8FA', '#007AFF', '#5856D6', '#FF2D55'].map((color, index) => (
                       <TouchableOpacity
-                        key={`color-${color}`}
+                        key={`color-option-${color}-${index}`}
                         style={[
                           styles.colorOption,
                           { backgroundColor: color },
