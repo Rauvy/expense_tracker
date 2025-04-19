@@ -213,7 +213,7 @@ const totalExpenses = allTransactions?.length
   // Reset selected categories when filter type changes
   useEffect(() => {
     if (showFilterModal) {
-      setSelectedCategories([]);
+      setSelectedCategories([...appliedFilters.categories]);
     }
   }, [filterType, showFilterModal]);
 
