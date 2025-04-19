@@ -26,7 +26,7 @@ const COLORS = {
   SHOPPING: '#FFCE56',
   BILLS: '#4BC0C0',
   ENTERTAINMENT: '#9966FF',
-  BLUE: '#D26A68'
+  CORAL: '#D26A68'
 };
 
 const BackUpSettings = () => {
@@ -35,8 +35,6 @@ const BackUpSettings = () => {
   // States for date range selection
   const [startDate, setStartDate] = useState(new Date(new Date().setMonth(new Date().getMonth() - 1)));
   const [endDate, setEndDate] = useState(new Date());
-  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
-  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
   
   // States for filter options
   const [transactionType, setTransactionType] = useState('all'); // 'all', 'income', 'expense'
@@ -105,7 +103,6 @@ const BackUpSettings = () => {
   
   // Handle date changes
   const onStartDateChange = (event, selectedDate) => {
-    setShowStartDatePicker(false);
     if (selectedDate) {
       setStartDate(selectedDate);
       
@@ -117,7 +114,6 @@ const BackUpSettings = () => {
   };
   
   const onEndDateChange = (event, selectedDate) => {
-    setShowEndDatePicker(false);
     if (selectedDate) {
       // Ensure end date is not before start date
       if (selectedDate >= startDate) {
@@ -317,24 +313,6 @@ const BackUpSettings = () => {
               <Text style={styles.dateLabel}>To</Text>
             </View>
             <View style={styles.dateRangeContainer}>
-              <TouchableOpacity 
-                style={styles.datePickerButton}
-                onPress={() => setShowStartDatePicker(true)}
-              >
-                <Text style={styles.dateText}>{formatDate(startDate)}</Text>
-                <Text style={styles.highlightedDate}>{formatShortDate(startDate)}</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity 
-                style={styles.datePickerButton}
-                onPress={() => setShowEndDatePicker(true)}
-              >
-                <Text style={styles.dateText}>{formatDate(endDate)}</Text>
-                <Text style={styles.highlightedDate}>{formatShortDate(endDate)}</Text>
-              </TouchableOpacity>
-            </View>
-            
-            {showStartDatePicker && (
               <DateTimePicker
                 testID="startDatePicker"
                 value={startDate}
@@ -342,12 +320,10 @@ const BackUpSettings = () => {
                 display="default"
                 onChange={onStartDateChange}
                 maximumDate={new Date()}
-                textColor={COLORS.BLUE}
-                accentColor={COLORS.BLUE}
+                textColor={COLORS.CORAL}
+                accentColor={COLORS.CORAL}
+                themeVariant='dark'
               />
-            )}
-            
-            {showEndDatePicker && (
               <DateTimePicker
                 testID="endDatePicker"
                 value={endDate}
@@ -356,10 +332,11 @@ const BackUpSettings = () => {
                 onChange={onEndDateChange}
                 minimumDate={startDate}
                 maximumDate={new Date()}
-                textColor={COLORS.BLUE}
-                accentColor={COLORS.BLUE}
+                textColor={COLORS.CORAL}
+                accentColor={COLORS.CORAL}
+                themeVariant='dark'
               />
-            )}
+            </View>
           </View>
           
           <View style={styles.section}>
@@ -573,24 +550,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 16,
   },
-  datePickerButton: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 10,
-    padding: 15,
-    width: '48%',
-    borderWidth: 1,
-    borderColor: '#333333',
-  },
-  dateText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-  },
-  highlightedDate: {
-    color: COLORS.BLUE,
-    fontSize: 17,
-    fontWeight: '600',
-    marginTop: 8,
-  },
   filterContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -605,7 +564,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   activeFilterButton: {
-    backgroundColor: COLORS.BLUE,
+    backgroundColor: COLORS.CORAL,
   },
   activeIncomeButton: {
     backgroundColor: COLORS.INCOME,
@@ -671,7 +630,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   downloadButton: {
-    backgroundColor: COLORS.BLUE,
+    backgroundColor: COLORS.CORAL,
     borderRadius: 12,
     flexDirection: 'row',
     justifyContent: 'center',
@@ -736,7 +695,7 @@ const styles = StyleSheet.create({
   },
   authButton: {
     width: '100%',
-    backgroundColor: COLORS.BLUE,
+    backgroundColor: COLORS.CORAL,
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -769,7 +728,7 @@ const styles = StyleSheet.create({
   },
   doneButton: {
     width: '100%',
-    backgroundColor: COLORS.BLUE,
+    backgroundColor: COLORS.CORAL,
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
