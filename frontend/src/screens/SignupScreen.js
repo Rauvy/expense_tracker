@@ -118,7 +118,7 @@ const SignupScreen = ({ navigation }) => {
                   themeVariant='dark'
                   textColor={'#D26A68'}
                   accentColor={"#D26A68"}
-                  maximumDate={new Date(new Date().setFullYear(new Date().getFullYear() - 14))} // 👈 здесь магия
+                  maximumDate={new Date(new Date().setFullYear(new Date().getFullYear() - 14))}
                   style={{ marginLeft: -10 }}
                   onChange={(event, selectedDate) => {
                     if (selectedDate) setBirthDate(selectedDate);
