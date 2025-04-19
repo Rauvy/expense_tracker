@@ -39,6 +39,11 @@ const SignupScreen = ({ navigation }) => {
       return;
     }
 
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError('Passwords do not match');
       return;
@@ -57,7 +62,17 @@ const SignupScreen = ({ navigation }) => {
       navigation.replace('MainApp');
     } catch (err) {
       console.log('Signup error:', err.response?.data, err.message);
-      setError(err.response?.data?.detail || 'Failed to sign up. Please try again.');
+      const detail = err.response?.data?.detail;
+
+      if (typeof detail === 'string') {
+        setError(detail);
+      } else if (Array.isArray(detail) && detail[0]?.msg) {
+        setError(detail[0].msg);
+      } else if (typeof detail === 'object' && detail?.msg) {
+        setError(detail.msg);
+      } else {
+        setError(err.message || 'Failed to sign up. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
