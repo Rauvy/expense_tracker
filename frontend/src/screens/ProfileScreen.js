@@ -342,6 +342,20 @@ const ProfileScreen = () => {
 
         <TouchableOpacity
           style={styles.preferenceTile}
+          onPress={() => navigation.navigate('PaymentMethods')}
+        >
+          <View style={styles.preferenceContent}>
+            <View style={styles.preferenceText}>
+              <Text style={styles.preferenceTitle}>Payment Methods</Text>
+              <Text style={styles.preferenceSubtitle}>Manage your payment methods</Text>
+            </View>
+          </View>
+          <Ionicons name="chevron-forward" size={24} color="#666666" />
+        </TouchableOpacity>
+
+
+        <TouchableOpacity
+          style={styles.preferenceTile}
           onPress={() => navigation.navigate('IncomeSource')}
         >
           <View style={styles.preferenceContent}>
