@@ -379,6 +379,10 @@ const HomeScreen = ({ navigation }) => {
       setSelectedCategory(null);
       setSelectedPaymentMethod(null);
       setExpenseModalVisible(false);
+
+      await fetchPieChartData();
+      await calculateMonthlyTotals();
+      await fetchRecentTransactions();
     } catch (err) {
       Alert.alert('Error', 'Failed to add expense.');
     }
@@ -409,6 +413,10 @@ const HomeScreen = ({ navigation }) => {
       setSelectedIncomeCategory(null);
       setSelectedIncomeSource(null);
       setIncomeModalVisible(false);
+
+      await fetchPieChartData();
+      await calculateMonthlyTotals();
+      await fetchRecentTransactions();
     } catch (err) {
       Alert.alert('Error', 'Failed to add income.');
     }
@@ -627,47 +635,45 @@ const HomeScreen = ({ navigation }) => {
 
     return unsubscribe;
   }, [navigation]);
+  const fetchPieChartData = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await getPieChartData('expense');
 
-  useEffect(() => {
-    const fetchPieChartData = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const response = await getPieChartData('expense');
-
-        if (!response || !response.data) {
-          console.log('Invalid response structure:', response);
-          setError('Invalid data structure received');
-          return;
-        }
-
-        const serverData = response.data || [];
-        console.log('Processing pie chart data:', serverData);
-
-        if (!Array.isArray(serverData) || serverData.length === 0) {
-          console.log('No valid data in response');
-          setPieChartData([]);
-          return;
-        }
-
-        const formattedData = serverData.map((item, index) => ({
-          name: item.category || 'Unknown',
-          amount: Number(item.amount) || 0,
-          color: colors[index % colors.length],
-          legendFontColor: '#FFFFFF',
-          legendFontSize: 12,
-        })).filter(item => item.amount > 0); // Фильтруем только положительные значения
-
-        console.log('Formatted pie chart data:', formattedData);
-        setPieChartData(formattedData);
-      } catch (error) {
-        console.error('Error in fetchPieChartData:', error);
-        setError('Failed to load chart data');
-      } finally {
-        setIsLoading(false);
+      if (!response || !response.data) {
+        console.log('Invalid response structure:', response);
+        setError('Invalid data structure received');
+        return;
       }
-    };
 
+      const serverData = response.data || [];
+      console.log('Processing pie chart data:', serverData);
+
+      if (!Array.isArray(serverData) || serverData.length === 0) {
+        console.log('No valid data in response');
+        setPieChartData([]);
+        return;
+      }
+
+      const formattedData = serverData.map((item, index) => ({
+        name: item.category || 'Unknown',
+        amount: Number(item.amount) || 0,
+        color: colors[index % colors.length],
+        legendFontColor: '#FFFFFF',
+        legendFontSize: 12,
+      })).filter(item => item.amount > 0); // Фильтруем только положительные значения
+
+      console.log('Formatted pie chart data:', formattedData);
+      setPieChartData(formattedData);
+    } catch (error) {
+      console.error('Error in fetchPieChartData:', error);
+      setError('Failed to load chart data');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  useEffect(() => {
     fetchPieChartData();
   }, []);
 
