@@ -58,11 +58,11 @@ export const deleteTransaction = async (id) => {
 
 export const getPieChartData = async (transactionType = 'expense') => {
   try {
-    // Проверяем тип транзакции
     if (transactionType && !['expense', 'income'].includes(transactionType)) {
       throw new Error('Invalid transaction type. Must be either "expense" or "income"');
     }
-
+    // error here cause : AxiosError: Request failed with status code 404
+    // fix only on backend not here 
     const response = await api.get(getEndpoint('analytics', 'pie'), {
       params: {
         transaction_type: transactionType // Возвращаем snake_case для FastAPI
@@ -85,6 +85,15 @@ export const getPieChartData = async (transactionType = 'expense') => {
 export const getSmartTip = async () => {
   try {
     const response = await api.get(getEndpoint('ai', 'tips'));
+
+    if (!response.data || !response.data.tips || response.data.tips.length === 0) {
+      console.warn('Empty response received from smart tips endpoint');
+      return {
+        tips: [],
+        message: '',
+      };
+    }
+
     // Process the tips to remove everything before the colon
     const processedTips = response.data.tips.map(tip => {
       const colonIndex = tip.indexOf(':');
@@ -92,7 +101,7 @@ export const getSmartTip = async () => {
     });
     return {
       ...response.data,
-      tips: processedTips
+      tips: processedTips,
     };
   } catch (error) {
     console.error('Error fetching smart tip:', error);

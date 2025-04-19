@@ -671,7 +671,7 @@ const AccountsScreen = ({ navigation }) => {
             <Text style={styles.title}>Accounts</Text>
             <TouchableOpacity
               style={styles.addButton}
-              onPress={() => navigation.navigate('AddAccount')}
+              onPress={() => setNewAccountVisible(true)}
               activeOpacity={0.7}
             >
               <Ionicons name="add" size={24} color="#FFFFFF" />
