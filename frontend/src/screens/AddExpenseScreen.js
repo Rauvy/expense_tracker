@@ -54,20 +54,47 @@ const AddExpenseScreen = ({ navigation }) => {
       });
 
       const transactionsWithStyle = (data.items || []).map((tx) => {
+        // Find the category details from the appropriate category list
         const categoryList = tx.type === 'income' ? incomeCategories : categories;
-        const categoryInfo = categoryList.find((cat) => cat.name === tx.category) || {
-          icon: 'ellipsis-horizontal',
-          color: COLORS.BLUE
-        };
+        const categoryInfo = categoryList.find((cat) => cat.name === tx.category);
+        
+        // Default values if category not found
+        let icon = 'ellipsis-horizontal';
+        let color = COLORS.BLUE;
+        
+        // If we found the category, use its icon and color
+        if (categoryInfo) {
+          icon = categoryInfo.icon;
+          color = categoryInfo.color;
+        } else {
+          // Fallback mappings for common categories
+          const iconMap = {
+            'Food': 'fast-food',
+            'Transport': 'car',
+            'Shopping': 'cart',
+            'Bills': 'receipt',
+            'Entertainment': 'film',
+            'Health': 'medical',
+            'Education': 'school',
+            'Salary': 'cash',
+            'Freelance': 'laptop',
+            'Investments': 'trending-up',
+            'Gifts': 'gift'
+          };
+          
+          if (iconMap[tx.category]) {
+            icon = iconMap[tx.category];
+          }
+        }
 
         return {
           ...tx,
           amount: Number(tx.amount) || 0,
-          icon: categoryInfo.icon,
-          color: categoryInfo.color,
-          paymentIcon: 'card',
+          icon: icon,
+          color: color,
+          paymentIcon: tx.payment_method === 'Cash' ? 'cash' : 'card',
           paymentColor: COLORS.EXPENSE,
-          sourceIcon: 'person',
+          sourceIcon: tx.source === 'Salary' ? 'briefcase' : 'person',
           sourceColor: COLORS.INCOME,
         };
       });
@@ -82,17 +109,26 @@ const AddExpenseScreen = ({ navigation }) => {
 
   // Initial load and refresh on focus
   useEffect(() => {
-    fetchTransactions();
-
+    // We'll call fetchTransactions in a different useEffect that depends on categories
+    
     // Add a focus listener to reload transactions when screen comes into focus
     const unsubscribe = navigation.addListener('focus', () => {
-      console.log('🔄 Refreshing transactions...');
-      fetchTransactions();
+      if (categories.length > 0 && incomeCategories.length > 0) {
+        console.log('🔄 Refreshing transactions...');
+        fetchTransactions();
+      }
     });
 
     // Cleanup subscription on unmount
     return unsubscribe;
   }, [navigation]);
+  
+  // Add a separate useEffect to fetch transactions once categories are loaded
+  useEffect(() => {
+    if (categories.length > 0 && incomeCategories.length > 0) {
+      fetchTransactions();
+    }
+  }, [categories, incomeCategories]);
 
   // Load categories separately
   useEffect(() => {
@@ -169,7 +205,7 @@ const AddExpenseScreen = ({ navigation }) => {
 
     // Search query filter (name/title)
     if (appliedFilters.searchQuery &&
-        !transaction.title.toLowerCase().includes(appliedFilters.searchQuery.toLowerCase())) {
+        !transaction.description?.toLowerCase().includes(appliedFilters.searchQuery.toLowerCase())) {
       return false;
     }
 
@@ -499,6 +535,24 @@ const totalExpenses = allTransactions?.length
     }
   };
 
+  // Add this date formatting function
+  const formatDate = (dateString) => {
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return 'Unknown date';
+      }
+      return date.toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric'
+      });
+    } catch (error) {
+      console.log('Error formatting date:', error);
+      return 'Unknown date';
+    }
+  };
+
   const renderTransactionDetails = () => {
     if (!selectedTransaction) return null;
 
@@ -574,8 +628,8 @@ const totalExpenses = allTransactions?.length
                     </View>
                     <Text style={[styles.transactionDetailsValue, { marginLeft: 8, fontSize: 16 }]}>
                       {selectedTransaction.type === 'income'
-                        ? selectedTransaction.source
-                        : selectedTransaction.payment_method}
+                        ? (selectedTransaction.source || 'Unknown')
+                        : (selectedTransaction.payment_method || 'Unknown')}
                     </Text>
                   </View>
                 </View>
@@ -600,16 +654,6 @@ const totalExpenses = allTransactions?.length
         </View>
       </Modal>
     );
-  };
-
-  // Add this date formatting function
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric'
-    });
   };
 
   return (
@@ -729,13 +773,13 @@ const totalExpenses = allTransactions?.length
                     activeOpacity={0.7}
                     onPress={() => handleTransactionClick(transaction)}
                   >
-                    <View style={[styles.transactionIcon, { backgroundColor: transaction.color }]}>
-                      <Ionicons name={transaction.icon} size={20} color="#FFFFFF" />
+                    <View style={[styles.transactionIcon, { backgroundColor: transaction.color || '#5856D6' }]}>
+                      <Ionicons name={transaction.icon || 'apps'} size={20} color="#FFFFFF" />
                     </View>
 
                     <View style={styles.transactionInfo}>
-                      <Text style={styles.transactionTitle}>{transaction.description}</Text>
-                      <Text style={styles.transactionCategory}>{transaction.category}</Text>
+                      <Text style={styles.transactionTitle}>{transaction.description || 'Unnamed Transaction'}</Text>
+                      <Text style={styles.transactionCategory}>{transaction.category || 'Uncategorized'}</Text>
                     </View>
 
                     <View style={styles.transactionDetails}>
@@ -745,7 +789,7 @@ const totalExpenses = allTransactions?.length
                           transaction.type === 'income' ? styles.incomeAmount : styles.expenseAmount
                         ]}
                       >
-                        {transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)}
+                        {transaction.type === 'income' ? '+' : '-'}${(transaction.amount || 0).toFixed(2)}
                       </Text>
                       <Text style={styles.transactionDate}>{formatDate(transaction.date)}</Text>
 
@@ -755,25 +799,26 @@ const totalExpenses = allTransactions?.length
                             styles.transactionMethodIcon,
                             {
                               backgroundColor: transaction.type === 'income'
-                                ? transaction.sourceColor
-                                : transaction.paymentColor
+                                ? transaction.sourceColor || COLORS.INCOME
+                                : transaction.paymentColor || COLORS.EXPENSE
                             }
                           ]}
                         >
                           <Ionicons
-                            name={transaction.type === 'income' ? transaction.sourceIcon : transaction.paymentIcon}
+                            name={transaction.type === 'income' 
+                              ? (transaction.sourceIcon || 'person') 
+                              : (transaction.paymentIcon || 'card')}
                             size={14}
                             color="#FFFFFF"
                           />
                         </View>
                         <Text style={{ color: '#FFFFFF', fontSize: 13, marginLeft: 6 }}>
                           {transaction.type === 'income'
-                            ? transaction.source
-                            : transaction.payment_method}
+                            ? (transaction.source || 'Unknown source')
+                            : (transaction.payment_method || 'Unknown method')}
                         </Text>
                       </View>
                     </View>
-
                   </TouchableOpacity>
                 ))
               ) : (
