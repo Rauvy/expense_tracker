@@ -26,14 +26,14 @@ const initialPaymentMethods = [
 ];
 
 const availableIcons = [
-  'cash', 'card', 'card-outline', 'wallet', 'wallet-outline',
+  'cash', 'card', 'card-outline', 'wallet', 
   'business', 'briefcase', 'phone-portrait', 'smartphone',
   'logo-paypal', 'logo-apple', 'logo-google', 'logo-amazon',
-  'phone-portrait-outline', 'cash-outline', 'wallet-outline',
+  'phone-portrait-outline', 'cash-outline', 
   'globe-outline', 'at-outline', 'git-branch-outline', 'link',
   'qr-code', 'barcode', 'gift', 'gift-outline', 'pricetag',
   'cafe', 'beer', 'restaurant', 'fast-food', 'basket',
-  'cart', 'bag', 'bag-handle', 'card', 'wallet', 'cash'
+  'cart', 'bag', 'bag-handle'
 ];
 
 const colorOptions = [
@@ -78,18 +78,63 @@ const PaymentMethods = () => {
         const savedMethods = await AsyncStorage.getItem('paymentMethods');
 
         if (savedMethods) {
-          setPaymentMethods(JSON.parse(savedMethods));
+          // Ensure all loaded methods have valid IDs
+          const parsedMethods = JSON.parse(savedMethods);
+          const validatedMethods = parsedMethods.map(method => ({
+            ...method,
+            id: method.id ? method.id.toString() : Date.now().toString() + Math.random().toString(36).substr(2, 5)
+          }));
+          setPaymentMethods(validatedMethods);
+          // Save validated methods back if any were fixed
+          if (JSON.stringify(validatedMethods) !== savedMethods) {
+            await AsyncStorage.setItem('paymentMethods', JSON.stringify(validatedMethods));
+          }
         } else {
-          // If no saved methods, save the initial ones
-          await AsyncStorage.setItem('paymentMethods', JSON.stringify(initialPaymentMethods));
+          // If no saved methods, save the initial ones with validated IDs
+          const validInitialMethods = initialPaymentMethods.map(method => ({
+            ...method,
+            id: method.id ? method.id.toString() : Date.now().toString() + Math.random().toString(36).substr(2, 5)
+          }));
+          setPaymentMethods(validInitialMethods);
+          await AsyncStorage.setItem('paymentMethods', JSON.stringify(validInitialMethods));
         }
       } catch (error) {
         console.error('Error loading payment methods:', error);
+        // Fallback to initial methods with ensured IDs
+        const validInitialMethods = initialPaymentMethods.map(method => ({
+          ...method,
+          id: method.id ? method.id.toString() : Date.now().toString() + Math.random().toString(36).substr(2, 5)
+        }));
+        setPaymentMethods(validInitialMethods);
       }
     };
 
     loadPaymentMethods();
   }, []);
+
+  // Debug payment methods data
+  useEffect(() => {
+    if (paymentMethods.length > 0) {
+      console.log('Payment methods data sample:', 
+        paymentMethods.slice(0, 2).map(method => ({id: method.id, name: method.name}))
+      );
+      // Check for duplicate IDs
+      const ids = paymentMethods.map(method => method.id);
+      const uniqueIds = new Set(ids);
+      if (ids.length !== uniqueIds.size) {
+        console.warn('Warning: Duplicate IDs detected in payment methods');
+        const idCounts = ids.reduce((acc, id) => {
+          acc[id] = (acc[id] || 0) + 1;
+          return acc;
+        }, {});
+        Object.entries(idCounts)
+          .filter(([_, count]) => count > 1)
+          .forEach(([id, count]) => {
+            console.warn(`ID ${id} appears ${count} times`);
+          });
+      }
+    }
+  }, [paymentMethods]);
 
   // Filter payment methods based on search query
   const filteredMethods = paymentMethods.filter(method =>
@@ -137,9 +182,10 @@ const PaymentMethods = () => {
       return;
     }
 
-    // Create new payment method
+    // Create new payment method with guaranteed unique ID
+    const uniqueId = Date.now().toString() + Math.random().toString(36).substr(2, 5);
     const newMethod = {
-      id: Date.now().toString(),
+      id: uniqueId,
       name: newMethodName.trim(),
       icon: selectedIcon,
       color: selectedColor
@@ -289,9 +335,10 @@ const PaymentMethods = () => {
         <FlatList
           data={filteredMethods}
           renderItem={renderMethodItem}
-          keyExtractor={item => item.id}
+          keyExtractor={item => item.id.toString()}
           contentContainerStyle={styles.methodsList}
           showsVerticalScrollIndicator={false}
+          extraData={paymentMethods}
         />
       )}
 
@@ -348,9 +395,9 @@ const PaymentMethods = () => {
               <View style={styles.formGroup}>
                 <Text style={styles.formLabel}>Select Icon</Text>
                 <View style={styles.iconsGrid}>
-                  {availableIcons.map((icon) => (
+                  {availableIcons.map((icon, index) => (
                     <TouchableOpacity
-                      key={`icon-${icon}`}
+                      key={`icon-${icon}-${index}`}
                       style={[
                         styles.iconOption,
                         selectedIcon === icon && { backgroundColor: selectedColor || '#D26A68' }
@@ -371,9 +418,9 @@ const PaymentMethods = () => {
               <View style={styles.formGroup}>
                 <Text style={styles.formLabel}>Select Color</Text>
                 <View style={styles.colorsGrid}>
-                  {colorOptions.map((color) => (
+                  {colorOptions.map((color, index) => (
                     <TouchableOpacity
-                      key={`color-${color}`}
+                      key={`color-${color}-${index}`}
                       style={[
                         styles.colorOption,
                         { backgroundColor: color },
