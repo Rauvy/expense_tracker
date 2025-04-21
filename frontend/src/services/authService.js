@@ -26,7 +26,19 @@ export const login = async (credentials) => {
 export const signup = async (userData) => {
   try {
     const response = await api.post(getEndpoint('auth', 'register'), userData);
-    return response.data;
+    const { access_token, refresh_token, user } = response.data;
+    
+    if (access_token) {
+      await AsyncStorage.setItem('access_token', access_token);
+    }
+    if (refresh_token) {
+      await AsyncStorage.setItem('refresh_token', refresh_token);
+    }
+    if (user) {
+      await AsyncStorage.setItem('user', JSON.stringify(user));
+    }
+    
+    return { access_token, refresh_token, user };
   } catch (error) {
     throw error;
   }

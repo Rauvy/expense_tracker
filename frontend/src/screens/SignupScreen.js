@@ -51,7 +51,7 @@ const SignupScreen = ({ navigation }) => {
     setIsLoading(true);
     setError('');
     try {
-      await signup({
+      const response = await signup({
         email,
         password,
         first_name: firstName,
@@ -59,7 +59,14 @@ const SignupScreen = ({ navigation }) => {
         birth_date: birthDate.toISOString(),
         initial_balance: parseFloat(initialBalance) || 0
       });
-      navigation.replace('MainApp');
+      
+      // Check if we received tokens from the backend
+      if (response && response.access_token) {
+        navigation.replace('MainApp');
+      } else {
+        setError('Registration successful, but no authentication token received. Please try logging in.');
+        navigation.navigate('Login');
+      }
     } catch (err) {
       console.log('Signup error:', err.response?.data, err.message);
       const detail = err.response?.data?.detail;
