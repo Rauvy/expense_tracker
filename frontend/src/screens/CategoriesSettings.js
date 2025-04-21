@@ -86,13 +86,34 @@ const CategoriesSettings = () => {
         const savedCategories = await AsyncStorage.getItem('expenseCategories');
 
         if (savedCategories) {
-          setCategories(JSON.parse(savedCategories));
+          // Ensure all loaded categories have valid IDs
+          const parsedCategories = JSON.parse(savedCategories);
+          const validatedCategories = parsedCategories.map(category => ({
+            ...category,
+            id: category.id ? category.id.toString() : Date.now().toString() + Math.random().toString(36).substr(2, 5)
+          }));
+          setCategories(validatedCategories);
+          // Save validated categories back if any were fixed
+          if (JSON.stringify(validatedCategories) !== savedCategories) {
+            await AsyncStorage.setItem('expenseCategories', JSON.stringify(validatedCategories));
+          }
         } else {
-          // If no saved categories, save the initial ones
-          await AsyncStorage.setItem('expenseCategories', JSON.stringify(initialCategories));
+          // If no saved categories, save the initial ones with ensured IDs
+          const validInitialCategories = initialCategories.map(category => ({
+            ...category,
+            id: category.id ? category.id.toString() : Date.now().toString() + Math.random().toString(36).substr(2, 5)
+          }));
+          setCategories(validInitialCategories);
+          await AsyncStorage.setItem('expenseCategories', JSON.stringify(validInitialCategories));
         }
       } catch (error) {
         console.error('Error loading categories:', error);
+        // Fallback to initial categories with ensured IDs if loading fails
+        const validInitialCategories = initialCategories.map(category => ({
+          ...category,
+          id: category.id ? category.id.toString() : Date.now().toString() + Math.random().toString(36).substr(2, 5)
+        }));
+        setCategories(validInitialCategories);
       }
     };
 
@@ -103,6 +124,30 @@ const CategoriesSettings = () => {
   const filteredCategories = categories.filter(category =>
     category.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Debug categories data
+  useEffect(() => {
+    if (categories.length > 0) {
+      console.log('Categories data sample:', 
+        categories.slice(0, 2).map(cat => ({id: cat.id, name: cat.name}))
+      );
+      // Check for duplicate IDs
+      const ids = categories.map(cat => cat.id);
+      const uniqueIds = new Set(ids);
+      if (ids.length !== uniqueIds.size) {
+        console.warn('Warning: Duplicate IDs detected in categories');
+        const idCounts = ids.reduce((acc, id) => {
+          acc[id] = (acc[id] || 0) + 1;
+          return acc;
+        }, {});
+        Object.entries(idCounts)
+          .filter(([_, count]) => count > 1)
+          .forEach(([id, count]) => {
+            console.warn(`ID ${id} appears ${count} times`);
+          });
+      }
+    }
+  }, [categories]);
 
   // Reset new category form
   const resetNewCategoryForm = () => {
@@ -145,9 +190,10 @@ const CategoriesSettings = () => {
       return;
     }
 
-    // Create new category
+    // Create new category with a guaranteed unique ID
+    const uniqueId = Date.now().toString() + Math.random().toString(36).substr(2, 5);
     const newCategory = {
-      id: Date.now().toString(),
+      id: uniqueId,
       name: newCategoryName.trim(),
       icon: selectedIcon,
       color: selectedColor
@@ -297,9 +343,10 @@ const CategoriesSettings = () => {
         <FlatList
           data={filteredCategories}
           renderItem={renderCategoryItem}
-          keyExtractor={item => item.id}
+          keyExtractor={item => item.id.toString()}
           contentContainerStyle={styles.categoriesList}
           showsVerticalScrollIndicator={false}
+          extraData={categories}
         />
       )}
 
