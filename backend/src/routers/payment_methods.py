@@ -20,7 +20,7 @@ async def get_user_payment_methods(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> list[PaymentMethodPublic]:
     """
-    🔍 Получить все платёжные методы пользователя
+    🔍 Get all user payment methods
     """
     if not current_user.id:
         raise HTTPException(status_code=400, detail="Invalid user ID")
@@ -34,15 +34,15 @@ async def create_payment_method(
     method_in: PaymentMethodCreate, current_user: Annotated[User, Depends(get_current_user)]
 ) -> PaymentMethodPublic:
     """
-    ➕ Добавить платёжный метод (без дублей, без учёта регистра и пробелов)
+    ➕ Add payment method (without duplicates, case-insensitive and ignoring spaces)
     """
     if not current_user.id:
         raise HTTPException(status_code=400, detail="Invalid user ID")
 
-    # 🧼 Очистим имя от пробелов
+    # 🧼 Clean name from spaces
     clean_name = method_in.name.strip()
 
-    # ⛔ Проверка на дубликаты
+    # ⛔ Check for duplicates
     existing = await PaymentMethod.find_one(
         {
             "user_id": current_user.id,
@@ -55,7 +55,7 @@ async def create_payment_method(
             status_code=400, detail="Payment method with this name already exists."
         )
 
-    # ✅ Сохраняем очищенное имя
+    # ✅ Save cleaned name
     method = PaymentMethod(
         name=clean_name,
         bank=method_in.bank,
@@ -74,7 +74,7 @@ async def delete_payment_method(
     method_id: PydanticObjectId, current_user: Annotated[User, Depends(get_current_user)]
 ) -> dict[str, str]:
     """
-    ❌ Удалить платёжный метод и заменить его в транзакциях на 'Undefined'
+    ❌ Delete payment method and replace it in transactions with 'Undefined'
     """
     method = await PaymentMethod.get(method_id)
     if not method:
@@ -82,12 +82,12 @@ async def delete_payment_method(
     if method.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Forbidden")
 
-    # 🔁 Обновляем транзакции, использующие этот метод
+    # 🔁 Update transactions using this method
     _ = await Transaction.find(
         Transaction.user_id == current_user.id, Transaction.payment_method == method.name
     ).update_many({"$set": {"payment_method": "Undefined"}})
 
-    # 🗑 Удаляем метод
+    # 🗑 Delete method
     _ = await method.delete()
 
     return {"detail": "Payment method deleted"}
@@ -100,9 +100,9 @@ async def update_payment_method(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> PaymentMethodPublic:
     """
-    ✏️ Обновление платёжного метода по ID
+    ✏️ Update payment method by ID
     """
-    # Получаем метод по ID
+    # Get method by ID
     method = await PaymentMethod.get(PydanticObjectId(method_id))
 
     if not method:
@@ -111,7 +111,7 @@ async def update_payment_method(
     if method.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized to update this method")
 
-    # Обновляем поля
+    # Update fields
     if method_in.name is not None:
         method.name = method_in.name
     if method_in.bank is not None:
@@ -132,7 +132,7 @@ async def get_payment_method_by_id(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> PaymentMethodPublic:
     """
-    🔍 Получить метод оплаты по ID (современный стиль Beanie + FastAPI)
+    🔍 Get payment method by ID (modern Beanie + FastAPI style)
     """
     method = await PaymentMethod.get(method_id)
 

@@ -16,15 +16,15 @@ async def get_categories(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> list[CategoryPublic]:
     """
-    🔍 Получить все категории (глобальные + кастомные юзера)
+    🔍 Get all categories (global + user custom)
     """
     categories = await Category.find(
         {"$or": [{"user_id": current_user.id}, {"user_id": None}]}
     ).to_list()
 
     return [CategoryPublic.model_validate(cat.model_dump()) for cat in categories]
-    # ✅ .model_validate() — современная альтернатива model_dump
-    # Возвращаем список кастомных и дефолтных категорий
+    # ✅ .model_validate() — modern alternative to model_dump
+    # Return list of custom and default categories
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
@@ -32,12 +32,12 @@ async def create_category(
     category_in: CategoryCreate, current_user: Annotated[User, Depends(get_current_user)]
 ) -> CategoryPublic:
     """
-    ➕ Создать кастомную категорию (без дублей, игнорируя регистр и пробелы)
+    ➕ Create custom category (without duplicates, ignoring case and spaces)
     """
-    # 🧼 Убираем пробелы вокруг имени
+    # 🧼 Remove spaces around name
     clean_name = category_in.name.strip()
 
-    # ⛔ Проверка на дублирование (без учёта регистра и с учётом пробелов)
+    # ⛔ Check for duplicates (case-insensitive and considering spaces)
     existing = await Category.find_one(
         {
             "user_id": current_user.id,
@@ -48,7 +48,7 @@ async def create_category(
     if existing:
         raise HTTPException(status_code=400, detail="Category with this name already exists.")
 
-    # ✅ Создание новой категории
+    # ✅ Create new category
     category = Category(
         name=clean_name,
         icon=category_in.icon,
@@ -66,7 +66,7 @@ async def delete_category(
     category_id: PydanticObjectId, current_user: Annotated[User, Depends(get_current_user)]
 ) -> dict[str, str]:
     """
-    ❌ Удалить свою кастомную категорию и заменить её в транзакциях на 'Uncategorized'
+    ❌ Delete custom category and replace it in transactions with 'Uncategorized'
     """
     category = await Category.get(category_id)
 
@@ -78,12 +78,12 @@ async def delete_category(
             status_code=403, detail="You are not authorized to delete this category"
         )
 
-    # 👇 Обновляем все транзакции, где использовалась эта категория
+    # 👇 Update all transactions where this category was used
     _ = await Transaction.find(
         Transaction.user_id == current_user.id, Transaction.category == category.name
     ).update_many({"$set": {"category": "Uncategorized"}})
 
-    # �� Удаляем категорию
+    # 🗑 Delete category
     _ = await category.delete()
 
     return {"detail": "Category deleted successfully"}
@@ -96,9 +96,9 @@ async def update_category(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> CategoryPublic:
     """
-    ✏️ Обновление категории по ID
+    ✏️ Update category by ID
     """
-    # Получаем категорию по ID
+    # Get category by ID
     category = await Category.get(category_id)
 
     if not category:
@@ -107,7 +107,7 @@ async def update_category(
     if category.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized to update this category")
 
-    # Обновляем переданные поля
+    # Update provided fields
     if category_in.name is not None:
         category.name = category_in.name
     if category_in.color is not None:
@@ -126,7 +126,7 @@ async def get_category_by_id(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> CategoryPublic:
     """
-    🔍 Получить категорию по ID (современный стиль Beanie + FastAPI)
+    🔍 Get category by ID (modern Beanie + FastAPI style)
     """
     category = await Category.get(category_id)
 

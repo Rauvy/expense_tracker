@@ -17,19 +17,19 @@ async def create_transaction(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> TransactionPublic:
     """
-    Создать новую транзакцию (расход или доход)
+    Create a new transaction (expense or income)
     """
     if not current_user.id:
         raise HTTPException(status_code=400, detail="User ID is required")
 
-    # Создаём объект транзакции
+    # Create transaction object
     transaction = Transaction(
         **transaction_in.model_dump(), user_id=PydanticObjectId(current_user.id)
     )
 
-    _ = await transaction.insert()  # Сохраняем в MongoDB
+    _ = await transaction.insert()  # Save to MongoDB
 
-    # Обновляем баланс пользователя
+    # Update user balance
     if transaction.type == TransactionType.EXPENSE:
         current_user.balance -= transaction.amount
     else:  # income
@@ -51,9 +51,9 @@ async def get_all_transactions(
     offset: Annotated[int, Query] = 0,
 ) -> PaginatedTransactionsResponse:
     """
-    🔄 Получить все транзакции (ручные и банковские) с пагинацией и фильтрами:
-    - по source (manual / plaid)
-    - по типу транзакции (income / expense)
+    🔄 Get all transactions (manual and bank) with pagination and filters:
+    - by source (manual / plaid)
+    - by transaction type (income / expense)
     """
     if not current_user.id:
         raise HTTPException(status_code=400, detail="User ID is missing")
@@ -74,7 +74,7 @@ async def get_transaction_by_id(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> TransactionPublic:
     """
-    Получить транзакцию по ID
+    Get transaction by ID
     """
     transaction = await Transaction.get(transaction_id)
 
@@ -94,7 +94,7 @@ async def update_transaction(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> dict[str, str]:
     """
-    Обновить транзакцию
+    Update transaction
     """
     transaction = await Transaction.get(transaction_id)
 
@@ -104,13 +104,13 @@ async def update_transaction(
     if transaction.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized to update this transaction")
 
-    # Обновляем баланс пользователя
+    # Update user balance
     if transaction.type == TransactionType.EXPENSE:
-        current_user.balance += transaction.amount  # Возвращаем старую сумму
+        current_user.balance += transaction.amount  # Return old amount
     else:  # income
-        current_user.balance -= transaction.amount  # Возвращаем старую сумму
+        current_user.balance -= transaction.amount  # Return old amount
 
-    # Применяем новую сумму
+    # Apply new amount
     if transaction_in.type == TransactionType.EXPENSE:
         current_user.balance -= transaction_in.amount
     else:  # income
@@ -118,7 +118,7 @@ async def update_transaction(
 
     _ = await current_user.save()
 
-    # Обновляем поля транзакции
+    # Update transaction fields
     transaction.type = transaction_in.type
     transaction.amount = transaction_in.amount
     transaction.category = transaction_in.category
@@ -139,7 +139,7 @@ async def delete_transaction(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> dict[str, str]:
     """
-    Удалить транзакцию
+    Delete transaction
     """
     transaction = await Transaction.get(transaction_id)
 
@@ -149,15 +149,15 @@ async def delete_transaction(
     if transaction.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized to delete this transaction")
 
-    # Обновляем баланс пользователя
+    # Update user balance
     if transaction.type == TransactionType.EXPENSE:
-        current_user.balance += transaction.amount  # Возвращаем сумму расхода
+        current_user.balance += transaction.amount  # Return expense amount
     else:  # income
-        current_user.balance -= transaction.amount  # Возвращаем сумму дохода
+        current_user.balance -= transaction.amount  # Return income amount
 
     _ = await current_user.save()
 
-    # Удаляем транзакцию
+    # Delete transaction
     _ = await transaction.delete()
 
     return {"message": "Transaction deleted successfully"}

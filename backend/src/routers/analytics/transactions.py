@@ -38,36 +38,36 @@ async def get_summary(
     transaction_type: TransactionType | None = None,
 ) -> SummaryResponse:
     """
-    📊 Общая аналитика всех транзакций (ручных и банковских):
-    - Суммы за неделю / месяц / год
-    - Топ 5 категорий
-    - Процент от бюджета
+    📊 General analytics of all transactions (manual and bank):
+    - Sums for week / month / year
+    - Top 5 categories
+    - Percentage of budget
     """
     now = datetime.now(UTC)
     start_of_week = datetime(now.year, now.month, now.day - now.weekday(), tzinfo=UTC)
     start_of_month = datetime(now.year, now.month, 1, tzinfo=UTC)
     start_of_year = datetime(now.year, 1, 1, tzinfo=UTC)
 
-    # ✅ Загружаем все транзакции (объединённые)
+    # ✅ Load all transactions (combined)
     if current_user.id is None:
         raise HTTPException(status_code=400, detail="User ID is missing")
     all_transactions: list[dict[str, Any]] = await get_all_transactions_for_user(current_user.id)
 
-    # 🔍 Фильтрация по типу
+    # 🔍 Filter by type
     if transaction_type:
         all_transactions = [t for t in all_transactions if t["type"] == transaction_type]
 
-    # 🗓️ Разделение по времени
+    # 🗓️ Split by time
     week_txns = [t for t in all_transactions if t["date"] >= start_of_week]
     month_txns = [t for t in all_transactions if t["date"] >= start_of_month]
     year_txns = [t for t in all_transactions if t["date"] >= start_of_year]
 
-    # 💵 Подсчёт сумм
+    # 💵 Calculate totals
     week_total = sum_amounts(week_txns)
     month_total = sum_amounts(month_txns)
     year_total = sum_amounts(year_txns)
 
-    # 🏷️ Категории
+    # 🏷️ Categories
     categories: dict[str, Decimal] = defaultdict(lambda: Decimal("0"))
     for t in all_transactions:
         if t["category"]:
@@ -76,7 +76,7 @@ async def get_summary(
     total_amount = sum(categories.values())
     top_categories = sorted(categories.items(), key=lambda x: x[1], reverse=True)[:5]
 
-    # 💳 Способы оплаты (только для ручных)
+    # 💳 Payment methods (only for manual)
     payment_methods: dict[str, Decimal] = defaultdict(lambda: Decimal("0"))
     for t in all_transactions:
         if t["source"] == "manual" and t.get("payment_method"):
@@ -119,7 +119,7 @@ async def get_pie_chart(
     transaction_type: TransactionType | None = None,
 ) -> PieChartResponse:
     """
-    🥧 Круговая диаграмма по категориям за текущий месяц
+    🥧 Pie chart by categories for the current month
     """
     if current_user.id is None:
         raise HTTPException(status_code=400, detail="User ID is missing")
@@ -127,10 +127,10 @@ async def get_pie_chart(
     now = datetime.now(UTC)
     start_of_month = datetime(now.year, now.month, 1, tzinfo=UTC)
 
-    # Получаем все транзакции
+    # Get all transactions
     all_transactions = await get_all_transactions_for_user(current_user.id)
 
-    # Фильтрация по дате и типу
+    # Filter by date and type
     filtered = [
         t
         for t in all_transactions
@@ -144,7 +144,7 @@ async def get_pie_chart(
             detail="No transactions found for this month",
         )
 
-    # Группировка по категориям
+    # Group by categories
     categories: dict[str, Decimal] = defaultdict(lambda: Decimal("0"))
     for t in filtered:
         if t["category"]:
@@ -171,9 +171,9 @@ async def get_line_chart(
     transaction_type: TransactionType | None = None,
 ) -> LineChartResponse:
     """
-    📈 Линейный график по дням:
-    - Поддержка фильтра по типу (доход / расход)
-    - Поддержка timeframe: day, week, month, year
+    📈 Line chart by days:
+    - Support for type filter (income / expense)
+    - Support for timeframe: day, week, month, year
     """
     if current_user.id is None:
         raise HTTPException(status_code=400, detail="User ID is missing")
@@ -182,10 +182,10 @@ async def get_line_chart(
     days = TIME_FRAMES[timeframe]
     start_date = now - timedelta(days=days)
 
-    # Загружаем все транзакции
+    # Load all transactions
     all_transactions = await get_all_transactions_for_user(current_user.id)
 
-    # Фильтрация по дате и типу
+    # Filter by date and type
     filtered = [
         t
         for t in all_transactions
@@ -198,13 +198,13 @@ async def get_line_chart(
             detail=f"No transactions found for the last {days} days",
         )
 
-    # Группировка по дате
+    # Group by date
     by_date: dict[date, Decimal] = defaultdict(lambda: Decimal("0"))
     for t in filtered:
         tx_date = t["date"].date()
         by_date[tx_date] += to_decimal(t["amount"])
 
-    # Заполнение пропущенных дней
+    # Fill in missing days
     all_dates = [
         start_date.date() + timedelta(days=i)
         for i in range((now.date() - start_date.date()).days + 1)
@@ -228,7 +228,7 @@ async def compare_months(
     transaction_type: TransactionType | None = None,
 ) -> MonthComparison:
     """
-    🔄 Сравнение текущего и предыдущего месяца
+    🔄 Comparison of current and previous month
     """
     if current_user.id is None:
         raise HTTPException(status_code=400, detail="User ID is missing")
@@ -236,7 +236,7 @@ async def compare_months(
     now = datetime.now(UTC)
     start_of_month = datetime(now.year, now.month, 1, tzinfo=UTC)
 
-    # Определяем начало предыдущего месяца
+    # Determine start of previous month
     if now.month == 1:
         start_of_prev_month = datetime(now.year - 1, 12, 1, tzinfo=UTC)
     else:
@@ -244,20 +244,20 @@ async def compare_months(
 
     end_of_prev_month = start_of_month - timedelta(seconds=1)
 
-    # Все транзакции
+    # All transactions
     all_transactions = await get_all_transactions_for_user(current_user.id)
 
-    # Фильтрация по типу
+    # Filter by type
     if transaction_type:
         all_transactions = [t for t in all_transactions if t["type"] == transaction_type]
 
-    # Группировка по месяцам
+    # Group by months
     current_txns = [t for t in all_transactions if t["date"] >= start_of_month]
     prev_txns = [
         t for t in all_transactions if start_of_prev_month <= t["date"] <= end_of_prev_month
     ]
 
-    # Суммы
+    # Totals
     current_total = sum((to_decimal(t["amount"]) for t in current_txns), start=Decimal("0"))
     prev_total = sum((to_decimal(t["amount"]) for t in prev_txns), start=Decimal("0"))
 
@@ -275,7 +275,7 @@ async def get_budget_analysis(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> BudgetOverview:
     """
-    💰 Анализ бюджета по категориям на основе всех расходов (ручных и банковских)
+    💰 Budget analysis by categories based on all expenses (manual and bank)
     """
     if current_user.id is None:
         raise HTTPException(status_code=400, detail="User ID is missing")
@@ -283,24 +283,24 @@ async def get_budget_analysis(
     now = datetime.now(UTC)
     start_of_month = datetime(now.year, now.month, 1, tzinfo=UTC)
 
-    # Загружаем все транзакции (ручные + plaid)
+    # Load all transactions (manual + plaid)
     all_txns = await get_all_transactions_for_user(current_user.id)
 
-    # Фильтруем только расходы текущего месяца
+    # Filter only expenses for current month
     expenses = [t for t in all_txns if t["type"] == "expense" and t["date"] >= start_of_month]
 
-    # Загружаем бюджеты
+    # Load budgets
     budgets = await Budget.find(Budget.user_id == current_user.id).to_list()
     if not budgets:
         raise HTTPException(status_code=404, detail="No budgets found")
 
-    # Группировка расходов по категориям
+    # Group expenses by categories
     expenses_by_category: dict[str, Decimal] = defaultdict(lambda: Decimal("0"))
     for t in expenses:
         if t["category"]:
             expenses_by_category[t["category"]] += to_decimal(t["amount"])
 
-    # Ответ
+    # Response
     stats: list[BudgetCategoryStat] = []
     for budget in budgets:
         spent = expenses_by_category.get(budget.category, Decimal("0"))
@@ -324,7 +324,7 @@ async def compare_types(
     timeframe: Literal["week", "month", "year"] = "month",
 ) -> IncomeExpenseComparison:
     """
-    🔄 Сравнение доходов и расходов за указанный период
+    🔄 Comparison of income and expenses for the specified period
     """
     if current_user.id is None:
         raise HTTPException(status_code=400, detail="User ID is missing")
@@ -333,10 +333,10 @@ async def compare_types(
     days = TIME_FRAMES[timeframe]
     start_date = now - timedelta(days=days)
 
-    # Получаем все транзакции
+    # Get all transactions
     all_txns = await get_all_transactions_for_user(current_user.id)
 
-    # Фильтруем по дате
+    # Filter by date
     filtered = [t for t in all_txns if t["date"] >= start_date]
 
     if not filtered:
@@ -345,14 +345,14 @@ async def compare_types(
             detail=f"No transactions found for the last {days} days",
         )
 
-    # Разделяем на расходы и доходы
+    # Separate into expenses and incomes
     expenses = [t for t in filtered if t["type"] == "expense"]
     incomes = [t for t in filtered if t["type"] == "income"]
 
     total_incomes = sum((to_decimal(t["amount"]) for t in incomes), start=Decimal("0"))
     total_expenses = sum((to_decimal(t["amount"]) for t in expenses), start=Decimal("0"))
 
-    # Группировка по категориям
+    # Group by categories
     expense_categories: dict[str, Decimal] = defaultdict(lambda: Decimal("0"))
     income_categories: dict[str, Decimal] = defaultdict(lambda: Decimal("0"))
 
@@ -364,7 +364,7 @@ async def compare_types(
         if t["category"]:
             income_categories[t["category"]] += to_decimal(t["amount"])
 
-    # Ответ
+    # Response
     return IncomeExpenseComparison(
         timeframe=timeframe,
         total_income=round_decimal(total_incomes),

@@ -1,47 +1,47 @@
-# Annotated нужен для объявления зависимостей (здесь — токен из запроса)
+# Annotated is needed for declaring dependencies (here - token from request)
 from typing import Annotated
 
-# Импорт зависимостей из FastAPI
+# Import dependencies from FastAPI
 from fastapi import Depends, HTTPException, status
 
-# Специальный класс, который позволяет получать токен из заголовка Authorization
+# Special class that allows getting token from Authorization header
 from fastapi.security import OAuth2PasswordBearer
 
-# JWTError — ошибка, которую выбрасывает библиотека при проблемах с токеном
+# JWTError - error thrown by the library when there are problems with the token
 from jose import JWTError
 
-# Импорт функций для обработки ошибок
+# Import functions for error handling
 from src.auth.exceptions import raise_unauthorized_error
 
-# Импорт нашей функции для верификации токена
+# Import our function for token verification
 from src.auth.jwt import verify_access_token
 
-# Импорт модели пользователя из базы (Beanie модель)
+# Import user model from database (Beanie model)
 from src.models import User
 
-# Создаём схему авторизации — FastAPI будет искать токен в заголовке Authorization: Bearer <токен>
-# И передавать его в зависимость
+# Create authorization scheme - FastAPI will look for token in Authorization header: Bearer <token>
+# And pass it to the dependency
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 
-# Эта функция будет использоваться в защищённых эндпоинтах для получения текущего пользователя
-# Она принимает токен как зависимость и возвращает объект User, если токен валидный
+# This function will be used in protected endpoints to get the current user
+# It takes token as a dependency and returns User object if token is valid
 async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]) -> User:
     try:
-        # Раскодируем токен и получаем payload (например: {"sub": "user_id"})
+        # Decode token and get payload (e.g.: {"sub": "user_id"})
         payload = verify_access_token(token)
 
-        # Получаем user_id из payload
+        # Get user_id from payload
         user_id = payload.get("sub")
 
-        # Если ID нет в payload, значит токен невалидный
+        # If ID is not in payload, then token is invalid
         if user_id is None:
             raise_unauthorized_error("Invalid token: user ID not found")
 
-        # Ищем пользователя по ID в базе данных
+        # Find user by ID in database
         user = await User.get(user_id)
 
-        # Если пользователь не найден — значит токен "указал" на несуществующего
+        # If user not found - then token "pointed" to non-existent user
         if user is None:
             raise_unauthorized_error("User not found")
 
@@ -52,7 +52,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]) -> Use
 
 
 def validate_google_names(given_name: str | None, family_name: str | None) -> None:
-    """Проверяет наличие имени и фамилии в профиле Google."""
+    """Checks if first and last name are present in Google profile."""
     if not given_name or not family_name:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

@@ -1,22 +1,22 @@
-from typing import Annotated  # ✅ Современный способ аннотировать Depends
+from typing import Annotated  # ✅ Modern way to annotate Depends
 
-from fastapi import APIRouter, Depends, HTTPException, status  # 🚀 FastAPI-инструменты
+from fastapi import APIRouter, Depends, HTTPException, status  # 🚀 FastAPI tools
 
-from src.auth.dependencies import get_current_user  # 🔐 Получаем текущего пользователя
-from src.models import Budget, User  # 🧠 Модель бюджета и пользователя
-from src.schemas.budget import BudgetCreate, BudgetPublic, BudgetUpdate  # 📦 Схемы для работы
+from src.auth.dependencies import get_current_user  # 🔐 Get current user
+from src.models import Budget, User  # 🧠 Budget and user models
+from src.schemas.budget import BudgetCreate, BudgetPublic, BudgetUpdate  # 📦 Schemas for work
 
-# ⚙️ Роутер с префиксом /budgets
+# ⚙️ Router with prefix /budgets
 router = APIRouter(prefix="/budgets", tags=["Budgets"])
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_budget(
-    budget_in: BudgetCreate,  # 🔽 Получаем данные от клиента (категория + лимит)
-    current_user: Annotated[User, Depends(get_current_user)],  # 🔐 Авторизованный пользователь
+    budget_in: BudgetCreate,  # 🔽 Get data from client (category + limit)
+    current_user: Annotated[User, Depends(get_current_user)],  # 🔐 Authorized user
 ) -> BudgetPublic:
     """
-    ➕ Создать пользовательский бюджет по категории
+    ➕ Create user budget by category
     """
     if not current_user.id:
         raise HTTPException(
@@ -24,25 +24,25 @@ async def create_budget(
             detail="User ID is required",
         )
 
-    # 🔍 Проверяем, существует ли уже бюджет на эту категорию
+    # 🔍 Check if budget for this category already exists
     existing = await Budget.find_one(
         Budget.user_id == current_user.id,
         Budget.category == budget_in.category,
     )
     if existing:
-        # ⚠️ Если уже есть — бросаем 409 ошибку (конфликт)
+        # ⚠️ If exists — throw 409 error (conflict)
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Budget for this category already exists.",
         )
 
-    # 🆕 Создаём новый бюджет
+    # 🆕 Create new budget
     budget = Budget(user_id=current_user.id, **budget_in.model_dump())
 
-    # 💾 Сохраняем в базу
+    # 💾 Save to database
     _ = await budget.insert()
 
-    # 📤 Возвращаем клиенту публичную схему
+    # 📤 Return public schema to client
     return BudgetPublic(**budget.model_dump())
 
 
@@ -51,7 +51,7 @@ async def get_budgets(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> list[BudgetPublic]:
     """
-    📄 Получить все бюджеты пользователя
+    📄 Get all user budgets
     """
     if not current_user.id:
         raise HTTPException(
@@ -59,21 +59,21 @@ async def get_budgets(
             detail="User ID is required",
         )
 
-    # 📦 Забираем все бюджеты пользователя
+    # 📦 Get all user budgets
     budgets = await Budget.find(Budget.user_id == current_user.id).to_list()
 
-    # 🧾 Преобразуем в список публичных схем
+    # 🧾 Transform to list of public schemas
     return [BudgetPublic(**b.model_dump()) for b in budgets]
 
 
 @router.put("/{category}")
 async def update_budget(
-    category: str,  # 🏷 Имя категории в URL
-    update: BudgetUpdate,  # 🛠 Новое значение лимита
-    current_user: Annotated[User, Depends(get_current_user)],  # 🔐 Пользователь
+    category: str,  # 🏷 Category name in URL
+    update: BudgetUpdate,  # 🛠 New limit value
+    current_user: Annotated[User, Depends(get_current_user)],  # 🔐 User
 ) -> BudgetPublic:
     """
-    ✏️ Обновить лимит бюджета по категории
+    ✏️ Update budget limit by category
     """
     if not current_user.id:
         raise HTTPException(
@@ -81,32 +81,32 @@ async def update_budget(
             detail="User ID is required",
         )
 
-    # 🔎 Ищем бюджет по категории и пользователю
+    # 🔎 Find budget by category and user
     budget = await Budget.find_one(
         Budget.user_id == current_user.id,
         Budget.category == category,
     )
     if not budget:
-        # ❌ Если не найден — 404
+        # ❌ If not found — 404
         raise HTTPException(status_code=404, detail="Budget not found")
 
-    # 💸 Обновляем лимит
+    # 💸 Update limit
     budget.limit = update.limit
 
-    # 💾 Сохраняем
+    # 💾 Save
     _ =await budget.save()
 
-    # 📤 Возвращаем
+    # 📤 Return
     return BudgetPublic(**budget.model_dump())
 
 
 @router.delete("/{category}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_budget(
-    category: str,  # 🏷 Категория в URL
-    current_user: Annotated[User, Depends(get_current_user)],  # 🔐 Пользователь
+    category: str,  # 🏷 Category in URL
+    current_user: Annotated[User, Depends(get_current_user)],  # 🔐 User
 ) -> None:
     """
-    ❌ Удалить бюджет по категории
+    ❌ Delete budget by category
     """
     if not current_user.id:
         raise HTTPException(
@@ -114,14 +114,14 @@ async def delete_budget(
             detail="User ID is required",
         )
 
-    # 🔎 Ищем бюджет
+    # 🔎 Find budget
     budget = await Budget.find_one(
         Budget.user_id == current_user.id,
         Budget.category == category,
     )
     if not budget:
-        # ❌ Не найден — 404
+        # ❌ Not found — 404
         raise HTTPException(status_code=404, detail="Budget not found")
 
-    # 🧹 Удаляем
+    # 🧹 Delete
     _ = await budget.delete()

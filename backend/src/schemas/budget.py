@@ -7,24 +7,24 @@ from pydantic import BaseModel, Field
 
 class BudgetCreate(BaseModel):
     """
-    📥 Создание нового бюджета
+    📥 Creating a new budget
     """
 
-    category: str  # Категория, для которой задаётся лимит
-    limit: Decimal = Field(..., ge=0)  # Обязательное поле — сумма лимита
+    category: str  # Category for which the limit is set
+    limit: Decimal = Field(..., ge=0)  # Required field - limit amount
 
 
 class BudgetUpdate(BaseModel):
     """
-    🛠 Обновление лимита бюджета
+    🛠 Updating budget limit
     """
 
-    limit: Decimal = Field(..., ge=0)  # Только лимит можно обновлять
+    limit: Decimal = Field(..., ge=0)  # Only limit can be updated
 
 
 class BudgetPublic(BaseModel):
     """
-    📤 Ответ клиенту: информация о бюджете
+    📤 Response to client: budget information
     """
 
     id: PydanticObjectId  # Mongo ID

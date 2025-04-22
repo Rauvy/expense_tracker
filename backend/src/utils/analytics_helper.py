@@ -9,12 +9,12 @@ from src.schemas.base import TransactionPublic
 
 
 def round_decimal(value: Decimal) -> Decimal:
-    """Округление Decimal до 2 знаков после запятой"""
+    """Rounds Decimal to 2 decimal places"""
     return value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
 
 def calculate_percent(amount: Decimal, total: Decimal) -> Decimal:
-    """Расчет процента от общей суммы"""
+    """Calculates percentage of total amount"""
     if total == Decimal("0"):
         return Decimal("0")
     return round_decimal((amount / total) * Decimal("100"))
@@ -29,7 +29,7 @@ def sum_amounts(transactions: list[dict[str, Any]]) -> Decimal:
 
 
 def to_datetime(d: date | datetime) -> datetime:
-    """Конвертирует date в datetime если нужно"""
+    """Converts date to datetime if needed"""
     if isinstance(d, date) and not isinstance(d, datetime):
         return datetime.combine(d, datetime.min.time(), tzinfo=UTC)
     return d
@@ -126,7 +126,7 @@ async def get_paginated_transactions_for_user(
     ]
 
     all_txns = manual_data + plaid_data
-    # Конвертируем все даты в datetime перед сортировкой
+    # Convert all dates to datetime before sorting
     all_txns.sort(key=lambda x: to_datetime(x["date"]), reverse=True)
     total = len(all_txns)
     paginated = all_txns[offset : offset + limit]
@@ -142,7 +142,7 @@ async def get_paginated_transactions_for_user(
 
 async def get_all_transactions_for_user(user_id: PydanticObjectId) -> list[dict[str, Any]]:
     """
-    Возвращает все транзакции пользователя без пагинации (нужно для аналитики).
+    Returns all user transactions without pagination (needed for analytics).
     """
     result = await get_paginated_transactions_for_user(user_id=user_id, limit=10_000_000)
     return result["items"]

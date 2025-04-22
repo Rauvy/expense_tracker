@@ -517,22 +517,22 @@ const totalExpenses = allTransactions?.length
   };
 
   const handleDeleteTransaction = async () => {
-    try {
-      await deleteTransaction(selectedTransaction.id);
-      // Remove the transaction from the list
-      setAllTransactions(prevTransactions =>
-        prevTransactions.filter(tx => tx.id !== selectedTransaction.id)
-      );
-      // Close the modal
-      setTransactionDetailsVisible(false);
-    } catch (error) {
-      console.error('Error deleting transaction:', error);
-      // Show error message
-      Alert.alert(
-        'Error',
-        error.response?.data?.detail || 'Failed to delete transaction. Please try again.'
-      );
-    }
+    // try {
+    //   await deleteTransaction(selectedTransaction.id);
+    //   // Remove the transaction from the list
+    //   setAllTransactions(prevTransactions =>
+    //     prevTransactions.filter(tx => tx.id !== selectedTransaction.id)
+    //   );
+    //   // Close the modal
+    //   setTransactionDetailsVisible(false);
+    // } catch (error) {
+    //   console.error('Error deleting transaction:', error);
+    //   // Show error message
+    //   Alert.alert(
+    //     'Error',
+    //     error.response?.data?.detail || 'Failed to delete transaction. Please try again.'
+    //   );
+    // } FIX for the later
   };
 
   // Add this date formatting function

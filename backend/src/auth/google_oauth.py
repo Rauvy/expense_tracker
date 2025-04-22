@@ -18,15 +18,15 @@ from src.schemas.base import TokenResponse
 
 async def handle_google_login(id_token_str: str) -> TokenResponse:
     """
-    🔐 Обрабатывает логин через Google:
-    - проверяет подлинность id_token
-    - извлекает email и Google ID
-    - находит или создаёт пользователя
-    - возвращает access и refresh токены
+    🔐 Handles login via Google:
+    - verifies id_token authenticity
+    - extracts email and Google ID
+    - finds or creates user
+    - returns access and refresh tokens
     """
 
     try:
-        # ✅ Проверяем подлинность токена (через Google-сервер)
+        # ✅ Verify token authenticity (through Google server)
         id_info = id_token.verify_oauth2_token(
             id_token_str,
             google_requests.Request(),
@@ -40,25 +40,25 @@ async def handle_google_login(id_token_str: str) -> TokenResponse:
                 "Invalid Google token: missing required fields (email or sub)."
             )
 
-        # 🔍 Ищем по google_id
+        # 🔍 Search by google_id
         user = await User.find_one({"google_id": google_sub})
 
         if not user:
-            # 🔁 Пробуем найти по email
+            # 🔁 Try to find by email
             user = await User.find_one({"email": email})
 
             if user:
-                # ⚠️ Email уже используется обычным юзером
+                # ⚠️ Email already used by regular user
                 if not user.google_id:
                     raise_conflict_error(
                         "User with this email already exists. Use email/password login."
                     )
                 else:
-                    # 🔧 Обновляем google_id, если не было
+                    # 🔧 Update google_id if it wasn't set
                     user.google_id = google_sub
                     _ = await user.save()
             else:
-                # 🆕 Новый пользователь
+                # 🆕 New user
                 given_name = id_info.get("given_name")
                 family_name = id_info.get("family_name")
                 validate_google_names(given_name, family_name)
@@ -73,7 +73,7 @@ async def handle_google_login(id_token_str: str) -> TokenResponse:
                 )
                 _ = await user.insert()
 
-        # 🪪 Создание access/refresh токенов
+        # 🪪 Create access/refresh tokens
         access_token = create_access_token({"sub": str(user.id)})
         refresh_token, created_at, expires_at = create_refresh_token()
 
@@ -85,24 +85,24 @@ async def handle_google_login(id_token_str: str) -> TokenResponse:
         )
 
     except ValueError as err:
-        # ⛔ Невалидный или просроченный токен
+        # ⛔ Invalid or expired token
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired Google ID token."
         ) from err
 
     except HTTPException:
-        # 🚫 Уже выброшенная ошибка — не перехватываем повторно
+        # 🚫 Already thrown error - don't catch again
         raise
 
     except Exception as err:
-        # 💥 Непредвиденная ошибка сервера
+        # 💥 Unexpected server error
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error during Google login.",
         ) from err
 
     else:
-        # ✅ Возвращаем клиенту токены
+        # ✅ Return tokens to client
         return TokenResponse(
             access_token=access_token,
             refresh_token=refresh_token,

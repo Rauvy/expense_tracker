@@ -32,4 +32,4 @@ async def init_db() -> None:
             BankTransaction,
         ],
     )
-    print("✅ MongoDB успешно подключена к базе:", db.name)
+    print("✅ MongoDB successfully connected to database:", db.name)
