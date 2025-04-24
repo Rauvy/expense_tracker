@@ -1267,8 +1267,8 @@ const StatisticsScreen = ({ navigation }) => {
             <View style={styles.screenPadding}>
               {/* Type Selector (Expense/Income) */}
               <View style={styles.statTypeSelector}>
-                {renderStatTypeButton('Expenses', 'expense')}
                 {renderStatTypeButton('Income', 'income')}
+                {renderStatTypeButton('Expenses', 'expense')}
               </View>
 
               {/* Timeframe buttons */}
