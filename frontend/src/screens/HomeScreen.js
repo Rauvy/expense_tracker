@@ -17,10 +17,6 @@ const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 const CHART_RADIUS = Math.min(width - 100, 240) / 2;
 const INNER_RADIUS = CHART_RADIUS * 0.55;
 
-// Mock data
-const monthlyEarned = 2850;
-const monthlySpent = 950;
-
 // Initial categories
 const initialCategories = [
   { name: 'Food', icon: 'fast-food', color: '#FF6B6B' },  // Более приглушенный красный
@@ -301,9 +297,24 @@ const HomeScreen = ({ navigation }) => {
       const netWorth = assetsTotal - liabilitiesTotal;
   
       setFinancialCards([
-        { title: 'Net Worth', value: netWorth, trend: '', color: '#D26A68' },
-        { title: 'Assets', value: assetsTotal, trend: '', color: '#4BC0C0' },
-        { title: 'Liabilities', value: liabilitiesTotal, trend: '', color: '#FF6384' }
+        {
+          title: 'Net Worth',
+          value: netWorth,
+          trend: '',
+          color: netWorth >= 0 ? '#4BC0C0' : '#FF6384'
+        },
+        {
+          title: 'Assets',
+          value: assetsTotal,
+          trend: '',
+          color: '#4BC0C0'
+        },
+        {
+          title: 'Liabilities',
+          value: liabilitiesTotal,
+          trend: '',
+          color: '#FF6384'
+        }
       ]);
     } catch (err) {
       console.error('Error calculating financial overview:', err);
@@ -330,7 +341,7 @@ const HomeScreen = ({ navigation }) => {
       </View>
 
       <Text style={[styles.tileAmount, { color: item.color, textAlign: 'center' }]}>
-        ${item.value.toLocaleString()}
+        ${(item.value).toFixed(2).toLocaleString()}
       </Text>
       <Text style={[styles.tileTrend, { textAlign: 'center' }]}>
         {item.trend} this month
