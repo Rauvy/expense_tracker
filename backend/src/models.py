@@ -1,13 +1,13 @@
-from datetime import UTC, date, datetime  # Импортируем UTC и datetime для работы с временем
-from decimal import Decimal  # Добавляем импорт Decimal
+from datetime import UTC, date, datetime  # Import UTC and datetime for working with time
+from decimal import Decimal  # Add Decimal import
 from enum import StrEnum
 from typing import Any, ClassVar, Literal, override
 
-from beanie import (  # Document — модель для MongoDB, PydanticObjectId — ID-шка
+from beanie import (  # Document — model for MongoDB, PydanticObjectId — ID
     Document,
     PydanticObjectId,
 )
-from pydantic import (  # EmailStr — проверка email, Field — для задания default значений
+from pydantic import (  # EmailStr — email validation, Field — for setting default values
     EmailStr,
     Field,
     field_validator,
@@ -17,17 +17,17 @@ from src.utils.mongo_types import convert_decimal128
 
 
 class User(Document):
-    email: EmailStr  # Обязательное поле email, автоматически проверяется
-    first_name: str  # Имя пользователя (обязательное)
-    last_name: str  # Фамилия пользователя (обязательное)
-    birth_date: datetime | None = None  # Дата рождения
-    hashed_password: str | None = None  # Пароль в зашифрованном виде, может быть None для OAuth
+    email: EmailStr  # Required email field, automatically validated
+    first_name: str  # User's first name (required)
+    last_name: str  # User's last name (required)
+    birth_date: datetime | None = None  # Birth date
+    hashed_password: str | None = None  # Password in encrypted form, can be None for OAuth
     google_id: str | None = (
-        None  # ID пользователя в Google, может быть None для обычной регистрации
+        None  # User's Google ID, can be None for regular registration
     )
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(UTC)
-    )  # 🕓 Автоматическое время регистрации
+    )  # 🕓 Automatic registration time
 
     balance: Decimal = Field(default=Decimal("0.00"))
 
@@ -44,10 +44,10 @@ class User(Document):
         return data
 
     class Settings:
-        name = "users"  # Название коллекции в MongoDB
+        name = "users"  # Collection name in MongoDB
         indexes: ClassVar[list[str]] = [
-            "email",  # Для быстрого поиска по email при логине
-            "google_id",  # Для быстрого поиска пользователей Google
+            "email",  # For quick search by email during login
+            "google_id",  # For quick search of Google users
         ]
         json_encoders: ClassVar[dict[type, Any]] = {Decimal: float}
 
@@ -59,17 +59,17 @@ class TransactionType(StrEnum):
 
 class Transaction(Document):
     """
-    Модель для хранения как расходов, так и доходов
+    Model for storing both expenses and income
     """
 
-    user_id: PydanticObjectId  # ID пользователя
-    amount: Decimal  # Сумма транзакции
+    user_id: PydanticObjectId  # User ID
+    amount: Decimal  # Transaction amount
     source: Literal["manual", "plaid"] = "manual"
-    type: TransactionType  # Тип: expense или income
-    category: str | None = None  # Категория (например, "Еда", "Зарплата")
-    payment_method: str | None = None  # Способ оплаты (для расходов)
-    date: datetime = Field(default_factory=lambda: datetime.now(UTC))  # Дата транзакции
-    description: str | None = None  # Описание транзакции
+    type: TransactionType  # Type: expense or income
+    category: str | None = None  # Category (e.g., "Food", "Salary")
+    payment_method: str | None = None  # Payment method (for expenses)
+    date: datetime = Field(default_factory=lambda: datetime.now(UTC))  # Transaction date
+    description: str | None = None  # Transaction description
 
     @field_validator("amount", mode="before")
     @classmethod
@@ -98,25 +98,25 @@ class Transaction(Document):
         return data
 
     class Settings:
-        name = "transactions"  # Название коллекции в MongoDB
+        name = "transactions"  # Collection name in MongoDB
         json_encoders: ClassVar[dict[type, Any]] = {
             Decimal: float,
             PydanticObjectId: str,
-        }  # Конвертируем Decimal в float при сериализации
+        }  # Convert Decimal to float during serialization
         indexes: ClassVar[list[str | tuple[str, ...]]] = [
-            "user_id",  # Для быстрого получения всех транзакций пользователя
-            ("user_id", "date"),  # Для временных отчетов и сортировки по дате
-            ("user_id", "category"),  # Для группировки по категориям
-            ("user_id", "type"),  # Для фильтрации по типу (расход/доход)
-            ("user_id", "amount"),  # Для сортировки по сумме
-            # Составной индекс для сложной аналитики: транзакции по категориям за период
+            "user_id",  # For quick retrieval of all user transactions
+            ("user_id", "date"),  # For time reports and sorting by date
+            ("user_id", "category"),  # For grouping by categories
+            ("user_id", "type"),  # For filtering by type (expense/income)
+            ("user_id", "amount"),  # For sorting by amount
+            # Composite index for complex analytics: transactions by categories over a period
             ("user_id", "category", "date"),
-            # Составной индекс для фильтрации по типу и дате
+            # Composite index for filtering by type and date
             ("user_id", "type", "date"),
         ]
 
 
-# 🔐 Модель для хранения refresh токенов в MongoDB
+# 🔐 Model for storing refresh tokens in MongoDB
 class RefreshToken(Document):
     user_id: PydanticObjectId
     token: str
@@ -138,18 +138,18 @@ class RefreshToken(Document):
 
 class Category(Document):
     """
-    📂 Категория расходов (кастомная или дефолтная)
+    📂 Expense category (custom or default)
     """
 
-    name: str = Field(..., min_length=1, max_length=50)  # Название категории
-    icon: str | None = Field(default=None, max_length=10)  # Эмодзи/иконка (опционально)
+    name: str = Field(..., min_length=1, max_length=50)  # Category name
+    icon: str | None = Field(default=None, max_length=10)  # Emoji/icon (optional)
     color: str | None = Field(
         default=None,
         pattern="^#[0-9a-fA-F]{6}$",
         description="HEX color code (e.g. #FF5733)",
-    )  # Цвет категории (опционально)
-    user_id: PydanticObjectId | None = None  # Если None — дефолтная, иначе кастомная
-    is_default: bool = False  # Используется для глобальных категорий
+    )  # Category color (optional)
+    user_id: PydanticObjectId | None = None  # If None — default, otherwise custom
+    is_default: bool = False  # Used for global categories
 
     @override
     def model_dump(self, *args: Any, **kwargs: Any) -> dict[str, Any]:
@@ -171,17 +171,17 @@ class Category(Document):
 
 class PaymentMethod(Document):
     """
-    💳 Кастомный платёжный метод пользователя
+    💳 Custom user payment method
     """
 
-    name: str  # Название: "TD Debit 1234"
-    bank: str | None = None  # Название банка: TD, CIBC и т.д.
+    name: str  # Name: "TD Debit 1234"
+    bank: str | None = None  # Bank name: TD, CIBC, etc.
     card_type: str | None = Field(
         default=None, pattern="^(credit|debit)$"
-    )  # Тип: debit или credit
-    last4: str | None = Field(default=None, min_length=4, max_length=4)  # Последние 4 цифры
-    icon: str | None = None  # 🎨 Эмодзи или иконка: 🏦 💳
-    user_id: PydanticObjectId  # Привязка к пользователю
+    )  # Type: debit or credit
+    last4: str | None = Field(default=None, min_length=4, max_length=4)  # Last 4 digits
+    icon: str | None = None  # 🎨 Emoji or icon: 🏦 💳
+    user_id: PydanticObjectId  # Link to user
 
     @override
     def model_dump(self, *args: Any, **kwargs: Any) -> dict[str, Any]:
@@ -204,15 +204,15 @@ class PaymentMethod(Document):
 
 class Budget(Document):
     """
-    💰 Модель пользовательского бюджета по категориям
+    💰 User budget model by categories
     """
 
-    user_id: PydanticObjectId  # ID пользователя
-    category: str  # Название категории (например, "food")
-    limit: Decimal = Field(..., ge=0)  # Сумма лимита (неотрицательная)
+    user_id: PydanticObjectId  # User ID
+    category: str  # Category name (e.g., "food")
+    limit: Decimal = Field(..., ge=0)  # Limit amount (non-negative)
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(UTC)
-    )  # 🕒 UTC-современное время
+    )  # 🕒 UTC-modern time
 
     @field_validator("limit", mode="before")
     @classmethod
@@ -265,8 +265,8 @@ class BankConnection(Document):
 
 class BankAccount(Document):
     user_id: PydanticObjectId
-    bank_connection_id: PydanticObjectId  # связь с BankConnection
-    account_id: str  # ID от Plaid
+    bank_connection_id: PydanticObjectId  # relationship with BankConnection
+    account_id: str  # ID from Plaid
     name: str
     official_name: str | None = None
     type: str
@@ -296,9 +296,9 @@ class BankAccount(Document):
 
 class BankTransaction(Document):
     user_id: PydanticObjectId
-    bank_account_id: PydanticObjectId  # связь с BankAccount
-    transaction_id: str  # от Plaid
-    source: Literal["manual", "plaid"] = "plaid"  # для BankTransaction
+    bank_account_id: PydanticObjectId  # relationship with BankAccount
+    transaction_id: str  # from Plaid
+    source: Literal["manual", "plaid"] = "plaid"  # for BankTransaction
     name: str
     amount: float
     date: date

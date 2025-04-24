@@ -17,32 +17,24 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 
-const initialCategories = [
-  { id: '1', name: 'Food', icon: 'fast-food', color: '#FF6384' },
-  { id: '2', name: 'Transport', icon: 'car', color: '#36A2EB' },
-  { id: '3', name: 'Shopping', icon: 'cart', color: '#FFCE56' },
-  { id: '4', name: 'Bills', icon: 'flash', color: '#4BC0C0' },
-  { id: '5', name: 'Entertainment', icon: 'film', color: '#9966FF' },
+const initialPaymentMethods = [
+  { id: '1', name: 'Cash', icon: 'cash', color: '#4BC0C0' },
+  { id: '2', name: 'Credit Card', icon: 'card', color: '#FF6384' },
+  { id: '3', name: 'Debit Card', icon: 'card-outline', color: '#36A2EB' },
+  { id: '4', name: 'Bank Transfer', icon: 'business', color: '#FFCE56' },
+  { id: '5', name: 'Mobile Payment', icon: 'phone-portrait', color: '#9966FF' },
 ];
 
 const availableIcons = [
-  'fast-food', 'restaurant', 'cafe', 'pizza', 'beer', 'wine',
-  'car', 'bus', 'train', 'airplane', 'boat', 'bicycle',
-  'cart', 'basket', 'gift', 'bag', 'pricetag', 'shirt',
-  'flash', 'home', 'tv', 'wifi', 'call', 'desktop',
-  'film', 'game-controller', 'musical-notes', 'headset', 'fitness',
-  'medkit', 'heart', 'pulse', 'bandage', 'fitness-outline',
-  'book', 'school', 'library', 'briefcase', 'cash', 'card',
-  'hammer', 'build', 'construct', 'brush', 'color-palette',
-  'flower', 'leaf', 'paw', 'nutrition', 'basketball', 'football'
+  'cash', 'card', 'card-outline', 'wallet', 
+  'business', 'briefcase', 'phone-portrait', 'smartphone',
+  'logo-paypal', 'logo-apple', 'logo-google', 'logo-amazon',
+  'phone-portrait-outline', 'cash-outline', 
+  'globe-outline', 'at-outline', 'git-branch-outline', 'link',
+  'qr-code', 'barcode', 'gift', 'gift-outline', 'pricetag',
+  'cafe', 'beer', 'restaurant', 'fast-food', 'basket',
+  'cart', 'bag', 'bag-handle'
 ];
-
-// const colorOptions = [
-//   '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
-//   '#FF9F40', '#FF6B6B', '#C9CB3F', '#4FFBDF', '#975FFF',
-//   '#E85D75', '#5DA5E8', '#F9F871', '#00B8A9', '#F08A5D',
-//   '#B83B5E', '#6A2C70', '#08D9D6', '#FF2E63', '#252A34'
-// ];
 
 const colorOptions = [
   '#E57373', // dark pastel red
@@ -66,76 +58,71 @@ const colorOptions = [
   '#CE93D8'  // rich soft purple
 ];
 
-const CategoriesSettings = () => {
+const PaymentMethods = () => {
   const navigation = useNavigation();
 
-  // Categories states
-  const [categories, setCategories] = useState(initialCategories);
+  // Payment methods states
+  const [paymentMethods, setPaymentMethods] = useState(initialPaymentMethods);
   const [searchQuery, setSearchQuery] = useState('');
-  const [addCategoryVisible, setAddCategoryVisible] = useState(false);
+  const [addMethodVisible, setAddMethodVisible] = useState(false);
 
-  // New category states
-  const [newCategoryName, setNewCategoryName] = useState('');
+  // New payment method states
+  const [newMethodName, setNewMethodName] = useState('');
   const [selectedIcon, setSelectedIcon] = useState('');
   const [selectedColor, setSelectedColor] = useState('');
 
-  // Load categories from storage
+  // Load payment methods from storage
   useEffect(() => {
-    const loadCategories = async () => {
+    const loadPaymentMethods = async () => {
       try {
-        const savedCategories = await AsyncStorage.getItem('expenseCategories');
+        const savedMethods = await AsyncStorage.getItem('paymentMethods');
 
-        if (savedCategories) {
-          // Ensure all loaded categories have valid IDs
-          const parsedCategories = JSON.parse(savedCategories);
-          const validatedCategories = parsedCategories.map(category => ({
-            ...category,
-            id: category.id ? category.id.toString() : Date.now().toString() + Math.random().toString(36).substr(2, 5)
+        if (savedMethods) {
+          // Ensure all loaded methods have valid IDs
+          const parsedMethods = JSON.parse(savedMethods);
+          const validatedMethods = parsedMethods.map(method => ({
+            ...method,
+            id: method.id ? method.id.toString() : Date.now().toString() + Math.random().toString(36).substr(2, 5)
           }));
-          setCategories(validatedCategories);
-          // Save validated categories back if any were fixed
-          if (JSON.stringify(validatedCategories) !== savedCategories) {
-            await AsyncStorage.setItem('expenseCategories', JSON.stringify(validatedCategories));
+          setPaymentMethods(validatedMethods);
+          // Save validated methods back if any were fixed
+          if (JSON.stringify(validatedMethods) !== savedMethods) {
+            await AsyncStorage.setItem('paymentMethods', JSON.stringify(validatedMethods));
           }
         } else {
-          // If no saved categories, save the initial ones with ensured IDs
-          const validInitialCategories = initialCategories.map(category => ({
-            ...category,
-            id: category.id ? category.id.toString() : Date.now().toString() + Math.random().toString(36).substr(2, 5)
+          // If no saved methods, save the initial ones with validated IDs
+          const validInitialMethods = initialPaymentMethods.map(method => ({
+            ...method,
+            id: method.id ? method.id.toString() : Date.now().toString() + Math.random().toString(36).substr(2, 5)
           }));
-          setCategories(validInitialCategories);
-          await AsyncStorage.setItem('expenseCategories', JSON.stringify(validInitialCategories));
+          setPaymentMethods(validInitialMethods);
+          await AsyncStorage.setItem('paymentMethods', JSON.stringify(validInitialMethods));
         }
       } catch (error) {
-        console.error('Error loading categories:', error);
-        // Fallback to initial categories with ensured IDs if loading fails
-        const validInitialCategories = initialCategories.map(category => ({
-          ...category,
-          id: category.id ? category.id.toString() : Date.now().toString() + Math.random().toString(36).substr(2, 5)
+        console.error('Error loading payment methods:', error);
+        // Fallback to initial methods with ensured IDs
+        const validInitialMethods = initialPaymentMethods.map(method => ({
+          ...method,
+          id: method.id ? method.id.toString() : Date.now().toString() + Math.random().toString(36).substr(2, 5)
         }));
-        setCategories(validInitialCategories);
+        setPaymentMethods(validInitialMethods);
       }
     };
 
-    loadCategories();
+    loadPaymentMethods();
   }, []);
 
-  // Filter categories based on search query
-  const filteredCategories = categories.filter(category =>
-    category.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  // Debug categories data
+  // Debug payment methods data
   useEffect(() => {
-    if (categories.length > 0) {
-      console.log('Categories data sample:', 
-        categories.slice(0, 2).map(cat => ({id: cat.id, name: cat.name}))
+    if (paymentMethods.length > 0) {
+      console.log('Payment methods data sample:', 
+        paymentMethods.slice(0, 2).map(method => ({id: method.id, name: method.name}))
       );
       // Check for duplicate IDs
-      const ids = categories.map(cat => cat.id);
+      const ids = paymentMethods.map(method => method.id);
       const uniqueIds = new Set(ids);
       if (ids.length !== uniqueIds.size) {
-        console.warn('Warning: Duplicate IDs detected in categories');
+        console.warn('Warning: Duplicate IDs detected in payment methods');
         const idCounts = ids.reduce((acc, id) => {
           acc[id] = (acc[id] || 0) + 1;
           return acc;
@@ -147,26 +134,31 @@ const CategoriesSettings = () => {
           });
       }
     }
-  }, [categories]);
+  }, [paymentMethods]);
 
-  // Reset new category form
-  const resetNewCategoryForm = () => {
-    setNewCategoryName('');
+  // Filter payment methods based on search query
+  const filteredMethods = paymentMethods.filter(method =>
+    method.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Reset new payment method form
+  const resetNewMethodForm = () => {
+    setNewMethodName('');
     setSelectedIcon('');
     setSelectedColor('');
   };
 
-  // Open add category modal
-  const openAddCategoryModal = () => {
-    resetNewCategoryForm();
-    setAddCategoryVisible(true);
+  // Open add payment method modal
+  const openAddMethodModal = () => {
+    resetNewMethodForm();
+    setAddMethodVisible(true);
   };
 
-  // Add new category
-  const handleAddCategory = async () => {
+  // Add new payment method
+  const handleAddMethod = async () => {
     // Validate inputs
-    if (!newCategoryName.trim()) {
-      Alert.alert('Error', 'Please enter a category name');
+    if (!newMethodName.trim()) {
+      Alert.alert('Error', 'Please enter a payment method name');
       return;
     }
 
@@ -180,49 +172,49 @@ const CategoriesSettings = () => {
       return;
     }
 
-    // Check if category name already exists
-    const categoryExists = categories.some(
-      category => category.name.toLowerCase() === newCategoryName.toLowerCase()
+    // Check if method name already exists
+    const methodExists = paymentMethods.some(
+      method => method.name.toLowerCase() === newMethodName.toLowerCase()
     );
 
-    if (categoryExists) {
-      Alert.alert('Error', 'A category with this name already exists');
+    if (methodExists) {
+      Alert.alert('Error', 'A payment method with this name already exists');
       return;
     }
 
-    // Create new category with a guaranteed unique ID
+    // Create new payment method with guaranteed unique ID
     const uniqueId = Date.now().toString() + Math.random().toString(36).substr(2, 5);
-    const newCategory = {
+    const newMethod = {
       id: uniqueId,
-      name: newCategoryName.trim(),
+      name: newMethodName.trim(),
       icon: selectedIcon,
       color: selectedColor
     };
 
-    // Add to categories
-    const updatedCategories = [...categories, newCategory];
-    setCategories(updatedCategories);
+    // Add to payment methods
+    const updatedMethods = [...paymentMethods, newMethod];
+    setPaymentMethods(updatedMethods);
 
     try {
       // Save to AsyncStorage
-      await AsyncStorage.setItem('expenseCategories', JSON.stringify(updatedCategories));
+      await AsyncStorage.setItem('paymentMethods', JSON.stringify(updatedMethods));
 
       // Close modal and reset form
-      setAddCategoryVisible(false);
-      resetNewCategoryForm();
+      setAddMethodVisible(false);
+      resetNewMethodForm();
 
-      Alert.alert('Success', 'Category added successfully');
+      Alert.alert('Success', 'Payment method added successfully');
     } catch (error) {
-      console.error('Error saving category:', error);
-      Alert.alert('Error', 'Failed to save category');
+      console.error('Error saving payment method:', error);
+      Alert.alert('Error', 'Failed to save payment method');
     }
   };
 
-  // Delete category
-  const handleDeleteCategory = (categoryId) => {
+  // Delete payment method
+  const handleDeleteMethod = (methodId) => {
     Alert.alert(
       'Confirm Delete',
-      'Are you sure you want to delete this category?',
+      'Are you sure you want to delete this payment method?',
       [
         {
           text: 'Cancel',
@@ -233,27 +225,27 @@ const CategoriesSettings = () => {
           style: 'destructive',
           onPress: async () => {
             try {
-              // Find the category to be deleted
-              const categoryToDelete = categories.find(cat => cat.id === categoryId);
-              if (!categoryToDelete) return;
+              // Find the method to be deleted
+              const methodToDelete = paymentMethods.find(method => method.id === methodId);
+              if (!methodToDelete) return;
 
-              // Make sure we're not deleting the last remaining category
-              if (categories.length <= 1) {
-                Alert.alert('Error', 'Cannot delete the last category. At least one category must remain.');
+              // Make sure we're not deleting the last remaining method
+              if (paymentMethods.length <= 1) {
+                Alert.alert('Error', 'Cannot delete the last payment method. At least one method must remain.');
                 return;
               }
 
-              // Filter out the category with the specified ID
-              const updatedCategories = categories.filter(category => category.id !== categoryId);
-              setCategories(updatedCategories);
+              // Filter out the method with the specified ID
+              const updatedMethods = paymentMethods.filter(method => method.id !== methodId);
+              setPaymentMethods(updatedMethods);
 
-              // Save updated categories to AsyncStorage
-              await AsyncStorage.setItem('expenseCategories', JSON.stringify(updatedCategories));
+              // Save updated methods to AsyncStorage
+              await AsyncStorage.setItem('paymentMethods', JSON.stringify(updatedMethods));
 
-              Alert.alert('Success', `Category "${categoryToDelete.name}" deleted successfully`);
+              Alert.alert('Success', `Payment method "${methodToDelete.name}" deleted successfully`);
             } catch (error) {
-              console.error('Error deleting category:', error);
-              Alert.alert('Error', 'Failed to delete category');
+              console.error('Error deleting payment method:', error);
+              Alert.alert('Error', 'Failed to delete payment method');
             }
           }
         }
@@ -261,19 +253,19 @@ const CategoriesSettings = () => {
     );
   };
 
-  // Render category item
-  const renderCategoryItem = ({ item }) => (
-    <View style={styles.categoryItem}>
-      <View style={styles.categoryInfo}>
-        <View style={[styles.categoryIcon, { backgroundColor: item.color }]}>
+  // Render payment method item
+  const renderMethodItem = ({ item }) => (
+    <View style={styles.methodItem}>
+      <View style={styles.methodInfo}>
+        <View style={[styles.methodIcon, { backgroundColor: item.color }]}>
           <Ionicons name={item.icon} size={24} color="#FFFFFF" />
         </View>
-        <Text style={styles.categoryName}>{item.name}</Text>
+        <Text style={styles.methodName}>{item.name}</Text>
       </View>
 
       <TouchableOpacity
         style={styles.deleteButton}
-        onPress={() => handleDeleteCategory(item.id)}
+        onPress={() => handleDeleteMethod(item.id)}
       >
         <Ionicons name="trash-outline" size={22} color="#FF3B30" />
       </TouchableOpacity>
@@ -291,11 +283,11 @@ const CategoriesSettings = () => {
           <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
 
-        <Text style={styles.screenTitle}>Categories</Text>
+        <Text style={styles.screenTitle}>Payment Methods</Text>
 
         <TouchableOpacity
           style={styles.addButton}
-          onPress={openAddCategoryModal}
+          onPress={openAddMethodModal}
           activeOpacity={0.7}
         >
           <Ionicons name="add" size={24} color="#FFFFFF" />
@@ -308,7 +300,7 @@ const CategoriesSettings = () => {
           style={styles.searchInput}
           value={searchQuery}
           onChangeText={setSearchQuery}
-          placeholder="Search categories"
+          placeholder="Search payment methods"
           placeholderTextColor="#666666"
           autoCapitalize="none"
         />
@@ -322,13 +314,13 @@ const CategoriesSettings = () => {
         )}
       </View>
 
-      {filteredCategories.length === 0 ? (
+      {filteredMethods.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Ionicons name="folder-open-outline" size={80} color="#333333" />
+          <Ionicons name="wallet-outline" size={80} color="#333333" />
           <Text style={styles.emptyText}>
             {searchQuery
-              ? `No categories found for "${searchQuery}"`
-              : 'No categories added yet'}
+              ? `No payment methods found for "${searchQuery}"`
+              : 'No payment methods added yet'}
           </Text>
           {searchQuery && (
             <TouchableOpacity
@@ -341,21 +333,21 @@ const CategoriesSettings = () => {
         </View>
       ) : (
         <FlatList
-          data={filteredCategories}
-          renderItem={renderCategoryItem}
+          data={filteredMethods}
+          renderItem={renderMethodItem}
           keyExtractor={item => item.id.toString()}
-          contentContainerStyle={styles.categoriesList}
+          contentContainerStyle={styles.methodsList}
           showsVerticalScrollIndicator={false}
-          extraData={categories}
+          extraData={paymentMethods}
         />
       )}
 
-      {/* Add Category Modal */}
+      {/* Add Payment Method Modal */}
       <Modal
         animationType="slide"
         transparent={true}
-        visible={addCategoryVisible}
-        onRequestClose={() => setAddCategoryVisible(false)}
+        visible={addMethodVisible}
+        onRequestClose={() => setAddMethodVisible(false)}
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : null}
@@ -363,15 +355,15 @@ const CategoriesSettings = () => {
         >
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Add New Category</Text>
-              <TouchableOpacity onPress={() => setAddCategoryVisible(false)}>
+              <Text style={styles.modalTitle}>Add Payment Method</Text>
+              <TouchableOpacity onPress={() => setAddMethodVisible(false)}>
                 <Ionicons name="close" size={24} color="#FFFFFF" />
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={styles.modalBody}>
-              {/* Category Preview */}
-              <View style={styles.categoryPreview}>
+            <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+              {/* Method Preview */}
+              <View style={styles.methodPreview}>
                 <View style={[
                   styles.previewIcon,
                   { backgroundColor: selectedColor || '#333333' }
@@ -383,18 +375,18 @@ const CategoriesSettings = () => {
                   )}
                 </View>
                 <Text style={styles.previewName}>
-                  {newCategoryName || 'Category Name'}
+                  {newMethodName || 'Payment Method Name'}
                 </Text>
               </View>
 
-              {/* Category Name Input */}
+              {/* Method Name Input */}
               <View style={styles.formGroup}>
-                <Text style={styles.formLabel}>Category Name</Text>
+                <Text style={styles.formLabel}>Method Name</Text>
                 <TextInput
                   style={styles.formInput}
-                  value={newCategoryName}
-                  onChangeText={setNewCategoryName}
-                  placeholder="Enter category name"
+                  value={newMethodName}
+                  onChangeText={setNewMethodName}
+                  placeholder="Enter payment method name"
                   placeholderTextColor="#666666"
                 />
               </View>
@@ -403,21 +395,21 @@ const CategoriesSettings = () => {
               <View style={styles.formGroup}>
                 <Text style={styles.formLabel}>Select Icon</Text>
                 <View style={styles.iconsGrid}>
-                  {availableIcons.map((icon) => (
+                  {availableIcons.map((icon, index) => (
                     <TouchableOpacity
-                    key={`icon-${icon}`}
-                    style={[
-                      styles.iconOption,
-                      selectedIcon === icon && { backgroundColor: selectedColor || '#D26A68' }
-                    ]}
-                    onPress={() => setSelectedIcon(icon)}
-                  >
-                    <Ionicons
-                      name={icon}
-                      size={24}
-                      color={selectedIcon === icon ? '#FFFFFF' : '#CCCCCC'}
-                    />
-                  </TouchableOpacity>
+                      key={`icon-${icon}-${index}`}
+                      style={[
+                        styles.iconOption,
+                        selectedIcon === icon && { backgroundColor: selectedColor || '#D26A68' }
+                      ]}
+                      onPress={() => setSelectedIcon(icon)}
+                    >
+                      <Ionicons
+                        name={icon}
+                        size={24}
+                        color={selectedIcon === icon ? '#FFFFFF' : '#CCCCCC'}
+                      />
+                    </TouchableOpacity>
                   ))}
                 </View>
               </View>
@@ -426,9 +418,9 @@ const CategoriesSettings = () => {
               <View style={styles.formGroup}>
                 <Text style={styles.formLabel}>Select Color</Text>
                 <View style={styles.colorsGrid}>
-                  {colorOptions.map((color) => (
+                  {colorOptions.map((color, index) => (
                     <TouchableOpacity
-                      key={`color-${color}`}
+                      key={`color-${color}-${index}`}
                       style={[
                         styles.colorOption,
                         { backgroundColor: color },
@@ -442,12 +434,12 @@ const CategoriesSettings = () => {
 
               <TouchableOpacity
                 style={[
-                  styles.addCategoryButton,
+                  styles.addMethodButton,
                   { backgroundColor: selectedColor || '#D26A68' }
                 ]}
-                onPress={handleAddCategory}
+                onPress={handleAddMethod}
               >
-                <Text style={styles.addCategoryButtonText}>Add Category</Text>
+                <Text style={styles.addMethodButtonText}>Add Payment Method</Text>
               </TouchableOpacity>
             </ScrollView>
           </View>
@@ -531,11 +523,11 @@ const styles = StyleSheet.create({
     color: '#D26A68',
     fontSize: 16,
   },
-  categoriesList: {
+  methodsList: {
     paddingHorizontal: 15,
     paddingBottom: 20,
   },
-  categoryItem: {
+  methodItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -544,12 +536,12 @@ const styles = StyleSheet.create({
     padding: 15,
     marginBottom: 10,
   },
-  categoryInfo: {
+  methodInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
   },
-  categoryIcon: {
+  methodIcon: {
     width: 40,
     height: 40,
     borderRadius: 20,
@@ -557,7 +549,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 15,
   },
-  categoryName: {
+  methodName: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '500',
@@ -592,7 +584,7 @@ const styles = StyleSheet.create({
   modalBody: {
     padding: 20,
   },
-  categoryPreview: {
+  methodPreview: {
     alignItems: 'center',
     marginBottom: 30,
   },
@@ -638,9 +630,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     margin: 5,
   },
-  selectedIconOption: {
-    // backgroundColor: '#D26A68',
-  },
   colorsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -655,19 +644,19 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: '#FFFFFF',
   },
-  addCategoryButton: {
-    // backgroundColor: '#D26A68',
+  addMethodButton: {
+    backgroundColor: '#D26A68',
     borderRadius: 12,
     paddingVertical: 15,
     alignItems: 'center',
     marginTop: 20,
     marginBottom: 30,
   },
-  addCategoryButtonText: {
+  addMethodButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
   },
 });
 
-export default CategoriesSettings;
+export default PaymentMethods;

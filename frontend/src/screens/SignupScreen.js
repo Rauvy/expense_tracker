@@ -23,7 +23,6 @@ const SignupScreen = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [birthDate, setBirthDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [initialBalance, setInitialBalance] = useState('0');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -33,6 +32,18 @@ const SignupScreen = ({ navigation }) => {
       setError('Please fill in all fields');
       return;
     }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError('Passwords do not match');
       return;
@@ -40,7 +51,7 @@ const SignupScreen = ({ navigation }) => {
     setIsLoading(true);
     setError('');
     try {
-      await signup({
+      const response = await signup({
         email,
         password,
         first_name: firstName,
@@ -48,10 +59,27 @@ const SignupScreen = ({ navigation }) => {
         birth_date: birthDate.toISOString(),
         initial_balance: parseFloat(initialBalance) || 0
       });
-      navigation.replace('MainApp');
+      
+      // Check if we received tokens from the backend
+      if (response && response.access_token) {
+        navigation.replace('MainApp');
+      } else {
+        setError('Registration successful, but no authentication token received. Please try logging in.');
+        navigation.navigate('Login');
+      }
     } catch (err) {
       console.log('Signup error:', err.response?.data, err.message);
-      setError(err.response?.data?.detail || 'Failed to sign up. Please try again.');
+      const detail = err.response?.data?.detail;
+
+      if (typeof detail === 'string') {
+        setError(detail);
+      } else if (Array.isArray(detail) && detail[0]?.msg) {
+        setError(detail[0].msg);
+      } else if (typeof detail === 'object' && detail?.msg) {
+        setError(detail.msg);
+      } else {
+        setError(err.message || 'Failed to sign up. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -112,23 +140,22 @@ const SignupScreen = ({ navigation }) => {
               
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>Birth Date</Text>
-                <TouchableOpacity onPress={() => setShowDatePicker(true)} disabled={isLoading}>
-                  <Text style={[styles.input, { color: '#fff' }]}>{birthDate.toDateString()}</Text>
-                </TouchableOpacity>
-                {showDatePicker && (
-                  <DateTimePicker
-                    value={birthDate}
-                    mode="date"
-                    display="default"
-                    onChange={(event, selectedDate) => {
-                      setShowDatePicker(false);
-                      if (selectedDate) setBirthDate(selectedDate);
-                    }}
-                  />
-                )}
+                <DateTimePicker
+                  value={birthDate}
+                  mode="date"
+                  display="default"
+                  themeVariant='dark'
+                  textColor={'#D26A68'}
+                  accentColor={"#D26A68"}
+                  maximumDate={new Date(new Date().setFullYear(new Date().getFullYear() - 14))}
+                  style={{ marginLeft: -10 }}
+                  onChange={(event, selectedDate) => {
+                    if (selectedDate) setBirthDate(selectedDate);
+                  }}
+                />
               </View>
               
-              <View style={styles.inputContainer}>
+              {/* <View style={styles.inputContainer}>
                 <Text style={styles.label}>Initial Balance</Text>
                 <TextInput
                   style={styles.input}
@@ -139,7 +166,7 @@ const SignupScreen = ({ navigation }) => {
                   onChangeText={setInitialBalance}
                   editable={!isLoading}
                 />
-              </View>
+              </View> */}
               
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>Password</Text>
@@ -230,7 +257,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   button: {
-    backgroundColor: '#276EF1',
+    backgroundColor: '#D26A68',
     borderRadius: 10,
     padding: 15,
     alignItems: 'center',
@@ -251,7 +278,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   loginLink: {
-    color: '#276EF1',
+    color: '#D26A68',
     fontSize: 16,
     fontWeight: 'bold',
   },

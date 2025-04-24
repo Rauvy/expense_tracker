@@ -1,7 +1,7 @@
-# Импортируем базовую модель из Pydantic — она используется для валидации и сериализации данных
-# Импортируем тип ObjectId, который Beanie использует для MongoDB-документов
+# Import base model from Pydantic - it's used for validation and serialization of data
+# Import ObjectId type which Beanie uses for MongoDB documents
 from datetime import datetime
-from decimal import Decimal  # Добавляем импорт Decimal
+from decimal import Decimal  # Add Decimal import
 
 from beanie import PydanticObjectId
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
@@ -10,67 +10,67 @@ from src.models import TransactionType
 
 
 class BaseModelWithConfig(BaseModel):
-    """Базовая модель с настройками сериализации"""
+    """Base model with serialization settings"""
 
     model_config = ConfigDict(
         json_encoders={
-            PydanticObjectId: str,  # MongoDB ID -> строка
-            Decimal: str,  # Decimal -> строка
+            PydanticObjectId: str,  # MongoDB ID -> string
+            Decimal: str,  # Decimal -> string
         }
     )
 
 
 class BaseModelWithDecimalAsFloat(BaseModel):
-    """Базовая модель для транзакций, где Decimal конвертируется в float"""
+    """Base model for transactions where Decimal is converted to float"""
 
     model_config = ConfigDict(
         json_encoders={
-            PydanticObjectId: str,  # MongoDB ID -> строка
-            Decimal: float,  # Decimal -> float для числовых полей
+            PydanticObjectId: str,  # MongoDB ID -> string
+            Decimal: float,  # Decimal -> float for numeric fields
         }
     )
 
 
-# ---------- 📥 Модели, получаемые от клиента (входящие данные) ----------
+# ---------- 📥 Models received from client (incoming data) ----------
 
 
-# Модель, которую клиент отправляет при регистрации
+# Model that client sends during registration
 class UserCreate(BaseModelWithConfig):
-    email: EmailStr  # Email — валидируется автоматически как email
-    password: str  # Пароль в виде строки (в открытом виде на этом этапе)
-    first_name: str  # Имя пользователя (обязательное)
-    last_name: str  # Фамилия пользователя (обязательное)
-    birth_date: datetime | None = None  # Дата рождения
-    initial_balance: Decimal = Field(default=Decimal("0.00"))  # Начальный баланс
+    email: EmailStr  # Email - automatically validated as email
+    password: str  # Password as string (in clear text at this stage)
+    first_name: str  # User's first name (required)
+    last_name: str  # User's last name (required)
+    birth_date: datetime | None = None  # Birth date
+    initial_balance: Decimal = Field(default=Decimal("0.00"))  # Initial balance
 
 
-# Модель, которую клиент отправляет при логине
+# Model that client sends during login
 class UserLogin(BaseModelWithConfig):
-    email: EmailStr  # Тоже email
-    password: str  # Пароль, чтобы проверить его с хэшем из базы
+    email: EmailStr  # Also email
+    password: str  # Password to check against hash from database
 
 
-# ---------- 📤 Модели, которые возвращаются клиенту (ответы API) ----------
+# ---------- 📤 Models returned to client (API responses) ----------
 
 
-# Публичная модель пользователя — без пароля
+# Public user model - without password
 class UserPublic(BaseModelWithConfig):
-    id: PydanticObjectId  # Уникальный идентификатор пользователя в базе MongoDB
-    email: EmailStr  # Email пользователя, который мы можем безопасно вернуть
-    first_name: str  # Имя пользователя
-    last_name: str  # Фамилия пользователя
-    birth_date: datetime | None = None  # Дата рождения
-    balance: Decimal  # Текущий баланс пользователя
+    id: PydanticObjectId  # Unique user identifier in MongoDB database
+    email: EmailStr  # User's email that we can safely return
+    first_name: str  # User's first name
+    last_name: str  # User's last name
+    birth_date: datetime | None = None  # Birth date
+    balance: Decimal  # Current user balance
 
 
-# Модель токена, возвращаемая после успешного логина
+# Token model returned after successful login
 class Token(BaseModel):
-    access_token: str  # JWT-токен, который мы создадим
-    refresh_token: str | None = None  # JWT-токен, который мы создадим
-    token_type: str = "bearer"  # Тип токена — всегда "bearer" для совместимости с OAuth2
+    access_token: str  # JWT token that we'll create
+    refresh_token: str | None = None  # JWT token that we'll create
+    token_type: str = "bearer"  # Token type - always "bearer" for OAuth2 compatibility
 
 
-# Вход: клиент создаёт новый расход
+# Input: client creates new expense
 class ExpenseCreate(BaseModel):
     amount: Decimal
     category: str | None = None
@@ -79,7 +79,7 @@ class ExpenseCreate(BaseModel):
     description: str | None = None
 
 
-# Выход: сервер возвращает созданный расход
+# Output: server returns created expense
 class ExpensePublic(BaseModel):
     id: PydanticObjectId
     amount: Decimal
@@ -90,22 +90,22 @@ class ExpensePublic(BaseModel):
     user_id: PydanticObjectId
 
 
-# Модель для создания транзакции (доход или расход)
+# Model for creating transaction (income or expense)
 class TransactionCreate(BaseModelWithDecimalAsFloat):
     amount: Decimal
-    type: TransactionType  # Используем enum вместо строки
+    type: TransactionType  # Use enum instead of string
     category: str | None = None
     payment_method: str | None = None
-    source: str | None = None  # Для доходов
+    source: str | None = None  # For income
     date: datetime | None = None
     description: str | None = None
 
 
-# Модель для возврата транзакции клиенту
+# Model for returning transaction to client
 class TransactionPublic(BaseModelWithDecimalAsFloat):
     id: PydanticObjectId
     amount: Decimal
-    type: TransactionType  # Используем enum вместо строки
+    type: TransactionType  # Use enum instead of string
     category: str | None = None
     payment_method: str | None = None
     source: str | None = None
@@ -125,25 +125,25 @@ class PaginatedTransactionsResponse(BaseModel):
     model_config = ConfigDict(json_encoders={PydanticObjectId: str})
 
 
-# Модель для платежного метода
-# Модель для Google OAuth
+# Model for payment method
+# Model for Google OAuth
 class GoogleLoginPayload(BaseModel):
     id_token: str
 
 
-# Модель для ответа с токеном
+# Model for token response
 class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str | None = None
     token_type: str = "bearer"
 
 
-# Модель для обновления пароля
+# Model for password update
 class PasswordUpdateRequest(BaseModel):
     old_password: str = Field(..., min_length=6)
     new_password: str = Field(..., min_length=8)
 
 
-# Модель для ответа на обновление пароля
+# Model for password update response
 class PasswordUpdateResponse(BaseModel):
     detail: str = "Password updated successfully."

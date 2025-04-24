@@ -19,6 +19,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useNavigation } from '@react-navigation/native';
+import { logout } from '../services/authService';
 
 const SettingsScreen = () => {
   const navigation = useNavigation();
@@ -35,6 +36,7 @@ const SettingsScreen = () => {
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
   const [themeModalVisible, setThemeModalVisible] = useState(false);
   const [budgetPeriodModalVisible, setBudgetPeriodModalVisible] = useState(false);
+  const [deleteAccountModalVisible, setDeleteAccountModalVisible] = useState(false);
   
   // Language and Theme states
   const [currentLanguage, setCurrentLanguage] = useState('English');
@@ -366,6 +368,67 @@ const SettingsScreen = () => {
     </TouchableOpacity>
   );
 
+  // Delete Account States
+  const [deleteAccountPassword, setDeleteAccountPassword] = useState('');
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [showDeletePassword, setShowDeletePassword] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  
+  // Handle delete account
+  const handleDeleteAccount = async () => {
+    // Validate inputs
+    if (!deleteAccountPassword.trim()) {
+      Alert.alert('Error', 'Please enter your password');
+      return;
+    }
+    
+    if (deleteConfirmText !== 'DELETE') {
+      Alert.alert('Error', 'Please type DELETE to confirm');
+      return;
+    }
+    
+    setIsDeletingAccount(true);
+    
+    try {
+      // here we need to call api to delete account
+      setTimeout(async () => {
+        try {
+          // Call logout from authService
+          await logout();
+          
+          // Reset form
+          setDeleteAccountPassword('');
+          setDeleteConfirmText('');
+          
+          // Close modal
+          setDeleteAccountModalVisible(false);
+          setIsDeletingAccount(false);
+          
+          // Navigate to login screen
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'Login' }],
+          });
+          
+          // Show success message
+          Alert.alert(
+            'Account Deleted',
+            'Your account has been permanently deleted',
+            [{ text: 'OK' }]
+          );
+        } catch (error) {
+          console.error('Error deleting account:', error);
+          Alert.alert('Error', 'Failed to delete account. Please try again.');
+          setIsDeletingAccount(false);
+        }
+      }, 1500);
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      Alert.alert('Error', 'Failed to delete account. Please try again.');
+      setIsDeletingAccount(false);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView 
@@ -405,8 +468,9 @@ const SettingsScreen = () => {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Data & Privacy</Text>
             {renderMenuItem('shield-checkmark-outline', 'Security', 'Manage your security settings', () => navigation.navigate('SecuritySettings'))}
+            {renderMenuItem('card-outline', 'Payment Methods', 'Manage your payment methods', () => navigation.navigate('PaymentMethods'))}
             {renderMenuItem('cloud-download-outline', 'Backup', 'Backup your data', () => navigation.navigate('BackUpSettings'))}
-            {renderMenuItem('trash-outline', 'Delete Account', 'Permanently delete your account', () => {})}
+            {renderMenuItem('trash-outline', 'Delete Account', 'Permanently delete your account', () => setDeleteAccountModalVisible(true))}
           </View>
 
           {/* Support */}
@@ -437,7 +501,7 @@ const SettingsScreen = () => {
             
             <ScrollView>
               <View style={styles.notificationSectionHeader}>
-                <Ionicons name="notifications" size={22} color="#276EF1" />
+                <Ionicons name="notifications" size={22} color="#D26A68" />
                 <Text style={styles.notificationSectionTitle}>Transaction Alerts</Text>
               </View>
               
@@ -449,7 +513,7 @@ const SettingsScreen = () => {
                 <Switch
                   value={expenseAlerts}
                   onValueChange={setExpenseAlerts}
-                  trackColor={{ false: '#333333', true: '#276EF1' }}
+                  trackColor={{ false: '#333333', true: '#D26A68' }}
                   thumbColor="#FFFFFF"
                 />
               </View>
@@ -462,13 +526,13 @@ const SettingsScreen = () => {
                 <Switch
                   value={budgetAlerts}
                   onValueChange={setBudgetAlerts}
-                  trackColor={{ false: '#333333', true: '#276EF1' }}
+                  trackColor={{ false: '#333333', true: '#D26A68' }}
                   thumbColor="#FFFFFF"
                 />
               </View>
               
               <View style={styles.notificationSectionHeader}>
-                <Ionicons name="document-text" size={22} color="#276EF1" />
+                <Ionicons name="document-text" size={22} color="#D26A68" />
                 <Text style={styles.notificationSectionTitle}>Reports & Summaries</Text>
               </View>
               
@@ -480,13 +544,13 @@ const SettingsScreen = () => {
                 <Switch
                   value={weeklyReports}
                   onValueChange={setWeeklyReports}
-                  trackColor={{ false: '#333333', true: '#276EF1' }}
+                  trackColor={{ false: '#333333', true: '#D26A68' }}
                   thumbColor="#FFFFFF"
                 />
               </View>
               
               <View style={styles.notificationSectionHeader}>
-                <Ionicons name="alarm" size={22} color="#276EF1" />
+                <Ionicons name="alarm" size={22} color="#D26A68" />
                 <Text style={styles.notificationSectionTitle}>Reminders</Text>
               </View>
               
@@ -498,7 +562,7 @@ const SettingsScreen = () => {
                 <Switch
                   value={reminderAlerts}
                   onValueChange={setReminderAlerts}
-                  trackColor={{ false: '#333333', true: '#276EF1' }}
+                  trackColor={{ false: '#333333', true: '#D26A68' }}
                   thumbColor="#FFFFFF"
                 />
               </View>
@@ -804,7 +868,7 @@ const SettingsScreen = () => {
                 >
                   <Text style={styles.optionText}>{language}</Text>
                   {currentLanguage === language && (
-                    <Ionicons name="checkmark-circle" size={22} color="#276EF1" />
+                    <Ionicons name="checkmark-circle" size={22} color="#D26A68" />
                   )}
                 </TouchableOpacity>
               ))}
@@ -846,7 +910,7 @@ const SettingsScreen = () => {
                   </View>
                   
                   {currentTheme === theme.id && (
-                    <Ionicons name="checkmark-circle" size={22} color="#276EF1" />
+                    <Ionicons name="checkmark-circle" size={22} color="#D26A68" />
                   )}
                 </TouchableOpacity>
               ))}
@@ -891,7 +955,7 @@ const SettingsScreen = () => {
                 </View>
                 
                 {budgetPeriod === 'week' && (
-                  <Ionicons name="checkmark-circle" size={22} color="#276EF1" />
+                  <Ionicons name="checkmark-circle" size={22} color="#D26A68" />
                 )}
               </TouchableOpacity>
               
@@ -907,7 +971,7 @@ const SettingsScreen = () => {
                 </View>
                 
                 {budgetPeriod === 'month' && (
-                  <Ionicons name="checkmark-circle" size={22} color="#276EF1" />
+                  <Ionicons name="checkmark-circle" size={22} color="#D26A68" />
                 )}
               </TouchableOpacity>
               
@@ -923,7 +987,7 @@ const SettingsScreen = () => {
                 </View>
                 
                 {budgetPeriod === 'quarter' && (
-                  <Ionicons name="checkmark-circle" size={22} color="#276EF1" />
+                  <Ionicons name="checkmark-circle" size={22} color="#D26A68" />
                 )}
               </TouchableOpacity>
               
@@ -939,7 +1003,7 @@ const SettingsScreen = () => {
                 </View>
                 
                 {budgetPeriod === 'year' && (
-                  <Ionicons name="checkmark-circle" size={22} color="#276EF1" />
+                  <Ionicons name="checkmark-circle" size={22} color="#D26A68" />
                 )}
               </TouchableOpacity>
               
@@ -950,6 +1014,89 @@ const SettingsScreen = () => {
                 <Text style={styles.saveButtonText}>Apply</Text>
               </TouchableOpacity>
             </ScrollView>
+          </View>
+        </View>
+      </Modal>
+      
+      {/* Delete Account Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={deleteAccountModalVisible}
+        onRequestClose={() => setDeleteAccountModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Delete Account</Text>
+              <TouchableOpacity 
+                onPress={() => {
+                  setDeleteAccountModalVisible(false);
+                  setDeleteAccountPassword('');
+                  setDeleteConfirmText('');
+                }}
+              >
+                <Ionicons name="close" size={24} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.deleteWarningContainer}>
+              <Ionicons name="warning" size={40} color="#FF3B30" style={styles.warningIcon} />
+              <Text style={styles.deleteWarningText}>
+                Warning: This action cannot be undone. All your data will be permanently deleted.
+              </Text>
+            </View>
+            
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Enter Your Password</Text>
+              <View style={styles.passwordInputContainer}>
+                <TextInput
+                  style={styles.passwordInput}
+                  value={deleteAccountPassword}
+                  onChangeText={setDeleteAccountPassword}
+                  placeholder="Enter your password"
+                  placeholderTextColor="#666666"
+                  secureTextEntry={!showDeletePassword}
+                />
+                <TouchableOpacity 
+                  style={styles.eyeIcon}
+                  onPress={() => setShowDeletePassword(!showDeletePassword)}
+                >
+                  <Ionicons 
+                    name={showDeletePassword ? 'eye-off' : 'eye'} 
+                    size={20} 
+                    color="#666666" 
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+            
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Type DELETE to confirm</Text>
+              <TextInput
+                style={[styles.textInput, { marginTop: 10 }]}
+                value={deleteConfirmText}
+                onChangeText={setDeleteConfirmText}
+                placeholder="Type DELETE in all caps"
+                placeholderTextColor="#666666"
+              />
+            </View>
+            
+            <TouchableOpacity 
+              style={[
+                styles.deleteButton,
+                (deleteConfirmText !== 'DELETE' || !deleteAccountPassword || isDeletingAccount) && 
+                styles.deleteButtonDisabled
+              ]}
+              onPress={handleDeleteAccount}
+              disabled={deleteConfirmText !== 'DELETE' || !deleteAccountPassword || isDeletingAccount}
+            >
+              {isDeletingAccount ? (
+                <ActivityIndicator color="#FFFFFF" size="small" />
+              ) : (
+                <Text style={styles.deleteButtonText}>Delete My Account</Text>
+              )}
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -1045,12 +1192,11 @@ const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.7)',
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
   },
   modalContent: {
     backgroundColor: '#1a1a1a',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderRadius: 20,
     padding: 20,
     maxHeight: '90%',
   },
@@ -1136,7 +1282,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   saveButton: {
-    backgroundColor: '#276EF1',
+    backgroundColor: '#D26A68',
     borderRadius: 12,
     padding: 15,
     alignItems: 'center',
@@ -1157,7 +1303,7 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   forgotPasswordText: {
-    color: '#276EF1',
+    color: '#D26A68',
     fontSize: 14,
   },
   
@@ -1176,7 +1322,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   activeTabButton: {
-    backgroundColor: '#276EF1',
+    backgroundColor: '#D26A68',
   },
   tabButtonText: {
     color: '#FFFFFF',
@@ -1259,7 +1405,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   selectedIconOption: {
-    borderColor: '#276EF1',
+    borderColor: '#D26A68',
     borderWidth: 2,
   },
   colorsContainer: {
@@ -1280,7 +1426,7 @@ const styles = StyleSheet.create({
   },
   addButton: {
     marginTop: 20,
-    backgroundColor: '#276EF1',
+    backgroundColor: '#D26A68',
     borderRadius: 10,
     paddingVertical: 14,
     alignItems: 'center',
@@ -1376,6 +1522,41 @@ const styles = StyleSheet.create({
   periodOptionText: {
     color: '#FFFFFF',
     fontSize: 16,
+  },
+  
+  // Delete Account Modal Styles
+  deleteWarningContainer: {
+    backgroundColor: 'rgba(255, 59, 48, 0.1)',
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  warningIcon: {
+    marginRight: 10,
+  },
+  deleteWarningText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    flex: 1,
+    lineHeight: 20,
+  },
+  deleteButton: {
+    backgroundColor: '#FF3B30',
+    borderRadius: 12,
+    padding: 15,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  deleteButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  deleteButtonDisabled: {
+    backgroundColor: '#333333',
+    opacity: 0.7,
   },
 });
 

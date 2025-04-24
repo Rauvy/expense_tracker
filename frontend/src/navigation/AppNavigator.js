@@ -21,6 +21,7 @@ import BackUpSettings from '../screens/BackUpSettings';
 import SecuritySettings from '../screens/SecuritySettings';
 import CategoriesScreen from '../screens/CategoriesScreen';
 import SubscriptionScreen from '../screens/SubscriptionScreen';
+import PaymentMethods from '../screens/PaymentMethods';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -37,7 +38,7 @@ const MainAppNavigator = () => {
           height: Platform.OS === 'ios' ? 70 : 55,
           safeAreaInsets: { bottom: 0 }
         },
-        tabBarActiveTintColor: '#276EF1',
+        tabBarActiveTintColor: '#D26A68',
         tabBarInactiveTintColor: '#666666',
         headerShown: false,
         tabBarLabelStyle: {
@@ -111,6 +112,7 @@ const AppNavigator = () => {
         <Stack.Screen name="PaymentSettings" component={PaymentSettings} />
         <Stack.Screen name="Subscription" component={SubscriptionScreen} />
         <Stack.Screen name="MainApp" component={MainAppNavigator} options={{ gestureEnabled: false }} />
+        <Stack.Screen name="PaymentMethods" component={PaymentMethods} />
       </Stack.Navigator>
     </NavigationContainer>
   );

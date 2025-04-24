@@ -358,7 +358,7 @@ async def delete_bank_connection(
     # Get the current authenticated user
     current_user: Annotated[User, Depends(get_current_user)],
     # Get connection ID from path
-    connection_id: Annotated[PydanticObjectId, Path(description="ID банковской связки")],
+    connection_id: Annotated[PydanticObjectId, Path(description="Bank connection ID")],
 ) -> dict[str, str]:
     """
     Delete bank connection and all related accounts and transactions

@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
   },
   activeTab: {
     borderBottomWidth: 2,
-    borderBottomColor: '#276EF1',
+    borderBottomColor: '#D26A68',
   },
   tabText: {
     color: '#666666',
@@ -415,7 +415,7 @@ const styles = StyleSheet.create({
     margin: 5,
   },
   selectedIconOption: {
-    backgroundColor: '#276EF1',
+    backgroundColor: '#D26A68',
   },
   colorsGrid: {
     flexDirection: 'row',
@@ -436,12 +436,12 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#276EF1',
+    backgroundColor: '#D26A68',
     justifyContent: 'center',
     alignItems: 'center',
   },
   saveButton: {
-    backgroundColor: '#276EF1',
+    backgroundColor: '#D26A68',
     borderRadius: 8,
     padding: 12,
     alignItems: 'center',

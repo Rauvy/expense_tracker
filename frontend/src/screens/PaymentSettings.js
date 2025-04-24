@@ -359,7 +359,7 @@ const PaymentSettings = () => {
                       style={styles.cardAction}
                       onPress={() => setAsDefault(card.id)}
                     >
-                      <Ionicons name="star-outline" size={18} color="#276EF1" />
+                      <Ionicons name="star-outline" size={18} color="#D26A68" />
                       <Text style={styles.cardActionText}>Set as Default</Text>
                     </TouchableOpacity>
                   )}
@@ -538,7 +538,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#276EF1',
+    backgroundColor: '#D26A68',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -562,7 +562,7 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   addCardButton: {
-    backgroundColor: '#276EF1',
+    backgroundColor: '#D26A68',
     borderRadius: 12,
     paddingVertical: 15,
     paddingHorizontal: 25,
@@ -588,7 +588,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   defaultBadge: {
-    backgroundColor: '#276EF1',
+    backgroundColor: '#D26A68',
     borderRadius: 10,
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -630,7 +630,7 @@ const styles = StyleSheet.create({
     marginRight: 20,
   },
   cardActionText: {
-    color: '#276EF1',
+    color: '#D26A68',
     fontSize: 14,
     marginLeft: 5,
   },
@@ -736,7 +736,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   addCardSubmitButton: {
-    backgroundColor: '#276EF1',
+    backgroundColor: '#D26A68',
     borderRadius: 12,
     padding: 15,
     alignItems: 'center',

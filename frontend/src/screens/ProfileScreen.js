@@ -7,7 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getUserProfile, getUserBalance, updateUserProfile } from '../services/userService';
 import { useNavigation } from '@react-navigation/native';
 import { TextInput as PaperTextInput } from 'react-native-paper';
-
+import { logout } from '../services/authService';
 // Initial user data structure
 const initialUserData = {
   name: '',
@@ -150,12 +150,16 @@ const ProfileScreen = () => {
     setIsEditing(false);
   };
 
-  const handleLogout = () => {
-    // Clear any stored tokens or user data
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'Login' }],
-    });
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }],
+      });
+    } catch (error) {
+      Alert.alert('Logout failed', error.response?.data?.detail || 'Please try again.');
+    }
   };
 
   const takePhotoFromCamera = async () => {
@@ -335,6 +339,20 @@ const ProfileScreen = () => {
           </View>
           <Ionicons name="chevron-forward" size={24} color="#666666" />
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.preferenceTile}
+          onPress={() => navigation.navigate('PaymentMethods')}
+        >
+          <View style={styles.preferenceContent}>
+            <View style={styles.preferenceText}>
+              <Text style={styles.preferenceTitle}>Payment Methods</Text>
+              <Text style={styles.preferenceSubtitle}>Manage your payment methods</Text>
+            </View>
+          </View>
+          <Ionicons name="chevron-forward" size={24} color="#666666" />
+        </TouchableOpacity>
+
 
         <TouchableOpacity
           style={styles.preferenceTile}
@@ -601,7 +619,7 @@ const ProfileScreen = () => {
                   </View>
 
                   {budgetPeriod === 'week' && (
-                    <Ionicons name="checkmark-circle" size={22} color="#276EF1" />
+                    <Ionicons name="checkmark-circle" size={22} color="#D26A68" />
                   )}
                 </TouchableOpacity>
 
@@ -617,7 +635,7 @@ const ProfileScreen = () => {
                   </View>
 
                   {budgetPeriod === 'month' && (
-                    <Ionicons name="checkmark-circle" size={22} color="#276EF1" />
+                    <Ionicons name="checkmark-circle" size={22} color="#D26A68" />
                   )}
                 </TouchableOpacity>
 
@@ -633,7 +651,7 @@ const ProfileScreen = () => {
                   </View>
 
                   {budgetPeriod === 'quarter' && (
-                    <Ionicons name="checkmark-circle" size={22} color="#276EF1" />
+                    <Ionicons name="checkmark-circle" size={22} color="#D26A68" />
                   )}
                 </TouchableOpacity>
 
@@ -649,7 +667,7 @@ const ProfileScreen = () => {
                   </View>
 
                   {budgetPeriod === 'year' && (
-                    <Ionicons name="checkmark-circle" size={22} color="#276EF1" />
+                    <Ionicons name="checkmark-circle" size={22} color="#D26A68" />
                   )}
                 </TouchableOpacity>
 
@@ -965,7 +983,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   saveButton: {
-    backgroundColor: '#276EF1',
+    backgroundColor: '#D26A68',
     borderRadius: 12,
     padding: 15,
     alignItems: 'center',
@@ -1003,7 +1021,7 @@ const styles = StyleSheet.create({
     width: 70,
     height: 70,
     borderRadius: 35,
-    backgroundColor: '#276EF1',
+    backgroundColor: '#D26A68',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -1011,7 +1029,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     right: 0,
-    backgroundColor: '#276EF1',
+    backgroundColor: '#D26A68',
     width: 24,
     height: 24,
     borderRadius: 12,
@@ -1065,7 +1083,7 @@ const styles = StyleSheet.create({
   },
   activeTab: {
     borderBottomWidth: 2,
-    borderBottomColor: '#276EF1',
+    borderBottomColor: '#D26A68',
   },
   tabText: {
     color: '#666666',
@@ -1131,7 +1149,7 @@ const styles = StyleSheet.create({
     margin: 5,
   },
   selectedIconOption: {
-    backgroundColor: '#276EF1',
+    backgroundColor: '#D26A68',
   },
   colorsGrid: {
     flexDirection: 'row',
@@ -1149,7 +1167,7 @@ const styles = StyleSheet.create({
     borderColor: '#FFFFFF',
   },
   addButton: {
-    backgroundColor: '#276EF1',
+    backgroundColor: '#D26A68',
     borderRadius: 8,
     padding: 15,
     alignItems: 'center',
@@ -1191,7 +1209,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   applyButton: {
-    backgroundColor: '#276EF1',
+    backgroundColor: '#D26A68',
     borderRadius: 12,
     padding: 15,
     alignItems: 'center',

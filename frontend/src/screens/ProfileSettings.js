@@ -440,7 +440,7 @@ const styles = StyleSheet.create({
   saveButton: {
     paddingHorizontal: 15,
     paddingVertical: 8,
-    backgroundColor: '#276EF1',
+    backgroundColor: '#D26A68',
     borderRadius: 8,
   },
   saveButtonText: {
@@ -475,7 +475,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     right: '35%',
-    backgroundColor: '#276EF1',
+    backgroundColor: '#D26A68',
     width: 36,
     height: 36,
     borderRadius: 18,
@@ -598,7 +598,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   updatePasswordButton: {
-    backgroundColor: '#276EF1',
+    backgroundColor: '#D26A68',
     borderRadius: 12,
     padding: 15,
     alignItems: 'center',

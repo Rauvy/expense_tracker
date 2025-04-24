@@ -4,14 +4,14 @@ from typing import List, Literal
 
 from pydantic import BaseModel
 
-# ────────────── 📦 Типы ──────────────
+# ────────────── 📦 Types ──────────────
 
-# ────────────── 📦 Базовая сводка ──────────────
+# ────────────── 📦 Base summary ──────────────
 
 
 class TotalSpent(BaseModel):
     """
-    💰 Общие траты по периодам.
+    💰 Total spending by periods.
     """
 
     week: Decimal
@@ -21,7 +21,7 @@ class TotalSpent(BaseModel):
 
 class CategoryStat(BaseModel):
     """
-    📊 Траты по категориям.
+    📊 Spending by categories.
     """
 
     category: str
@@ -31,7 +31,7 @@ class CategoryStat(BaseModel):
 
 class PaymentStat(BaseModel):
     """
-    💳 Траты по способам оплаты.
+    💳 Spending by payment methods.
     """
 
     method: str
@@ -41,7 +41,7 @@ class PaymentStat(BaseModel):
 
 class SummaryResponse(BaseModel):
     """
-    📦 Ответ для /analytics/summary
+    📦 Response for /analytics/summary
     """
 
     total_spent: TotalSpent
@@ -49,12 +49,12 @@ class SummaryResponse(BaseModel):
     payment_methods: List[PaymentStat]
 
 
-# ────────────── 🥧 Pie Chart (можно переиспользовать CategoryStat) ──────────────
+# ────────────── 🥧 Pie Chart (CategoryStat can be reused) ──────────────
 
 
 class PieChartResponse(BaseModel):
     """
-    🥧 Для pie chart по категориям
+    🥧 For pie chart by categories
     """
 
     data: List[CategoryStat]
@@ -65,7 +65,7 @@ class PieChartResponse(BaseModel):
 
 class LinePoint(BaseModel):
     """
-    📈 Точка на графике (дата → сумма)
+    📈 Point on the chart (date → amount)
     """
 
     date: date
@@ -74,32 +74,32 @@ class LinePoint(BaseModel):
 
 class LineChartResponse(BaseModel):
     """
-    📈 Ответ для /analytics/line
+    📈 Response for /analytics/line
     """
 
     timeframe: Literal["day", "week", "month", "year"]
     data: List[LinePoint]
 
 
-# ────────────── 📊 Сравнение месяцев ──────────────
+# ────────────── 📊 Month comparison ──────────────
 
 
 class MonthComparison(BaseModel):
     """
-    🔁 Сравнение прошлого и текущего месяца
+    🔁 Comparison of previous and current month
     """
 
     previous_month_total: Decimal
     current_month_total: Decimal
-    change_percent: Decimal  # Положительное = рост, отрицательное = экономия
+    change_percent: Decimal  # Positive = growth, negative = savings
 
 
-# ────────────── 🎯 Бюджет по категориям ──────────────
+# ────────────── 🎯 Budget by categories ──────────────
 
 
 class BudgetCategoryStat(BaseModel):
     """
-    🎯 Статистика по бюджету одной категории
+    🎯 Statistics for one category budget
     """
 
     category: str
@@ -110,7 +110,7 @@ class BudgetCategoryStat(BaseModel):
 
 class BudgetOverview(BaseModel):
     """
-    Все категории с бюджетом и расходами
+    All categories with budget and expenses
     """
 
     categories: List[BudgetCategoryStat]
@@ -118,14 +118,14 @@ class BudgetOverview(BaseModel):
 
 class IncomeExpenseComparison(BaseModel):
     """
-    📊 Сравнение доходов и расходов за период
+    📊 Comparison of income and expenses for a period
     """
 
-    timeframe: Literal["week", "month", "year"]  # Период сравнения
-    total_income: Decimal  # Общая сумма доходов
-    total_expense: Decimal  # Общая сумма расходов
-    difference: Decimal  # Разница (доходы - расходы)
-    income_percent: Decimal  # Процент доходов от общей суммы
-    expense_percent: Decimal  # Процент расходов от общей суммы
-    top_income_categories: List[CategoryStat]  # Топ категории доходов
-    top_expense_categories: List[CategoryStat]  # Топ категории расходов
+    timeframe: Literal["week", "month", "year"]  # Comparison period
+    total_income: Decimal  # Total income amount
+    total_expense: Decimal  # Total expense amount
+    difference: Decimal  # Difference (income - expenses)
+    income_percent: Decimal  # Percentage of income from total
+    expense_percent: Decimal  # Percentage of expenses from total
+    top_income_categories: List[CategoryStat]  # Top income categories
+    top_expense_categories: List[CategoryStat]  # Top expense categories

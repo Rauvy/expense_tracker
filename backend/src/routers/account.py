@@ -17,7 +17,7 @@ async def get_me(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> dict[str, str]:
     """
-    🔍 Получить информацию о текущем пользователе
+    🔍 Get information about current user
     """
     return {
         "id": str(current_user.id),
@@ -32,7 +32,7 @@ async def delete_account(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> dict[str, str]:
     """
-    ❌ Удалить аккаунт пользователя
+    ❌ Delete user account
     """
     _ = await current_user.delete()
     return {"message": "Account deleted successfully"}
@@ -44,27 +44,27 @@ async def update_password(
     user: Annotated[User, Depends(get_current_user)],
 ) -> PasswordUpdateResponse:
     """
-    🔐 Обновить пароль пользователя
+    🔐 Update user password
     """
-    # 🔐 Проверка, что новый пароль отличается от старого
+    # 🔐 Check that new password is different from the old one
     if data.old_password == data.new_password:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="New password must be different from the old one",
         )
 
-    # 🔐 Проверка текущего пароля
+    # 🔐 Verify current password
     if not pwd_context.verify(data.old_password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Old password is incorrect",
         )
 
-    # 🔐 Хешируем и сохраняем новый пароль
+    # 🔐 Hash and save the new password
     user.hashed_password = pwd_context.hash(data.new_password)
     _ = await user.save()
 
-    # ✅ Возвращаем подтверждение
+    # ✅ Return confirmation
     return PasswordUpdateResponse()
 
 
@@ -73,6 +73,6 @@ async def get_balance(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> dict[str, float]:
     """
-    💰 Получить текущий баланс пользователя
+    💰 Get current user balance
     """
     return {"balance": float(current_user.balance)}

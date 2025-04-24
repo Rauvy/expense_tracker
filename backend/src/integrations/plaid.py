@@ -4,7 +4,6 @@ from plaid.configuration import Configuration
 
 from src.config import config
 
-# Настройка конфигурации
 configuration = Configuration(
     host="https://sandbox.plaid.com"
     if config.PLAID_ENV == "sandbox"

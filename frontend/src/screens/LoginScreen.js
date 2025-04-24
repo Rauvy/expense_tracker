@@ -50,6 +50,12 @@ const LoginScreen = ({ navigation }) => {
       setError('Please enter both email and password');
       return;
     }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
   
     setIsLoading(true);
     setError('');
@@ -67,12 +73,17 @@ const LoginScreen = ({ navigation }) => {
     } catch (error) {
       console.log('Login error:', error.response?.data, error.message);
   
-      setError(
-        error.response?.data?.detail ||
-        error.response?.data?.message ||
-        error.message ||
-        'Failed to login. Please try again.'
-      );
+      const detail = error.response?.data?.detail;
+
+      if (typeof detail === 'string') {
+        setError(detail);
+      } else if (typeof detail === 'object' && detail?.msg) {
+        setError(detail.msg);
+      } else if (error.response?.data?.message) {
+        setError(error.response.data.message);
+      } else {
+        setError(error.message || 'Failed to login. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -191,7 +202,7 @@ const LoginScreen = ({ navigation }) => {
                 <Ionicons 
                   name="logo-google" 
                   size={24} 
-                  color="#4285F4" 
+                  color="#FFFFFF" 
                   style={styles.googleIcon}
                 />
                 <Text style={styles.googleButtonText}>Sign in with Google</Text>
@@ -264,7 +275,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   button: {
-    backgroundColor: '#276EF1',
+    backgroundColor: '#D26A68',
     borderRadius: 10,
     padding: 15,
     alignItems: 'center',
@@ -297,7 +308,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#1A1A1A', // темный фон
+    borderColor: '#D26A68',     // фирменный цвет
+    borderWidth: 1.5,
     borderRadius: 10,
     padding: 15,
     marginBottom: 10,
@@ -306,7 +319,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   googleButtonText: {
-    color: '#000000',
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -320,7 +333,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   signupLink: {
-    color: '#276EF1',
+    color: '#D26A68',
     fontSize: 14,
     fontWeight: 'bold',
   },

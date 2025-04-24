@@ -17,10 +17,6 @@ const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 const CHART_RADIUS = Math.min(width - 100, 240) / 2;
 const INNER_RADIUS = CHART_RADIUS * 0.55;
 
-// Mock data
-const monthlyEarned = 2850;
-const monthlySpent = 950;
-
 // Initial categories
 const initialCategories = [
   { name: 'Food', icon: 'fast-food', color: '#FF6B6B' },  // Более приглушенный красный
@@ -28,13 +24,6 @@ const initialCategories = [
   { name: 'Shopping', icon: 'cart', color: '#45B7D1' },   // Приглушенный синий
   { name: 'Bills', icon: 'flash', color: '#96CEB4' },     // Приглушенный зеленый
   { name: 'Entertainment', icon: 'film', color: '#D4A5A5' }, // Приглушенный розовый
-];
-
-// Initial payment methods
-const initialPaymentMethods = [
-  { name: 'Credit Card', icon: 'card', color: '#FF6384' },
-  { name: 'Cash', icon: 'cash', color: '#4BC0C0' },
-  { name: 'Mobile Pay', icon: 'phone-portrait', color: '#9966FF' },
 ];
 
 // Income categories
@@ -209,10 +198,10 @@ const HomeScreen = ({ navigation }) => {
   const [selectedPaymentIcon, setSelectedPaymentIcon] = useState(null);
   const [selectedIncomeIcon, setSelectedIncomeIcon] = useState(null);
   const [selectedSourceIcon, setSelectedSourceIcon] = useState(null);
-  const [selectedColor, setSelectedColor] = useState('#276EF1');
-  const [selectedPaymentColor, setSelectedPaymentColor] = useState('#276EF1');
-  const [selectedIncomeColor, setSelectedIncomeColor] = useState('#276EF1');
-  const [selectedSourceColor, setSelectedSourceColor] = useState('#276EF1');
+  const [selectedColor, setSelectedColor] = useState('#D26A68');
+  const [selectedPaymentColor, setSelectedPaymentColor] = useState('#D26A68');
+  const [selectedIncomeColor, setSelectedIncomeColor] = useState('#D26A68');
+  const [selectedSourceColor, setSelectedSourceColor] = useState('#D26A68');
 
   // State for categories and payment methods
   const [categories, setCategories] = useState([
@@ -226,14 +215,14 @@ const HomeScreen = ({ navigation }) => {
     { name: 'Other', icon: 'ellipsis-horizontal', color: '#8E8E93' },
   ]);
 
-  const [paymentMethods, setPaymentMethods] = useState(initialPaymentMethods);
+  const [paymentMethods, setPaymentMethods] = useState([]);
   const [incomeCategories, setIncomeCategories] = useState([
     { name: 'Salary', icon: 'cash', color: '#4CD964' },
     { name: 'Freelance', icon: 'laptop', color: '#007AFF' },
     { name: 'Investments', icon: 'trending-up', color: '#FFCC00' },
     { name: 'Gifts', icon: 'gift', color: '#FF2D55' },
   ]);
-  const [incomeSources, setIncomeSources] = useState(initialIncomeSources);
+  const [incomeSources, setIncomeSources] = useState([]);
 
   // Calculate percentages and prepare data
   const formattedPieChartData = useMemo(() => {
@@ -264,11 +253,15 @@ const HomeScreen = ({ navigation }) => {
 
   // Add state for financial overview
   const [activeCardIndex, setActiveCardIndex] = useState(0);
-  const financialCards = [
-    { title: 'Net Worth', value: 2450.00, trend: '+3.2%', color: '#276EF1' },
-    { title: 'Assets', value: 16750.00, trend: '+2.1%', color: '#4BC0C0' },
-    { title: 'Liabilities', value: 14300.00, trend: '-1.5%', color: '#FF6384' }
-  ];
+  const [financialCards, setFinancialCards] = useState([
+    { title: 'Net Worth', value: 0, trend: '0%', color: '#D26A68' },
+    { title: 'Assets', value: 0, trend: '0%', color: '#4BC0C0' },
+    { title: 'Liabilities', value: 0, trend: '0%', color: '#FF6384' }
+  ]);
+
+  const formatAmount = (value) => {
+    return Number(value).toFixed(2);
+  };
 
   // Set up refs for the carousel
   const carouselRef = useRef(null);
@@ -288,6 +281,50 @@ const HomeScreen = ({ navigation }) => {
     };
   }, [scrollX, activeCardIndex, financialCards.length]);
 
+  const calculateFinancialOverview = async () => {
+    try {
+      const response = await getTransactions({ limit: 1000 });
+      const transactions = response.items || [];
+  
+      const assetsTotal = transactions
+        .filter(t => t.type === 'income')
+        .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+  
+      const liabilitiesTotal = transactions
+        .filter(t => t.type === 'expense')
+        .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+  
+      const netWorth = assetsTotal - liabilitiesTotal;
+  
+      setFinancialCards([
+        {
+          title: 'Net Worth',
+          value: netWorth,
+          trend: '',
+          color: netWorth >= 0 ? '#4BC0C0' : '#FF6384'
+        },
+        {
+          title: 'Assets',
+          value: assetsTotal,
+          trend: '',
+          color: '#4BC0C0'
+        },
+        {
+          title: 'Liabilities',
+          value: liabilitiesTotal,
+          trend: '',
+          color: '#FF6384'
+        }
+      ]);
+    } catch (err) {
+      console.error('Error calculating financial overview:', err);
+    }
+  };
+
+  useEffect(() => {
+    calculateFinancialOverview();
+  }, []);
+
   // Function to render financial card item
   const renderFinancialCard = ({ item, index }) => (
     <View style={[styles.tile, { width: screenWidth - 30 }]}>
@@ -304,7 +341,7 @@ const HomeScreen = ({ navigation }) => {
       </View>
 
       <Text style={[styles.tileAmount, { color: item.color, textAlign: 'center' }]}>
-        ${item.value.toLocaleString()}
+        ${(item.value).toFixed(2).toLocaleString()}
       </Text>
       <Text style={[styles.tileTrend, { textAlign: 'center' }]}>
         {item.trend} this month
@@ -386,6 +423,11 @@ const HomeScreen = ({ navigation }) => {
       setSelectedCategory(null);
       setSelectedPaymentMethod(null);
       setExpenseModalVisible(false);
+
+      await fetchPieChartData();
+      await calculateMonthlyTotals();
+      await fetchRecentTransactions();
+      await calculateFinancialOverview();
     } catch (err) {
       Alert.alert('Error', 'Failed to add expense.');
     }
@@ -416,6 +458,11 @@ const HomeScreen = ({ navigation }) => {
       setSelectedIncomeCategory(null);
       setSelectedIncomeSource(null);
       setIncomeModalVisible(false);
+
+      await fetchPieChartData();
+      await calculateMonthlyTotals();
+      await fetchRecentTransactions();
+      await calculateFinancialOverview();
     } catch (err) {
       Alert.alert('Error', 'Failed to add income.');
     }
@@ -634,47 +681,45 @@ const HomeScreen = ({ navigation }) => {
 
     return unsubscribe;
   }, [navigation]);
+  const fetchPieChartData = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await getPieChartData('expense');
 
-  useEffect(() => {
-    const fetchPieChartData = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const response = await getPieChartData('expense');
-
-        if (!response || !response.data) {
-          console.log('Invalid response structure:', response);
-          setError('Invalid data structure received');
-          return;
-        }
-
-        const serverData = response.data || [];
-        console.log('Processing pie chart data:', serverData);
-
-        if (!Array.isArray(serverData) || serverData.length === 0) {
-          console.log('No valid data in response');
-          setPieChartData([]);
-          return;
-        }
-
-        const formattedData = serverData.map((item, index) => ({
-          name: item.category || 'Unknown',
-          amount: Number(item.amount) || 0,
-          color: colors[index % colors.length],
-          legendFontColor: '#FFFFFF',
-          legendFontSize: 12,
-        })).filter(item => item.amount > 0); // Фильтруем только положительные значения
-
-        console.log('Formatted pie chart data:', formattedData);
-        setPieChartData(formattedData);
-      } catch (error) {
-        console.error('Error in fetchPieChartData:', error);
-        setError('Failed to load chart data');
-      } finally {
-        setIsLoading(false);
+      if (!response || !response.data) {
+        console.log('Invalid response structure:', response);
+        setError('Invalid data structure received');
+        return;
       }
-    };
 
+      const serverData = response.data || [];
+      console.log('Processing pie chart data:', serverData);
+
+      if (!Array.isArray(serverData) || serverData.length === 0) {
+        console.log('No valid data in response');
+        setPieChartData([]);
+        return;
+      }
+
+      const formattedData = serverData.map((item, index) => ({
+        name: item.category || 'Unknown',
+        amount: Number(item.amount) || 0,
+        color: colors[index % colors.length],
+        legendFontColor: '#FFFFFF',
+        legendFontSize: 12,
+      })).filter(item => item.amount > 0); // Фильтруем только положительные значения
+
+      console.log('Formatted pie chart data:', formattedData);
+      setPieChartData(formattedData);
+    } catch (error) {
+      console.error('Error in fetchPieChartData:', error);
+      setError('Failed to load chart data');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  useEffect(() => {
     fetchPieChartData();
   }, []);
 
@@ -732,6 +777,62 @@ const HomeScreen = ({ navigation }) => {
     calculateMonthlyTotals();
   }, [calculateMonthlyTotals]);
 
+  useEffect(() => {
+    const loadPaymentMethods = async () => {
+      try {
+        const savedMethods = await AsyncStorage.getItem('paymentMethods');
+        
+        if (savedMethods) {
+          setPaymentMethods(JSON.parse(savedMethods));
+        } else {
+          const defaultPaymentMethods = [
+            { id: '1', name: 'Credit Card', icon: 'card', color: '#FF6384' },
+            { id: '2', name: 'Cash', icon: 'cash', color: '#4BC0C0' },
+            { id: '3', name: 'Mobile Pay', icon: 'phone-portrait', color: '#9966FF' },
+          ];
+          setPaymentMethods(defaultPaymentMethods);
+          await AsyncStorage.setItem('paymentMethods', JSON.stringify(defaultPaymentMethods));
+        }
+      } catch (error) {
+        console.error('Error loading payment methods:', error);
+      }
+    };
+    
+    loadPaymentMethods();
+    
+    const unsubscribe = navigation.addListener('focus', loadPaymentMethods);
+    
+    return unsubscribe;
+  }, [navigation]);
+  
+  useEffect(() => {
+    const loadIncomeSources = async () => {
+      try {
+        const savedSources = await AsyncStorage.getItem('incomeSources');
+        
+        if (savedSources) {
+          setIncomeSources(JSON.parse(savedSources));
+        } else {
+          const defaultIncomeSources = [
+            { id: '1', name: 'Bank Account', icon: 'card', color: '#4BC0C0' },
+            { id: '2', name: 'Cash', icon: 'cash', color: '#FF6384' },
+            { id: '3', name: 'Mobile Wallet', icon: 'phone-portrait', color: '#9966FF' },
+          ];
+          setIncomeSources(defaultIncomeSources);
+          await AsyncStorage.setItem('incomeSources', JSON.stringify(defaultIncomeSources));
+        }
+      } catch (error) {
+        console.error('Error loading income sources:', error);
+      }
+    };
+    
+    loadIncomeSources();
+    
+    const unsubscribe = navigation.addListener('focus', loadIncomeSources);
+    
+    return unsubscribe;
+  }, [navigation]);
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
@@ -785,7 +886,7 @@ const HomeScreen = ({ navigation }) => {
           {/* Monthly Stats Section */}
           <View style={styles.monthlyStatsHeader}>
             <Text style={styles.sectionTitle}>Monthly Statistics</Text>
-            <Ionicons name="stats-chart" size={22} color="#276EF1" />
+            <Ionicons name="stats-chart" size={22} color="#D26A68" />
           </View>
 
           {/* Tiles for Monthly Earned and Monthly Spent */}
@@ -1018,9 +1119,16 @@ const HomeScreen = ({ navigation }) => {
 
                 <TouchableOpacity
                   style={styles.addCategoryButton}
-                  onPress={() => setCustomCategoryModalVisible(true)}
+                  onPress={() => {
+                    setExpenseModalVisible(false);
+                    setExpenseAmount('');
+                    setExpenseDescription('');
+                    setSelectedCategory(null);
+                    setSelectedPaymentMethod(null);
+                    navigation.navigate('Categories');
+                  }}
                 >
-                  <Ionicons name="add" size={20} color="#276EF1" />
+                  <Ionicons name="add" size={20} color="#D26A68" />
                   <Text style={styles.addCategoryText}>Custom</Text>
                 </TouchableOpacity>
               </View>
@@ -1045,9 +1153,16 @@ const HomeScreen = ({ navigation }) => {
 
                 <TouchableOpacity
                   style={styles.addCategoryButton}
-                  onPress={() => setCustomPaymentMethodModalVisible(true)}
+                  onPress={() => {
+                    setExpenseModalVisible(false);
+                    setExpenseAmount('');
+                    setExpenseDescription('');
+                    setSelectedCategory(null);
+                    setSelectedPaymentMethod(null);
+                    navigation.navigate('PaymentMethods');
+                  }}
                 >
-                  <Ionicons name="add" size={20} color="#276EF1" />
+                  <Ionicons name="add" size={20} color="#D26A68" />
                   <Text style={styles.addCategoryText}>Custom</Text>
                 </TouchableOpacity>
               </View>
@@ -1133,9 +1248,16 @@ const HomeScreen = ({ navigation }) => {
 
                 <TouchableOpacity
                   style={styles.addCategoryButton}
-                  onPress={() => setCustomIncomeCategoryModalVisible(true)}
+                  onPress={() => {
+                    setIncomeModalVisible(false);
+                    setIncomeAmount('');
+                    setIncomeDescription('');
+                    setSelectedIncomeCategory(null);
+                    setSelectedIncomeSource(null);
+                    navigation.navigate('IncomeSource');
+                  }}
                 >
-                  <Ionicons name="add" size={20} color="#276EF1" />
+                  <Ionicons name="add" size={20} color="#D26A68" />
                   <Text style={styles.addCategoryText}>Custom</Text>
                 </TouchableOpacity>
               </View>
@@ -1160,9 +1282,16 @@ const HomeScreen = ({ navigation }) => {
 
                 <TouchableOpacity
                   style={styles.addCategoryButton}
-                  onPress={() => setCustomIncomeSourceModalVisible(true)}
+                  onPress={() => {
+                    setIncomeModalVisible(false);
+                    setIncomeAmount('');
+                    setIncomeDescription('');
+                    setSelectedIncomeCategory(null);
+                    setSelectedIncomeSource(null);
+                    navigation.navigate('IncomeSource');
+                  }}
                 >
-                  <Ionicons name="add" size={20} color="#276EF1" />
+                  <Ionicons name="add" size={20} color="#D26A68" />
                   <Text style={styles.addCategoryText}>Custom</Text>
                 </TouchableOpacity>
               </View>
@@ -1179,7 +1308,7 @@ const HomeScreen = ({ navigation }) => {
       </Modal>
 
       {/* Custom Category Modal */}
-      <Modal
+      {/* <Modal
         animationType="slide"
         transparent={true}
         visible={customCategoryModalVisible}
@@ -1235,13 +1364,13 @@ const HomeScreen = ({ navigation }) => {
               </View>
 
               <TouchableOpacity
-                style={[styles.addButton, { backgroundColor: selectedColor || '#276EF1' }]}
+                style={[styles.addButton, { backgroundColor: selectedColor || '#D26A68' }]}
                 onPress={() => {
                   if (customCategoryName.trim() && selectedIcon) {
                     saveCategory({
                       name: customCategoryName.trim(),
                       icon: selectedIcon,
-                      color: selectedColor || '#276EF1'
+                      color: selectedColor || '#D26A68'
                     });
                   }
                 }}
@@ -1251,10 +1380,10 @@ const HomeScreen = ({ navigation }) => {
             </ScrollView>
           </View>
         </View>
-      </Modal>
+      </Modal> */}
 
       {/* Custom Payment Method Modal */}
-      <Modal
+      {/* <Modal
         animationType="slide"
         transparent={true}
         visible={customPaymentMethodModalVisible}
@@ -1310,13 +1439,13 @@ const HomeScreen = ({ navigation }) => {
               </View>
 
               <TouchableOpacity
-                style={[styles.addButton, { backgroundColor: selectedPaymentColor || '#276EF1' }]}
+                style={[styles.addButton, { backgroundColor: selectedPaymentColor || '#D26A68' }]}
                 onPress={() => {
                   if (customPaymentMethodName.trim() && selectedPaymentIcon) {
                     const newPaymentMethod = {
                       name: customPaymentMethodName.trim(),
                       icon: selectedPaymentIcon,
-                      color: selectedPaymentColor || '#276EF1'
+                      color: selectedPaymentColor || '#D26A68'
                     };
 
                     setPaymentMethods([...paymentMethods, newPaymentMethod]);
@@ -1334,10 +1463,10 @@ const HomeScreen = ({ navigation }) => {
             </ScrollView>
           </View>
         </View>
-      </Modal>
+      </Modal> */}
 
       {/* Custom Income Category Modal */}
-      <Modal
+      {/* <Modal
         animationType="slide"
         transparent={true}
         visible={customIncomeCategoryModalVisible}
@@ -1409,10 +1538,10 @@ const HomeScreen = ({ navigation }) => {
             </ScrollView>
           </View>
         </View>
-      </Modal>
+      </Modal> */}
 
       {/* Custom Income Source Modal */}
-      <Modal
+      {/* <Modal
         animationType="slide"
         transparent={true}
         visible={customIncomeSourceModalVisible}
@@ -1492,7 +1621,7 @@ const HomeScreen = ({ navigation }) => {
             </ScrollView>
           </View>
         </View>
-      </Modal>
+      </Modal> */}
 
       {/* Statistics Modal */}
       <Modal
@@ -2255,7 +2384,7 @@ const styles = StyleSheet.create({
   },
   addCategoryText: {
     fontSize: 14,
-    color: '#276EF1',
+    color: '#D26A68',
     marginLeft: 5,
   },
   addButton: {
@@ -2695,7 +2824,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   editTransactionButton: {
-    backgroundColor: '#276EF1',
+    backgroundColor: '#D26A68',
     width: '100%',
     paddingVertical: 15,
     borderRadius: 12,
@@ -2753,7 +2882,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
   },
   paginationDotActive: {
-    backgroundColor: '#276EF1',
+    backgroundColor: '#D26A68',
     width: 8,
     height: 8,
     borderRadius: 4,
@@ -2832,9 +2961,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 2,
-  },
-  categoryIcon: {
-    marginRight: 8,
   },
   categoryText: {
     color: '#FFFFFF',

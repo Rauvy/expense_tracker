@@ -12,7 +12,7 @@ async def recalculate_user_balance(user_id: PydanticObjectId) -> None:
 
     balance = Decimal("0")
 
-    # Ручные транзакции
+    # Manual transactions
     manual_txns = await Transaction.find(Transaction.user_id == user_id).to_list()
     for txn in manual_txns:
         if txn.type == "income":
@@ -20,10 +20,10 @@ async def recalculate_user_balance(user_id: PydanticObjectId) -> None:
         else:
             balance -= txn.amount
 
-    # Банковские транзакции
+    # Bank transactions
     bank_txns = await BankTransaction.find(BankTransaction.user_id == user_id).to_list()
     for txn in bank_txns:
-        # Plaid доходы — отрицательные по amount
+        # Plaid income is negative by amount
         amount = Decimal(str(txn.amount))
         if txn.amount < 0:
             balance += abs(amount)
