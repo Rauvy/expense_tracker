@@ -15,7 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { signup } from '../services/authService';
-
+import { useTheme } from '../theme/ThemeProvider';
 const SignupScreen = ({ navigation }) => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -26,6 +26,9 @@ const SignupScreen = ({ navigation }) => {
   const [initialBalance, setInitialBalance] = useState('0');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const { theme } = useTheme();
+  const styles = useThemedStyles(theme);
 
   const handleSignup = async () => {
     if (!firstName || !lastName || !email || !password || !confirmPassword || !birthDate) {
@@ -129,7 +132,7 @@ const SignupScreen = ({ navigation }) => {
                 <TextInput
                   style={styles.input}
                   placeholder="Enter email"
-                  placeholderTextColor="#666666"
+                  placeholderTextColor={theme.placeholderTextColor}
                   keyboardType="email-address"
                   value={email}
                   onChangeText={setEmail}
@@ -144,9 +147,9 @@ const SignupScreen = ({ navigation }) => {
                   value={birthDate}
                   mode="date"
                   display="default"
-                  themeVariant='dark'
-                  textColor={'#D26A68'}
-                  accentColor={"#D26A68"}
+                  themeVariant={theme.mode}
+                  textColor={theme.accent}
+                  accentColor={theme.accent}
                   maximumDate={new Date(new Date().setFullYear(new Date().getFullYear() - 14))}
                   style={{ marginLeft: -10 }}
                   onChange={(event, selectedDate) => {
@@ -218,10 +221,10 @@ const SignupScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const useThemedStyles = (theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: theme.background,
   },
   content: {
     flex: 1,
@@ -231,13 +234,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: theme.textPrimary,
     marginBottom: 10,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 18,
-    color: '#666666',
+    color: theme.textSecondary,
     marginBottom: 30,
     textAlign: 'center',
   },
@@ -246,25 +249,25 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-    color: '#ffffff',
+    color: theme.textPrimary,
     marginBottom: 8,
   },
   input: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: theme.inputBackground,
     borderRadius: 10,
     padding: 15,
-    color: '#ffffff',
+    color: theme.textPrimary,
     fontSize: 16,
   },
   button: {
-    backgroundColor: '#D26A68',
+    backgroundColor: theme.accent,
     borderRadius: 10,
     padding: 15,
     alignItems: 'center',
     marginTop: 20,
   },
   buttonText: {
-    color: '#ffffff',
+    color: theme.textPrimary,
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -274,22 +277,22 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   loginText: {
-    color: '#666666',
+    color: theme.textSecondary,
     fontSize: 16,
   },
   loginLink: {
-    color: '#D26A68',
+    color: theme.accent,
     fontSize: 16,
     fontWeight: 'bold',
   },
   errorContainer: {
-    backgroundColor: '#ff3b30',
+    backgroundColor: theme.error,
     borderRadius: 10,
     padding: 15,
     marginBottom: 20,
   },
   errorText: {
-    color: '#ffffff',
+    color: theme.textPrimary,
     fontSize: 16,
     fontWeight: 'bold',
   },

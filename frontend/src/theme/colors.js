@@ -1,4 +1,5 @@
-export const lightTheme = {
+export const darkTheme = {
+    mode: "dark",
     background: "#121212",
     cardBackground: "#1A1A1A",
     textPrimary: "#FFFFFF",
@@ -29,7 +30,8 @@ export const lightTheme = {
     cardDiscover: "#FF6600",
 };
 
-export const darkTheme = {
+export const lightTheme = {
+    mode: "light",
     background: "#FFFFFF",
     cardBackground: "#F2F2F2",
     textPrimary: "#000000",
