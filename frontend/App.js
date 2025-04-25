@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StatusBar } from 'react-native';
 import AppNavigator from './src/navigation/AppNavigator';
-import { ThemeProvider } from './src/theme/ThemeContext';
+import { ThemeProvider } from './src/theme/ThemeProvider';
 
 const App = () => {
   return (
