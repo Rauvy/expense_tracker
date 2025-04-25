@@ -1,17 +1,26 @@
 import React from 'react';
 import { View, StatusBar } from 'react-native';
 import AppNavigator from './src/navigation/AppNavigator';
-import { ThemeProvider } from './src/theme/ThemeProvider';
+import { ThemeProvider, useTheme } from './src/theme/ThemeProvider';
 
-const App = () => {
+const ThemedApp = () => {
+  const { theme, mode } = useTheme();
+
   return (
-    <ThemeProvider>
-      <View style={{ flex: 1 }}>
-        <StatusBar barStyle="light-content" backgroundColor="#000000" />
-        <AppNavigator />
-      </View>
-    </ThemeProvider>
+    <View style={{ flex: 1, backgroundColor: theme.background }}>
+      <StatusBar
+        barStyle={mode === 'dark' ? 'light-content' : 'dark-content'}
+        backgroundColor={theme.background}
+      />
+      <AppNavigator />
+    </View>
   );
 };
+
+const App = () => (
+  <ThemeProvider>
+    <ThemedApp />
+  </ThemeProvider>
+);
 
 export default App;

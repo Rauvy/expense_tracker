@@ -24,7 +24,7 @@ import { useTheme } from '../theme/ThemeProvider';
 
 const SettingsScreen = () => {
   const navigation = useNavigation();
-  const { changeTheme } = useTheme();
+  const { changeTheme, mode } = useTheme();
   
   const { theme } = useTheme();
   const styles = useThemedStyles(theme);
@@ -307,7 +307,6 @@ const SettingsScreen = () => {
   const handleThemeChange = (themeId) => {
     changeTheme(themeId); 
     setCurrentTheme(themeId);
-    console.log(themeId);
     setThemeModalVisible(false);
   };
   
@@ -331,13 +330,11 @@ const SettingsScreen = () => {
   useEffect(() => {
     const loadPreferences = async () => {
       try {
-        const savedTheme = await AsyncStorage.getItem('theme');
+        // Set the theme mode from context instead of AsyncStorage
+        setCurrentTheme(mode);
+        
         const savedLanguage = await AsyncStorage.getItem('language');
         const savedBudgetPeriod = await AsyncStorage.getItem('budgetPeriod');
-        
-        if (savedTheme) {
-          setCurrentTheme(savedTheme);
-        }
         
         if (savedLanguage) {
           setCurrentLanguage(savedLanguage);
@@ -352,7 +349,7 @@ const SettingsScreen = () => {
     };
     
     loadPreferences();
-  }, []);
+  }, [mode]); // Add mode as a dependency so it updates when changed
   
   // Render menu item
   const renderMenuItem = (icon, title, subtitle, action, rightElement) => (
@@ -462,7 +459,7 @@ const SettingsScreen = () => {
             {renderMenuItem('moon-outline', 'Theme', 'Change app theme', () => setThemeModalVisible(true), 
               <View style={styles.menuItemValue}>
                 <Text style={styles.menuItemValueText}>
-                  {availableThemes.find(theme => theme.id === currentTheme)?.name || 'System Default'}
+                  {availableThemes.find(themeOpt => themeOpt.id === currentTheme)?.name || 'System Default'}
                 </Text>
               </View>
             )}
@@ -900,31 +897,34 @@ const SettingsScreen = () => {
             </View>
             
             <ScrollView>
-              {availableThemes.map((theme, index) => (
+              {availableThemes.map((themeOption, index) => (
                 <TouchableOpacity 
                   key={index}
-                  style={styles.themeOption}
-                  onPress={() => handleThemeChange(theme.id)}
+                  style={[
+                    styles.themeOption,
+                    currentTheme === themeOption.id && styles.selectedThemeOption
+                  ]}
+                  onPress={() => handleThemeChange(themeOption.id)}
                 >
                   <View style={styles.themeOptionLeft}>
-                    <View style={styles.themeIconContainer}>
-                      <Ionicons name={theme.icon} size={22} color={theme.textPrimary} />
+                    <View style={[
+                      styles.themeIconContainer,
+                      currentTheme === themeOption.id && { backgroundColor: theme.accent }
+                    ]}>
+                      <Ionicons 
+                        name={themeOption.icon} 
+                        size={22} 
+                        color={currentTheme === themeOption.id ? theme.textPrimary : theme.textSecondary} 
+                      />
                     </View>
-                    <Text style={styles.themeOptionText}>{theme.name}</Text>
+                    <Text style={styles.themeOptionText}>{themeOption.name}</Text>
                   </View>
                   
-                  {currentTheme === theme.id && (
+                  {currentTheme === themeOption.id && (
                     <Ionicons name="checkmark-circle" size={22} color={theme.accent} />
                   )}
                 </TouchableOpacity>
               ))}
-              
-              <TouchableOpacity 
-                style={styles.saveButton}
-                onPress={() => setThemeModalVisible(false)}
-              >
-                <Text style={styles.saveButtonText}>Apply</Text>
-              </TouchableOpacity>
             </ScrollView>
           </View>
         </View>
@@ -1562,6 +1562,10 @@ const useThemedStyles = (theme) => StyleSheet.create({
   deleteButtonDisabled: {
     backgroundColor: theme.inactive,
     opacity: 0.7,
+  },
+  selectedThemeOption: {
+    borderColor: theme.accent,
+    borderWidth: 1,
   },
 });
 

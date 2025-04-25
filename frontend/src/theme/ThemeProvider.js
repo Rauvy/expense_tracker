@@ -8,26 +8,33 @@ const ThemeContext = createContext();
 export const ThemeProvider = ({ children }) => {
   const systemScheme = useColorScheme(); // 'light' | 'dark'
   const [mode, setMode] = useState('auto'); // 'auto' | 'light' | 'dark'
+  const [theme, setTheme] = useState(lightTheme);
 
-  const [theme, setTheme] = useState(systemScheme === 'dark' ? darkTheme : lightTheme);
-
-  useEffect(() => {
-    const loadPreference = async () => {
-      const saved = await AsyncStorage.getItem('theme_mode');
-      if (saved) setMode(saved);
-    };
-    loadPreference();
-  }, []);
-
-  useEffect(() => {
-    const actual = mode === 'auto' ? systemScheme : mode;
-    setTheme(actual === 'dark' ? darkTheme : lightTheme);
-  }, [mode, systemScheme]);
+  const getThemeBasedOnMode = (currentMode) => {
+    if (currentMode === 'auto') {
+      return systemScheme === 'dark' ? darkTheme : lightTheme;
+    }
+    return currentMode === 'dark' ? darkTheme : lightTheme;
+  };
 
   const changeTheme = async (newMode) => {
     await AsyncStorage.setItem('theme_mode', newMode);
     setMode(newMode);
   };
+
+  useEffect(() => {
+    const loadThemeMode = async () => {
+      const saved = await AsyncStorage.getItem('theme_mode');
+      if (saved) {
+        setMode(saved);
+      }
+    };
+    loadThemeMode();
+  }, []);
+
+  useEffect(() => {
+    setTheme(getThemeBasedOnMode(mode));
+  }, [mode, systemScheme]);
 
   return (
     <ThemeContext.Provider value={{ theme, mode, changeTheme }}>
