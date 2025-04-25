@@ -7,6 +7,7 @@ import api from '../services/apiService';
 import { PieChart } from 'react-native-chart-kit';
 import { getPieChartData } from '../services/transactionsService';
 import { getTransactions } from '../services/transactionsService';
+import { useTheme } from '../theme/ThemeProvider';
 
 const { width } = Dimensions.get('window');
 const screenWidth = Dimensions.get('window').width;
@@ -17,37 +18,6 @@ const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 const CHART_RADIUS = Math.min(width - 100, 240) / 2;
 const INNER_RADIUS = CHART_RADIUS * 0.55;
 
-// Initial categories
-const initialCategories = [
-  { name: 'Food', icon: 'fast-food', color: '#FF6B6B' },  // Более приглушенный красный
-  { name: 'Transport', icon: 'car', color: '#4ECDC4' },   // Приглушенный голубой
-  { name: 'Shopping', icon: 'cart', color: '#45B7D1' },   // Приглушенный синий
-  { name: 'Bills', icon: 'flash', color: '#96CEB4' },     // Приглушенный зеленый
-  { name: 'Entertainment', icon: 'film', color: '#D4A5A5' }, // Приглушенный розовый
-];
-
-// Income categories
-const initialIncomeCategories = [
-  { name: 'Salary', icon: 'cash', color: '#4BC0C0' },
-  { name: 'Freelance', icon: 'laptop', color: '#36A2EB' },
-  { name: 'Investments', icon: 'trending-up', color: '#FFCE56' },
-  { name: 'Gifts', icon: 'gift', color: '#9966FF' },
-  { name: 'Other', icon: 'add-circle', color: '#FF9F40' },
-];
-
-// Income sources
-const initialIncomeSources = [
-  { name: 'Employer', icon: 'business', color: '#4BC0C0' },
-  { name: 'Client', icon: 'person', color: '#36A2EB' },
-  { name: 'Investments', icon: 'stats-chart', color: '#FFCE56' },
-];
-
-// Available icons for custom categories
-const availableIcons = [
-  'basketball', 'airplane', 'book', 'briefcase', 'calculator',
-  'calendar', 'camera', 'color-palette', 'desktop', 'fitness',
-  'gift', 'glasses', 'home', 'medical', 'paw', 'school'
-];
 
 // Predefined colors
 const colors = [
@@ -59,26 +29,6 @@ const colors = [
   '#FFB6B9',   // Приглушенный коралловый
   '#957DAD',   // Приглушенный фиолетовый
   '#E7B7C8'    // Приглушенный розово-лиловый
-];
-
-// Default categories
-const defaultCategories = [
-  { name: 'Food', icon: 'fast-food', color: '#FF6B6B' },
-  { name: 'Transport', icon: 'car', color: '#4ECDC4' },
-  { name: 'Shopping', icon: 'cart', color: '#45B7D1' },
-  { name: 'Bills', icon: 'receipt', color: '#96CEB4' },
-  { name: 'Entertainment', icon: 'film', color: '#D4A5A5' },
-  { name: 'Health', icon: 'medical', color: '#FFB6B9' },
-  { name: 'Education', icon: 'school', color: '#957DAD' },
-  { name: 'Other', icon: 'ellipsis-horizontal', color: '#E7B7C8' },
-];
-
-// Default income categories
-const defaultIncomeCategories = [
-  { name: 'Salary', icon: 'cash', color: '#96CEB4' },       // Приглушенный зеленый
-  { name: 'Freelance', icon: 'laptop', color: '#4ECDC4' },  // Приглушенный голубой
-  { name: 'Investments', icon: 'trending-up', color: '#45B7D1' }, // Приглушенный синий
-  { name: 'Gifts', icon: 'gift', color: '#D4A5A5' },        // Приглушенный розовый
 ];
 
 // Function to generate pie chart slices
@@ -127,36 +77,6 @@ const generatePieChartPath = (index, data, radius, innerRadius) => {
   ].join(' ');
 };
 
-const recentExpenses = [
-  {
-    id: 1,
-    title: 'Grocery Shopping',
-    category: 'Food',
-    amount: 85.25,
-    date: '15 Jun',
-    icon: 'fast-food',
-    color: '#FF6384',
-  },
-  {
-    id: 2,
-    title: 'Uber Ride',
-    category: 'Transport',
-    amount: 24.50,
-    date: '14 Jun',
-    icon: 'car',
-    color: '#36A2EB',
-  },
-  {
-    id: 3,
-    title: 'New Headphones',
-    category: 'Shopping',
-    amount: 159.99,
-    date: '12 Jun',
-    icon: 'cart',
-    color: '#FFCE56',
-  },
-];
-
 const HomeScreen = ({ navigation }) => {
   const [activeIndex, setActiveIndex] = useState(null);
   const fadeAnim = useRef(new Animated.Value(1)).current;
@@ -166,6 +86,9 @@ const HomeScreen = ({ navigation }) => {
   const [recentTransactions, setRecentTransactions] = useState([]);
   const [monthlySpent, setMonthlySpent] = useState(0);
   const [monthlyEarned, setMonthlyEarned] = useState(0);
+
+  const { theme } = useTheme();
+  const styles = useThemedStyles(theme);
 
   // State for modals
   const [expenseModalVisible, setExpenseModalVisible] = useState(false);
@@ -182,26 +105,6 @@ const HomeScreen = ({ navigation }) => {
   const [incomeDescription, setIncomeDescription] = useState('');
   const [selectedIncomeCategory, setSelectedIncomeCategory] = useState(null);
   const [selectedIncomeSource, setSelectedIncomeSource] = useState(null);
-
-  // State for custom category/payment method modals
-  const [customCategoryModalVisible, setCustomCategoryModalVisible] = useState(false);
-  const [customPaymentMethodModalVisible, setCustomPaymentMethodModalVisible] = useState(false);
-  const [customIncomeCategoryModalVisible, setCustomIncomeCategoryModalVisible] = useState(false);
-  const [customIncomeSourceModalVisible, setCustomIncomeSourceModalVisible] = useState(false);
-
-  // State for custom category/payment method forms
-  const [customCategoryName, setCustomCategoryName] = useState('');
-  const [customPaymentMethodName, setCustomPaymentMethodName] = useState('');
-  const [customIncomeCategoryName, setCustomIncomeCategoryName] = useState('');
-  const [customIncomeSourceName, setCustomIncomeSourceName] = useState('');
-  const [selectedIcon, setSelectedIcon] = useState(null);
-  const [selectedPaymentIcon, setSelectedPaymentIcon] = useState(null);
-  const [selectedIncomeIcon, setSelectedIncomeIcon] = useState(null);
-  const [selectedSourceIcon, setSelectedSourceIcon] = useState(null);
-  const [selectedColor, setSelectedColor] = useState('#D26A68');
-  const [selectedPaymentColor, setSelectedPaymentColor] = useState('#D26A68');
-  const [selectedIncomeColor, setSelectedIncomeColor] = useState('#D26A68');
-  const [selectedSourceColor, setSelectedSourceColor] = useState('#D26A68');
 
   // State for categories and payment methods
   const [categories, setCategories] = useState([
@@ -258,10 +161,6 @@ const HomeScreen = ({ navigation }) => {
     { title: 'Assets', value: 0, trend: '0%', color: '#4BC0C0' },
     { title: 'Liabilities', value: 0, trend: '0%', color: '#FF6384' }
   ]);
-
-  const formatAmount = (value) => {
-    return Number(value).toFixed(2);
-  };
 
   // Set up refs for the carousel
   const carouselRef = useRef(null);
@@ -468,12 +367,6 @@ const HomeScreen = ({ navigation }) => {
     }
   };
 
-  // Handle transaction click
-  const handleTransactionClick = (transaction) => {
-    setSelectedTransaction(transaction);
-    setTransactionDetailsVisible(true);
-  };
-
   // Handle statistics tab change
   const handleStatsTabChange = (tab) => {
     setActiveStatsTab(tab);
@@ -530,119 +423,6 @@ const HomeScreen = ({ navigation }) => {
     return unsubscribe;
   }, [navigation]);
 
-  // Modify the Custom Category Modal to save to AsyncStorage
-  const saveCategory = useCallback(async (newCategory) => {
-    try {
-      const updatedCategories = [...categories, newCategory];
-      setCategories(updatedCategories);
-      await AsyncStorage.setItem('expenseCategories', JSON.stringify(updatedCategories));
-      setSelectedCategory(newCategory.name);
-      setCustomCategoryModalVisible(false);
-
-      // Reset form
-      setCustomCategoryName('');
-      setSelectedIcon(null);
-    } catch (error) {
-      console.log('Error saving expense category:', error);
-    }
-  }, [categories]);
-
-  // Modify the Custom Income Category Modal to save to AsyncStorage
-  const saveIncomeCategory = useCallback(async (newCategory) => {
-    try {
-      const updatedCategories = [...incomeCategories, newCategory];
-      setIncomeCategories(updatedCategories);
-      await AsyncStorage.setItem('incomeCategories', JSON.stringify(updatedCategories));
-      setSelectedIncomeCategory(newCategory.name);
-      setCustomIncomeCategoryModalVisible(false);
-
-      // Reset form
-      setCustomIncomeCategoryName('');
-      setSelectedIncomeIcon(null);
-    } catch (error) {
-      console.log('Error saving income category:', error);
-    }
-  }, [incomeCategories]);
-
-  const renderSwipeableSection = () => (
-    <View style={styles.swipeableSection}>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.swipeableContent}
-      >
-        <View style={styles.swipeableTile}>
-          <View style={styles.tileContent}>
-            <Text style={styles.tileTitle}>Total Balance</Text>
-            <Text style={styles.tileAmount}>$12,345.67</Text>
-            <Text style={styles.tileSubtitle}>+$1,234.56 this month</Text>
-          </View>
-        </View>
-
-        <View style={styles.swipeableTile}>
-          <View style={styles.tileContent}>
-            <Text style={styles.tileTitle}>Monthly Budget</Text>
-            <Text style={styles.tileAmount}>$5,000.00</Text>
-            <Text style={styles.tileSubtitle}>$3,456.78 spent</Text>
-          </View>
-        </View>
-
-        <View style={styles.swipeableTile}>
-          <View style={styles.tileContent}>
-            <Text style={styles.tileTitle}>Assets</Text>
-            <View style={styles.categoryList}>
-              <View style={styles.categoryItem}>
-                <Ionicons name="cash" size={16} color="#4BC0C0" style={styles.categoryIcon} />
-                <Text style={styles.categoryText}>Cash & Bank Accounts</Text>
-              </View>
-              <View style={styles.categoryItem}>
-                <Ionicons name="trending-up" size={16} color="#4BC0C0" style={styles.categoryIcon} />
-                <Text style={styles.categoryText}>Investments</Text>
-              </View>
-              <View style={styles.categoryItem}>
-                <Ionicons name="home" size={16} color="#4BC0C0" style={styles.categoryIcon} />
-                <Text style={styles.categoryText}>Real Estate</Text>
-              </View>
-              <View style={styles.categoryItem}>
-                <Ionicons name="car" size={16} color="#4BC0C0" style={styles.categoryIcon} />
-                <Text style={styles.categoryText}>Vehicles</Text>
-              </View>
-              <View style={styles.categoryItem}>
-                <Ionicons name="cube" size={16} color="#4BC0C0" style={styles.categoryIcon} />
-                <Text style={styles.categoryText}>Other Assets</Text>
-              </View>
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.swipeableTile}>
-          <View style={styles.tileContent}>
-            <Text style={styles.tileTitle}>Liabilities</Text>
-            <View style={styles.categoryList}>
-              <View style={styles.categoryItem}>
-                <Ionicons name="card" size={16} color="#FF6384" style={styles.categoryIcon} />
-                <Text style={styles.categoryText}>Credit Cards</Text>
-              </View>
-              <View style={styles.categoryItem}>
-                <Ionicons name="cash" size={16} color="#FF6384" style={styles.categoryIcon} />
-                <Text style={styles.categoryText}>Loans</Text>
-              </View>
-              <View style={styles.categoryItem}>
-                <Ionicons name="home" size={16} color="#FF6384" style={styles.categoryIcon} />
-                <Text style={styles.categoryText}>Mortgages</Text>
-              </View>
-              <View style={styles.categoryItem}>
-                <Ionicons name="document" size={16} color="#FF6384" style={styles.categoryIcon} />
-                <Text style={styles.categoryText}>Other Debts</Text>
-              </View>
-            </View>
-          </View>
-        </View>
-      </ScrollView>
-    </View>
-  );
-
-  // Load recent transactions
   const fetchRecentTransactions = async () => {
     try {
       const data = await getTransactions({
@@ -719,6 +499,7 @@ const HomeScreen = ({ navigation }) => {
       setIsLoading(false);
     }
   };
+
   useEffect(() => {
     fetchPieChartData();
   }, []);
@@ -769,11 +550,6 @@ const HomeScreen = ({ navigation }) => {
 
   // Add useEffect to call calculateMonthlyTotals on mount and when transactions change
   useEffect(() => {
-    calculateMonthlyTotals();
-  }, [calculateMonthlyTotals]);
-
-  // Add a refresh function that can be called when new transactions are added
-  const refreshMonthlyTotals = useCallback(() => {
     calculateMonthlyTotals();
   }, [calculateMonthlyTotals]);
 
@@ -1307,322 +1083,6 @@ const HomeScreen = ({ navigation }) => {
         </View>
       </Modal>
 
-      {/* Custom Category Modal */}
-      {/* <Modal
-        animationType="slide"
-        transparent={true}
-        visible={customCategoryModalVisible}
-        onRequestClose={() => setCustomCategoryModalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Create Category</Text>
-                <TouchableOpacity onPress={() => setCustomCategoryModalVisible(false)}>
-                  <Ionicons name="close" size={24} color="#ffffff" />
-                </TouchableOpacity>
-              </View>
-
-              <TextInput
-                style={styles.input}
-                placeholder="Category Name"
-                placeholderTextColor="#666666"
-                value={customCategoryName}
-                onChangeText={setCustomCategoryName}
-              />
-
-              <Text style={styles.categoryLabel}>Select Icon</Text>
-              <View style={styles.iconGrid}>
-                {['fast-food', 'car', 'cart', 'receipt', 'film', 'medical', 'school', 'basket', 'home', 'fitness', 'briefcase', 'game-controller', 'gift'].map((icon) => (
-                  <TouchableOpacity
-                    key={icon}
-                    style={[
-                      styles.iconButton,
-                      selectedIcon === icon && { borderColor: selectedColor, borderWidth: 2 }
-                    ]}
-                    onPress={() => setSelectedIcon(icon)}
-                  >
-                    <Ionicons name={icon} size={24} color="#ffffff" />
-                  </TouchableOpacity>
-                ))}
-              </View>
-
-              <Text style={styles.categoryLabel}>Select Color</Text>
-              <View style={styles.colorGrid}>
-                {colors.map((color) => (
-                  <TouchableOpacity
-                    key={color}
-                    style={[
-                      styles.colorButton,
-                      { backgroundColor: color },
-                      selectedColor === color && { borderColor: '#ffffff', borderWidth: 2 }
-                    ]}
-                    onPress={() => setSelectedColor(color)}
-                  />
-                ))}
-              </View>
-
-              <TouchableOpacity
-                style={[styles.addButton, { backgroundColor: selectedColor || '#D26A68' }]}
-                onPress={() => {
-                  if (customCategoryName.trim() && selectedIcon) {
-                    saveCategory({
-                      name: customCategoryName.trim(),
-                      icon: selectedIcon,
-                      color: selectedColor || '#D26A68'
-                    });
-                  }
-                }}
-              >
-                <Text style={styles.buttonText}>Create Category</Text>
-              </TouchableOpacity>
-            </ScrollView>
-          </View>
-        </View>
-      </Modal> */}
-
-      {/* Custom Payment Method Modal */}
-      {/* <Modal
-        animationType="slide"
-        transparent={true}
-        visible={customPaymentMethodModalVisible}
-        onRequestClose={() => setCustomPaymentMethodModalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Add Payment Method</Text>
-                <TouchableOpacity onPress={() => setCustomPaymentMethodModalVisible(false)}>
-                  <Ionicons name="close" size={24} color="#ffffff" />
-                </TouchableOpacity>
-              </View>
-
-              <TextInput
-                style={styles.input}
-                placeholder="Payment Method Name"
-                placeholderTextColor="#666666"
-                value={customPaymentMethodName}
-                onChangeText={setCustomPaymentMethodName}
-              />
-
-              <Text style={styles.categoryLabel}>Select Icon</Text>
-              <View style={styles.iconGrid}>
-                {['card', 'cash', 'wallet', 'phone-portrait', 'logo-paypal'].map((icon) => (
-                  <TouchableOpacity
-                    key={icon}
-                    style={[
-                      styles.iconButton,
-                      selectedPaymentIcon === icon && { borderColor: selectedPaymentColor, borderWidth: 2 }
-                    ]}
-                    onPress={() => setSelectedPaymentIcon(icon)}
-                  >
-                    <Ionicons name={icon} size={24} color="#ffffff" />
-                  </TouchableOpacity>
-                ))}
-              </View>
-
-              <Text style={styles.categoryLabel}>Select Color</Text>
-              <View style={styles.colorGrid}>
-                {colors.map((color) => (
-                  <TouchableOpacity
-                    key={color}
-                    style={[
-                      styles.colorButton,
-                      { backgroundColor: color },
-                      selectedPaymentColor === color && { borderColor: '#ffffff', borderWidth: 2 }
-                    ]}
-                    onPress={() => setSelectedPaymentColor(color)}
-                  />
-                ))}
-              </View>
-
-              <TouchableOpacity
-                style={[styles.addButton, { backgroundColor: selectedPaymentColor || '#D26A68' }]}
-                onPress={() => {
-                  if (customPaymentMethodName.trim() && selectedPaymentIcon) {
-                    const newPaymentMethod = {
-                      name: customPaymentMethodName.trim(),
-                      icon: selectedPaymentIcon,
-                      color: selectedPaymentColor || '#D26A68'
-                    };
-
-                    setPaymentMethods([...paymentMethods, newPaymentMethod]);
-                    setSelectedPaymentMethod(newPaymentMethod.name);
-                    setCustomPaymentMethodModalVisible(false);
-
-                    // Reset form
-                    setCustomPaymentMethodName('');
-                    setSelectedPaymentIcon(null);
-                  }
-                }}
-              >
-                <Text style={styles.buttonText}>Add Payment Method</Text>
-              </TouchableOpacity>
-            </ScrollView>
-          </View>
-        </View>
-      </Modal> */}
-
-      {/* Custom Income Category Modal */}
-      {/* <Modal
-        animationType="slide"
-        transparent={true}
-        visible={customIncomeCategoryModalVisible}
-        onRequestClose={() => setCustomIncomeCategoryModalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Create Income Category</Text>
-                <TouchableOpacity onPress={() => setCustomIncomeCategoryModalVisible(false)}>
-                  <Ionicons name="close" size={24} color="#ffffff" />
-                </TouchableOpacity>
-              </View>
-
-              <TextInput
-                style={styles.input}
-                placeholder="Category Name"
-                placeholderTextColor="#666666"
-                value={customIncomeCategoryName}
-                onChangeText={setCustomIncomeCategoryName}
-              />
-
-              <Text style={styles.categoryLabel}>Select Icon</Text>
-              <View style={styles.iconGrid}>
-                {['cash', 'card', 'wallet', 'laptop', 'business', 'stats-chart', 'briefcase', 'gift'].map((icon) => (
-                  <TouchableOpacity
-                    key={icon}
-                    style={[
-                      styles.iconButton,
-                      selectedIncomeIcon === icon && { borderColor: selectedIncomeColor, borderWidth: 2 }
-                    ]}
-                    onPress={() => setSelectedIncomeIcon(icon)}
-                  >
-                    <Ionicons name={icon} size={24} color="#ffffff" />
-                  </TouchableOpacity>
-                ))}
-              </View>
-
-              <Text style={styles.categoryLabel}>Select Color</Text>
-              <View style={styles.colorGrid}>
-                {colors.map((color) => (
-                  <TouchableOpacity
-                    key={color}
-                    style={[
-                      styles.colorButton,
-                      { backgroundColor: color },
-                      selectedIncomeColor === color && { borderColor: '#ffffff', borderWidth: 2 }
-                    ]}
-                    onPress={() => setSelectedIncomeColor(color)}
-                  />
-                ))}
-              </View>
-
-              <TouchableOpacity
-                style={[styles.addButton, { backgroundColor: selectedIncomeColor || '#4BC0C0' }]}
-                onPress={() => {
-                  if (customIncomeCategoryName.trim() && selectedIncomeIcon) {
-                    saveIncomeCategory({
-                      name: customIncomeCategoryName.trim(),
-                      icon: selectedIncomeIcon,
-                      color: selectedIncomeColor || '#4BC0C0'
-                    });
-                  }
-                }}
-              >
-                <Text style={styles.buttonText}>Create Income Category</Text>
-              </TouchableOpacity>
-            </ScrollView>
-          </View>
-        </View>
-      </Modal> */}
-
-      {/* Custom Income Source Modal */}
-      {/* <Modal
-        animationType="slide"
-        transparent={true}
-        visible={customIncomeSourceModalVisible}
-        onRequestClose={() => setCustomIncomeSourceModalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Add Income Source</Text>
-                <TouchableOpacity onPress={() => setCustomIncomeSourceModalVisible(false)}>
-                  <Ionicons name="close" size={24} color="#ffffff" />
-                </TouchableOpacity>
-              </View>
-
-              <TextInput
-                style={styles.input}
-                placeholder="Source Name"
-                placeholderTextColor="#666666"
-                value={customIncomeSourceName}
-                onChangeText={setCustomIncomeSourceName}
-              />
-
-              <Text style={styles.categoryLabel}>Select Icon</Text>
-              <View style={styles.iconGrid}>
-                {['business', 'person', 'stats-chart', 'globe', 'people', 'home', 'gift'].map((icon) => (
-                  <TouchableOpacity
-                    key={icon}
-                    style={[
-                      styles.iconButton,
-                      selectedSourceIcon === icon && { borderColor: selectedSourceColor, borderWidth: 2 }
-                    ]}
-                    onPress={() => setSelectedSourceIcon(icon)}
-                  >
-                    <Ionicons name={icon} size={24} color="#ffffff" />
-                  </TouchableOpacity>
-                ))}
-              </View>
-
-              <Text style={styles.categoryLabel}>Select Color</Text>
-              <View style={styles.colorGrid}>
-                {colors.map((color) => (
-                  <TouchableOpacity
-                    key={color}
-                    style={[
-                      styles.colorButton,
-                      { backgroundColor: color },
-                      selectedSourceColor === color && { borderColor: '#ffffff', borderWidth: 2 }
-                    ]}
-                    onPress={() => setSelectedSourceColor(color)}
-                  />
-                ))}
-              </View>
-
-              <TouchableOpacity
-                style={[styles.addButton, { backgroundColor: selectedSourceColor || '#4BC0C0' }]}
-                onPress={() => {
-                  if (customIncomeSourceName.trim() && selectedSourceIcon) {
-                    const newSource = {
-                      name: customIncomeSourceName.trim(),
-                      icon: selectedSourceIcon,
-                      color: selectedSourceColor || '#4BC0C0'
-                    };
-
-                    setIncomeSources([...incomeSources, newSource]);
-                    setSelectedIncomeSource(newSource.name);
-                    setCustomIncomeSourceModalVisible(false);
-
-                    // Reset form
-                    setCustomIncomeSourceName('');
-                    setSelectedSourceIcon(null);
-                  }
-                }}
-              >
-                <Text style={styles.buttonText}>Add Source</Text>
-              </TouchableOpacity>
-            </ScrollView>
-          </View>
-        </View>
-      </Modal> */}
-
       {/* Statistics Modal */}
       <Modal
         animationType="slide"
@@ -2037,7 +1497,7 @@ const HomeScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const useThemedStyles = (theme) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#121212',
