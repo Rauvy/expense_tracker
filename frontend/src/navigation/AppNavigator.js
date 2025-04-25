@@ -28,7 +28,7 @@ const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 const MainAppNavigator = () => {
-  const theme = useTheme();
+  const { theme } = useTheme();
 
   return (
     <Tab.Navigator
