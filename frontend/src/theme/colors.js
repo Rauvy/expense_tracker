@@ -1,5 +1,5 @@
 export const darkTheme = {
-    mode: "dark",
+    modes: "dark",
     background: "#121212",
     cardBackground: "#1A1A1A",
     textPrimary: "#FFFFFF",
@@ -28,10 +28,12 @@ export const darkTheme = {
     cardMastercard: "#EB001B",
     cardAmex: "#006FCF",
     cardDiscover: "#FF6600",
+    modalOverlay: "rgba(0,0,0,0.7)",
+    deleteWarningBackground: "rgba(255, 59, 48, 0.1)",
 };
 
 export const lightTheme = {
-    mode: "light",
+    modes: "light",
     background: "#FFFFFF",
     cardBackground: "#F2F2F2",
     textPrimary: "#000000",
@@ -60,4 +62,6 @@ export const lightTheme = {
     cardMastercard: "#EB001B",
     cardAmex: "#006FCF",
     cardDiscover: "#FF6600",
+    modalOverlay: "rgba(0,0,0,0.5)",
+    deleteWarningBackground: "rgba(255, 59, 48, 0.1)",
 };

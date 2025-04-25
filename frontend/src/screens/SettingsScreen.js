@@ -20,9 +20,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useNavigation } from '@react-navigation/native';
 import { logout } from '../services/authService';
+import { useTheme } from '../theme/ThemeProvider';
 
 const SettingsScreen = () => {
   const navigation = useNavigation();
+  const { changeTheme } = useTheme();
+  
+  const { theme } = useTheme();
+  const styles = useThemedStyles(theme);
   
   // General Settings States
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
@@ -40,7 +45,7 @@ const SettingsScreen = () => {
   
   // Language and Theme states
   const [currentLanguage, setCurrentLanguage] = useState('English');
-  const [currentTheme, setCurrentTheme] = useState('system');
+  const [currentTheme, setCurrentTheme] = useState('auto');
   
   // Budget period state
   const [budgetPeriod, setBudgetPeriod] = useState('month');
@@ -48,7 +53,7 @@ const SettingsScreen = () => {
   // Available languages and themes
   const availableLanguages = ['English'];
   const availableThemes = [
-    { id: 'system', name: 'System Default', icon: 'phone-portrait-outline' },
+    { id: 'auto', name: 'System Default', icon: 'phone-portrait-outline' },
     { id: 'light', name: 'Light Mode', icon: 'sunny-outline' },
     { id: 'dark', name: 'Dark Mode', icon: 'moon-outline' }
   ];
@@ -299,11 +304,10 @@ const SettingsScreen = () => {
   };
   
   // Handle theme change
-  const handleThemeChange = (theme) => {
-    setCurrentTheme(theme);
-    // In a real app, you would apply the theme here
-    // and save the preference to AsyncStorage
-    AsyncStorage.setItem('theme', theme);
+  const handleThemeChange = (themeId) => {
+    changeTheme(themeId); 
+    setCurrentTheme(themeId);
+    console.log(themeId);
     setThemeModalVisible(false);
   };
   
@@ -355,7 +359,7 @@ const SettingsScreen = () => {
     <TouchableOpacity style={styles.menuItem} onPress={action}>
       <View style={styles.menuItemLeft}>
         <View style={styles.menuIconContainer}>
-          <Ionicons name={icon} size={22} color="#FFFFFF" />
+          <Ionicons name={icon} size={22} color={theme.textPrimary} />
         </View>
         <View style={styles.menuTextContainer}>
           <Text style={styles.menuTitle}>{title}</Text>
@@ -363,7 +367,7 @@ const SettingsScreen = () => {
         </View>
       </View>
       {rightElement || (
-        <Ionicons name="chevron-forward" size={20} color="#666666" />
+        <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
       )}
     </TouchableOpacity>
   );
@@ -442,7 +446,7 @@ const SettingsScreen = () => {
             onPress={() => navigation.goBack()}
             activeOpacity={0.7}
           >
-            <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
+            <Ionicons name="chevron-back" size={24} color={theme.textPrimary} />
           </TouchableOpacity>
           
           {/* General Settings */}
@@ -495,13 +499,13 @@ const SettingsScreen = () => {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Notification Settings</Text>
               <TouchableOpacity onPress={() => setNotificationSettingsVisible(false)}>
-                <Ionicons name="close" size={24} color="#FFFFFF" />
+                <Ionicons name="close" size={24} color={theme.textPrimary} />
               </TouchableOpacity>
             </View>
             
             <ScrollView>
               <View style={styles.notificationSectionHeader}>
-                <Ionicons name="notifications" size={22} color="#D26A68" />
+                <Ionicons name="notifications" size={22} color={theme.accent} />
                 <Text style={styles.notificationSectionTitle}>Transaction Alerts</Text>
               </View>
               
@@ -513,8 +517,8 @@ const SettingsScreen = () => {
                 <Switch
                   value={expenseAlerts}
                   onValueChange={setExpenseAlerts}
-                  trackColor={{ false: '#333333', true: '#D26A68' }}
-                  thumbColor="#FFFFFF"
+                  trackColor={{ false: theme.inputBorder, true: theme.accent }}
+                  thumbColor={theme.textPrimary}
                 />
               </View>
               
@@ -526,13 +530,13 @@ const SettingsScreen = () => {
                 <Switch
                   value={budgetAlerts}
                   onValueChange={setBudgetAlerts}
-                  trackColor={{ false: '#333333', true: '#D26A68' }}
-                  thumbColor="#FFFFFF"
+                  trackColor={{ false: theme.inputBorder, true: theme.accent }}
+                  thumbColor={theme.textPrimary}
                 />
               </View>
               
               <View style={styles.notificationSectionHeader}>
-                <Ionicons name="document-text" size={22} color="#D26A68" />
+                <Ionicons name="document-text" size={22} color={theme.accent} />
                 <Text style={styles.notificationSectionTitle}>Reports & Summaries</Text>
               </View>
               
@@ -544,13 +548,13 @@ const SettingsScreen = () => {
                 <Switch
                   value={weeklyReports}
                   onValueChange={setWeeklyReports}
-                  trackColor={{ false: '#333333', true: '#D26A68' }}
-                  thumbColor="#FFFFFF"
+                  trackColor={{ false: theme.inputBorder, true: theme.accent }}
+                  thumbColor={theme.textPrimary}
                 />
               </View>
               
               <View style={styles.notificationSectionHeader}>
-                <Ionicons name="alarm" size={22} color="#D26A68" />
+                <Ionicons name="alarm" size={22} color={theme.accent} />
                 <Text style={styles.notificationSectionTitle}>Reminders</Text>
               </View>
               
@@ -562,8 +566,8 @@ const SettingsScreen = () => {
                 <Switch
                   value={reminderAlerts}
                   onValueChange={setReminderAlerts}
-                  trackColor={{ false: '#333333', true: '#D26A68' }}
-                  thumbColor="#FFFFFF"
+                  trackColor={{ false: theme.inputBorder, true: theme.accent }}
+                  thumbColor={theme.textPrimary}
                 />
               </View>
               
@@ -594,7 +598,7 @@ const SettingsScreen = () => {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Manage Categories</Text>
               <TouchableOpacity onPress={() => setCategoriesModalVisible(false)}>
-                <Ionicons name="close" size={24} color="#333" />
+                <Ionicons name="close" size={24} color={theme.textPrimary} />
               </TouchableOpacity>
             </View>
 
@@ -636,7 +640,7 @@ const SettingsScreen = () => {
                 {(activeTab === 'expense' ? categories : incomeCategories).map((category, index) => (
                   <View key={index} style={styles.categoryItem}>
                     <View style={[styles.categoryIcon, { backgroundColor: category.color }]}>
-                      <Ionicons name={category.icon} size={24} color="#FFF" />
+                      <Ionicons name={category.icon} size={24} color={theme.textPrimary} />
                     </View>
                     <Text style={styles.categoryName}>{category.name}</Text>
                   </View>
@@ -668,7 +672,7 @@ const SettingsScreen = () => {
                     ]}
                     onPress={() => setSelectedIcon(icon)}
                   >
-                    <Ionicons name={icon} size={24} color={selectedIcon === icon ? "#FFF" : "#333"} />
+                    <Ionicons name={icon} size={24} color={selectedIcon === icon ? theme.textPrimary : theme.textSecondary} />
                   </TouchableOpacity>
                 ))}
               </ScrollView>
@@ -731,7 +735,7 @@ const SettingsScreen = () => {
                   setConfirmPassword('');
                 }}
               >
-                <Ionicons name="close" size={24} color="#FFFFFF" />
+                <Ionicons name="close" size={24} color={theme.textPrimary} />
               </TouchableOpacity>
             </View>
             
@@ -743,7 +747,7 @@ const SettingsScreen = () => {
                   value={currentPassword}
                   onChangeText={setCurrentPassword}
                   placeholder="Enter current password"
-                  placeholderTextColor="#666666"
+                  placeholderTextColor={theme.placeholderTextColor}
                   secureTextEntry={!showCurrentPassword}
                 />
                 <TouchableOpacity 
@@ -753,7 +757,7 @@ const SettingsScreen = () => {
                   <Ionicons 
                     name={showCurrentPassword ? 'eye-off' : 'eye'} 
                     size={20} 
-                    color="#666666" 
+                    color={theme.textSecondary} 
                   />
                 </TouchableOpacity>
               </View>
@@ -767,7 +771,7 @@ const SettingsScreen = () => {
                   value={newPassword}
                   onChangeText={setNewPassword}
                   placeholder="Enter new password"
-                  placeholderTextColor="#666666"
+                  placeholderTextColor={theme.placeholderTextColor}
                   secureTextEntry={!showNewPassword}
                 />
                 <TouchableOpacity 
@@ -777,7 +781,7 @@ const SettingsScreen = () => {
                   <Ionicons 
                     name={showNewPassword ? 'eye-off' : 'eye'} 
                     size={20} 
-                    color="#666666" 
+                    color={theme.textSecondary} 
                   />
                 </TouchableOpacity>
               </View>
@@ -794,7 +798,7 @@ const SettingsScreen = () => {
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
                   placeholder="Confirm new password"
-                  placeholderTextColor="#666666"
+                  placeholderTextColor={theme.placeholderTextColor}
                   secureTextEntry={!showConfirmPassword}
                 />
                 <TouchableOpacity 
@@ -804,7 +808,7 @@ const SettingsScreen = () => {
                   <Ionicons 
                     name={showConfirmPassword ? 'eye-off' : 'eye'} 
                     size={20} 
-                    color="#666666" 
+                    color={theme.textSecondary} 
                   />
                 </TouchableOpacity>
               </View>
@@ -855,7 +859,7 @@ const SettingsScreen = () => {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Select Language</Text>
               <TouchableOpacity onPress={() => setLanguageModalVisible(false)}>
-                <Ionicons name="close" size={24} color="#FFFFFF" />
+                <Ionicons name="close" size={24} color={theme.textPrimary} />
               </TouchableOpacity>
             </View>
             
@@ -868,7 +872,7 @@ const SettingsScreen = () => {
                 >
                   <Text style={styles.optionText}>{language}</Text>
                   {currentLanguage === language && (
-                    <Ionicons name="checkmark-circle" size={22} color="#D26A68" />
+                    <Ionicons name="checkmark-circle" size={22} color={theme.accent} />
                   )}
                 </TouchableOpacity>
               ))}
@@ -891,7 +895,7 @@ const SettingsScreen = () => {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Choose Theme</Text>
               <TouchableOpacity onPress={() => setThemeModalVisible(false)}>
-                <Ionicons name="close" size={24} color="#FFFFFF" />
+                <Ionicons name="close" size={24} color={theme.textPrimary} />
               </TouchableOpacity>
             </View>
             
@@ -904,13 +908,13 @@ const SettingsScreen = () => {
                 >
                   <View style={styles.themeOptionLeft}>
                     <View style={styles.themeIconContainer}>
-                      <Ionicons name={theme.icon} size={22} color="#FFFFFF" />
+                      <Ionicons name={theme.icon} size={22} color={theme.textPrimary} />
                     </View>
                     <Text style={styles.themeOptionText}>{theme.name}</Text>
                   </View>
                   
                   {currentTheme === theme.id && (
-                    <Ionicons name="checkmark-circle" size={22} color="#D26A68" />
+                    <Ionicons name="checkmark-circle" size={22} color={theme.accent} />
                   )}
                 </TouchableOpacity>
               ))}
@@ -938,7 +942,7 @@ const SettingsScreen = () => {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Budget Period</Text>
               <TouchableOpacity onPress={() => setBudgetPeriodModalVisible(false)}>
-                <Ionicons name="close" size={24} color="#FFFFFF" />
+                <Ionicons name="close" size={24} color={theme.textPrimary} />
               </TouchableOpacity>
             </View>
             
@@ -949,13 +953,13 @@ const SettingsScreen = () => {
               >
                 <View style={styles.periodOptionLeft}>
                   <View style={styles.periodIconContainer}>
-                    <Ionicons name="calendar-outline" size={22} color="#FFFFFF" />
+                    <Ionicons name="calendar-outline" size={22} color={theme.textPrimary} />
                   </View>
                   <Text style={styles.periodOptionText}>Weekly</Text>
                 </View>
                 
                 {budgetPeriod === 'week' && (
-                  <Ionicons name="checkmark-circle" size={22} color="#D26A68" />
+                  <Ionicons name="checkmark-circle" size={22} color={theme.accent} />
                 )}
               </TouchableOpacity>
               
@@ -965,13 +969,13 @@ const SettingsScreen = () => {
               >
                 <View style={styles.periodOptionLeft}>
                   <View style={styles.periodIconContainer}>
-                    <Ionicons name="calendar" size={22} color="#FFFFFF" />
+                    <Ionicons name="calendar" size={22} color={theme.textPrimary} />
                   </View>
                   <Text style={styles.periodOptionText}>Monthly</Text>
                 </View>
                 
                 {budgetPeriod === 'month' && (
-                  <Ionicons name="checkmark-circle" size={22} color="#D26A68" />
+                  <Ionicons name="checkmark-circle" size={22} color={theme.accent} />
                 )}
               </TouchableOpacity>
               
@@ -981,13 +985,13 @@ const SettingsScreen = () => {
               >
                 <View style={styles.periodOptionLeft}>
                   <View style={styles.periodIconContainer}>
-                    <Ionicons name="apps" size={22} color="#FFFFFF" />
+                    <Ionicons name="apps" size={22} color={theme.textPrimary} />
                   </View>
                   <Text style={styles.periodOptionText}>Quarterly</Text>
                 </View>
                 
                 {budgetPeriod === 'quarter' && (
-                  <Ionicons name="checkmark-circle" size={22} color="#D26A68" />
+                  <Ionicons name="checkmark-circle" size={22} color={theme.accent} />
                 )}
               </TouchableOpacity>
               
@@ -997,13 +1001,13 @@ const SettingsScreen = () => {
               >
                 <View style={styles.periodOptionLeft}>
                   <View style={styles.periodIconContainer}>
-                    <Ionicons name="today" size={22} color="#FFFFFF" />
+                    <Ionicons name="today" size={22} color={theme.textPrimary} />
                   </View>
                   <Text style={styles.periodOptionText}>Yearly</Text>
                 </View>
                 
                 {budgetPeriod === 'year' && (
-                  <Ionicons name="checkmark-circle" size={22} color="#D26A68" />
+                  <Ionicons name="checkmark-circle" size={22} color={theme.accent} />
                 )}
               </TouchableOpacity>
               
@@ -1036,12 +1040,12 @@ const SettingsScreen = () => {
                   setDeleteConfirmText('');
                 }}
               >
-                <Ionicons name="close" size={24} color="#FFFFFF" />
+                <Ionicons name="close" size={24} color={theme.textPrimary} />
               </TouchableOpacity>
             </View>
             
             <View style={styles.deleteWarningContainer}>
-              <Ionicons name="warning" size={40} color="#FF3B30" style={styles.warningIcon} />
+              <Ionicons name="warning" size={40} color={theme.error} style={styles.warningIcon} />
               <Text style={styles.deleteWarningText}>
                 Warning: This action cannot be undone. All your data will be permanently deleted.
               </Text>
@@ -1055,7 +1059,7 @@ const SettingsScreen = () => {
                   value={deleteAccountPassword}
                   onChangeText={setDeleteAccountPassword}
                   placeholder="Enter your password"
-                  placeholderTextColor="#666666"
+                  placeholderTextColor={theme.placeholderTextColor}
                   secureTextEntry={!showDeletePassword}
                 />
                 <TouchableOpacity 
@@ -1065,7 +1069,7 @@ const SettingsScreen = () => {
                   <Ionicons 
                     name={showDeletePassword ? 'eye-off' : 'eye'} 
                     size={20} 
-                    color="#666666" 
+                    color={theme.textSecondary} 
                   />
                 </TouchableOpacity>
               </View>
@@ -1078,7 +1082,7 @@ const SettingsScreen = () => {
                 value={deleteConfirmText}
                 onChangeText={setDeleteConfirmText}
                 placeholder="Type DELETE in all caps"
-                placeholderTextColor="#666666"
+                placeholderTextColor={theme.placeholderTextColor}
               />
             </View>
             
@@ -1092,7 +1096,7 @@ const SettingsScreen = () => {
               disabled={deleteConfirmText !== 'DELETE' || !deleteAccountPassword || isDeletingAccount}
             >
               {isDeletingAccount ? (
-                <ActivityIndicator color="#FFFFFF" size="small" />
+                <ActivityIndicator color={theme.textPrimary} size="small" />
               ) : (
                 <Text style={styles.deleteButtonText}>Delete My Account</Text>
               )}
@@ -1104,14 +1108,14 @@ const SettingsScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const useThemedStyles = (theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: theme.background,
   },
   content: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: theme.background,
   },
   contentContainer: {
     paddingBottom: 30,
@@ -1123,7 +1127,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#252525',
+    backgroundColor: theme.cardBackground,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: "#000",
@@ -1141,7 +1145,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    color: '#ffffff',
+    color: theme.textPrimary,
     fontWeight: '600',
     marginBottom: 15,
   },
@@ -1149,7 +1153,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#252525',
+    backgroundColor: theme.cardBackground,
     borderRadius: 12,
     padding: 15,
     marginBottom: 8,
@@ -1163,7 +1167,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#333333',
+    backgroundColor: theme.inputBackground,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 15,
@@ -1173,17 +1177,17 @@ const styles = StyleSheet.create({
   },
   menuTitle: {
     fontSize: 16,
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontWeight: '500',
   },
   menuSubtitle: {
     fontSize: 12,
-    color: '#666666',
+    color: theme.textSecondary,
     marginTop: 3,
   },
   versionText: {
     textAlign: 'center',
-    color: '#666666',
+    color: theme.textSecondary,
     fontSize: 12,
     marginBottom: 20,
   },
@@ -1191,11 +1195,11 @@ const styles = StyleSheet.create({
   // Modal styles
   modalContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: theme.modalOverlay,
     justifyContent: 'center',
   },
   modalContent: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: theme.cardBackground,
     borderRadius: 20,
     padding: 20,
     maxHeight: '90%',
@@ -1208,7 +1212,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 20,
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontWeight: 'bold',
   },
   
@@ -1220,19 +1224,19 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     paddingBottom: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#333333',
+    borderBottomColor: theme.inputBorder,
   },
   notificationSectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     marginLeft: 10,
   },
   notificationOption: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#252525',
+    backgroundColor: theme.cardBackground,
     borderRadius: 12,
     padding: 15,
     marginBottom: 12,
@@ -1242,13 +1246,13 @@ const styles = StyleSheet.create({
   },
   notificationOptionTitle: {
     fontSize: 16,
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontWeight: '500',
     marginBottom: 4,
   },
   notificationOptionDesc: {
     fontSize: 14,
-    color: '#888888',
+    color: theme.textSecondary,
   },
   
   // Password change styles
@@ -1257,20 +1261,20 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 16,
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     marginBottom: 8,
   },
   passwordInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#252525',
+    backgroundColor: theme.inputBackground,
     borderRadius: 12,
     paddingHorizontal: 15,
   },
   passwordInput: {
     flex: 1,
     paddingVertical: 15,
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontSize: 16,
   },
   eyeIcon: {
@@ -1278,23 +1282,23 @@ const styles = StyleSheet.create({
   },
   passwordHint: {
     fontSize: 12,
-    color: '#888888',
+    color: theme.textSecondary,
     marginTop: 8,
   },
   saveButton: {
-    backgroundColor: '#D26A68',
+    backgroundColor: theme.accent,
     borderRadius: 12,
     padding: 15,
     alignItems: 'center',
     marginTop: 10,
   },
   saveButtonText: {
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontSize: 16,
     fontWeight: '600',
   },
   saveButtonDisabled: {
-    backgroundColor: '#333333',
+    backgroundColor: theme.inactive,
     opacity: 0.7,
   },
   forgotPasswordLink: {
@@ -1303,7 +1307,7 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   forgotPasswordText: {
-    color: '#D26A68',
+    color: theme.accent,
     fontSize: 14,
   },
   
@@ -1313,7 +1317,7 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     borderRadius: 8,
     overflow: 'hidden',
-    backgroundColor: '#2C2C2E',
+    backgroundColor: theme.inputBackground,
     marginHorizontal: 5,
   },
   tabButton: {
@@ -1322,10 +1326,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   activeTabButton: {
-    backgroundColor: '#D26A68',
+    backgroundColor: theme.accent,
   },
   tabButtonText: {
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontWeight: '500',
     fontSize: 14,
   },
@@ -1358,7 +1362,7 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   categoryName: {
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontSize: 12,
     textAlign: 'center',
     width: '80%',
@@ -1367,24 +1371,24 @@ const styles = StyleSheet.create({
     marginTop: 15,
     paddingTop: 20,
     borderTopWidth: 1,
-    borderTopColor: '#3A3A3C',
+    borderTopColor: theme.inputBorder,
     paddingHorizontal: 5,
   },
   formLabel: {
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 15,
   },
   textInput: {
-    backgroundColor: '#252525',
+    backgroundColor: theme.inputBackground,
     borderRadius: 12,
     padding: 15,
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontSize: 16,
   },
   sectionLabel: {
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 8,
@@ -1398,15 +1402,16 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#3A3A3C',
+    backgroundColor: theme.inputBackground,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
     marginBottom: 10,
   },
   selectedIconOption: {
-    borderColor: '#D26A68',
+    borderColor: theme.accent,
     borderWidth: 2,
+    backgroundColor: theme.accent,
   },
   colorsContainer: {
     flexDirection: 'row',
@@ -1421,12 +1426,12 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   selectedColorOption: {
-    borderColor: '#FFFFFF',
+    borderColor: theme.textPrimary,
     borderWidth: 2,
   },
   addButton: {
     marginTop: 20,
-    backgroundColor: '#D26A68',
+    backgroundColor: theme.accent,
     borderRadius: 10,
     paddingVertical: 14,
     alignItems: 'center',
@@ -1434,11 +1439,11 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   disabledButton: {
-    backgroundColor: '#333333',
+    backgroundColor: theme.inactive,
     opacity: 0.7,
   },
   addButtonText: {
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -1447,7 +1452,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   menuItemValueText: {
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontSize: 14,
     marginRight: 5,
   },
@@ -1455,17 +1460,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#252525',
+    backgroundColor: theme.cardBackground,
     borderRadius: 12,
     padding: 15,
     marginBottom: 8,
   },
   optionText: {
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontSize: 16,
   },
   comingSoonText: {
-    color: '#888888',
+    color: theme.textSecondary,
     fontSize: 12,
     textAlign: 'center',
     marginTop: 20,
@@ -1475,7 +1480,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#252525',
+    backgroundColor: theme.cardBackground,
     borderRadius: 12,
     padding: 15,
     marginBottom: 8,
@@ -1488,20 +1493,20 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#333333',
+    backgroundColor: theme.inputBackground,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 15,
   },
   themeOptionText: {
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontSize: 16,
   },
   periodOption: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#252525',
+    backgroundColor: theme.cardBackground,
     borderRadius: 12,
     padding: 15,
     marginBottom: 8,
@@ -1514,19 +1519,19 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#333333',
+    backgroundColor: theme.inputBackground,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 15,
   },
   periodOptionText: {
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontSize: 16,
   },
   
   // Delete Account Modal Styles
   deleteWarningContainer: {
-    backgroundColor: 'rgba(255, 59, 48, 0.1)',
+    backgroundColor: theme.deleteWarningBackground,
     borderRadius: 12,
     padding: 15,
     marginBottom: 20,
@@ -1537,25 +1542,25 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   deleteWarningText: {
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontSize: 14,
     flex: 1,
     lineHeight: 20,
   },
   deleteButton: {
-    backgroundColor: '#FF3B30',
+    backgroundColor: theme.error,
     borderRadius: 12,
     padding: 15,
     alignItems: 'center',
     marginTop: 20,
   },
   deleteButtonText: {
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontSize: 16,
     fontWeight: '600',
   },
   deleteButtonDisabled: {
-    backgroundColor: '#333333',
+    backgroundColor: theme.inactive,
     opacity: 0.7,
   },
 });

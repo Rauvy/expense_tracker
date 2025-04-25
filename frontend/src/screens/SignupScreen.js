@@ -108,7 +108,7 @@ const SignupScreen = ({ navigation }) => {
                 <TextInput
                   style={styles.input}
                   placeholder="Enter first name"
-                  placeholderTextColor="#666666"
+                  placeholderTextColor={theme.placeholderTextColor}
                   value={firstName}
                   onChangeText={setFirstName}
                   editable={!isLoading}
@@ -120,7 +120,7 @@ const SignupScreen = ({ navigation }) => {
                 <TextInput
                   style={styles.input}
                   placeholder="Enter last name"
-                  placeholderTextColor="#666666"
+                  placeholderTextColor={theme.placeholderTextColor}
                   value={lastName}
                   onChangeText={setLastName}
                   editable={!isLoading}
@@ -147,7 +147,7 @@ const SignupScreen = ({ navigation }) => {
                   value={birthDate}
                   mode="date"
                   display="default"
-                  themeVariant={theme.mode}
+                  themeVariant={theme.modes}
                   textColor={theme.accent}
                   accentColor={theme.accent}
                   maximumDate={new Date(new Date().setFullYear(new Date().getFullYear() - 14))}
@@ -163,7 +163,7 @@ const SignupScreen = ({ navigation }) => {
                 <TextInput
                   style={styles.input}
                   placeholder="Enter initial balance"
-                  placeholderTextColor="#666666"
+                  placeholderTextColor={theme.placeholderTextColor}
                   keyboardType="numeric"
                   value={initialBalance}
                   onChangeText={setInitialBalance}
@@ -176,7 +176,7 @@ const SignupScreen = ({ navigation }) => {
                 <TextInput
                   style={styles.input}
                   placeholder="Enter password"
-                  placeholderTextColor="#666666"
+                  placeholderTextColor={theme.placeholderTextColor}
                   secureTextEntry
                   value={password}
                   onChangeText={setPassword}
@@ -189,7 +189,7 @@ const SignupScreen = ({ navigation }) => {
                 <TextInput
                   style={styles.input}
                   placeholder="Confirm password"
-                  placeholderTextColor="#666666"
+                  placeholderTextColor={theme.placeholderTextColor}
                   secureTextEntry
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
