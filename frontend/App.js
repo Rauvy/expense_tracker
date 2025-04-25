@@ -1,13 +1,16 @@
 import React from 'react';
 import { View, StatusBar } from 'react-native';
 import AppNavigator from './src/navigation/AppNavigator';
+import { ThemeProvider } from './src/theme/ThemeContext';
 
 const App = () => {
   return (
-    <View style={{ flex: 1 }}>
-      <StatusBar barStyle="light-content" backgroundColor="#000000" />
-      <AppNavigator />
-    </View>
+    <ThemeProvider>
+      <View style={{ flex: 1 }}>
+        <StatusBar barStyle="light-content" backgroundColor="#000000" />
+        <AppNavigator />
+      </View>
+    </ThemeProvider>
   );
 };
 
