@@ -20,6 +20,7 @@ import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 import { login, logout } from '../services/authService';
 import api from '../services/apiService';
+import { useTheme } from '../theme/ThemeProvider';
 
 // Initialize WebBrowser
 WebBrowser.maybeCompleteAuthSession();
@@ -29,6 +30,9 @@ const LoginScreen = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const { theme } = useTheme();
+  const styles = useThemedStyles(theme);
 
   const [request, response, promptAsync] = Google.useAuthRequest({
     expoClientId: 'YOUR_EXPO_CLIENT_ID',
@@ -116,7 +120,7 @@ const LoginScreen = ({ navigation }) => {
   const handleLogout = async () => {
     try {
       await logout();
-      navigation.replace('Login'); // or navigation.navigate('Login')
+      navigation.replace('Login');
     } catch (error) {
       Alert.alert('Logout failed', error.response?.data?.detail || 'Please try again.');
     }
@@ -148,7 +152,7 @@ const LoginScreen = ({ navigation }) => {
                 <TextInput
                   style={styles.input}
                   placeholder="Enter email"
-                  placeholderTextColor="#666666"
+                  placeholderTextColor={theme.placeholderTextColor}
                   value={email}
                   onChangeText={(text) => {
                     setEmail(text);
@@ -165,7 +169,7 @@ const LoginScreen = ({ navigation }) => {
                 <TextInput
                   style={styles.input}
                   placeholder="Enter password"
-                  placeholderTextColor="#666666"
+                  placeholderTextColor={theme.placeholderTextColor}
                   secureTextEntry
                   value={password}
                   onChangeText={(text) => {
@@ -182,7 +186,7 @@ const LoginScreen = ({ navigation }) => {
                 disabled={isLoading}
               >
                 {isLoading ? (
-                  <ActivityIndicator color="#FFFFFF" />
+                  <ActivityIndicator color={theme.textPrimary} />
                 ) : (
                   <Text style={styles.buttonText}>Login</Text>
                 )}
@@ -202,7 +206,7 @@ const LoginScreen = ({ navigation }) => {
                 <Ionicons 
                   name="logo-google" 
                   size={24} 
-                  color="#FFFFFF" 
+                  color={theme.textPrimary} 
                   style={styles.googleIcon}
                 />
                 <Text style={styles.googleButtonText}>Sign in with Google</Text>
@@ -225,10 +229,10 @@ const LoginScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const useThemedStyles = (theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: theme.background,
   },
   content: {
     flex: 1,
@@ -238,24 +242,24 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     marginBottom: 10,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
-    color: '#666666',
+    color: theme.textSecondary,
     marginBottom: 30,
     textAlign: 'center',
   },
   errorContainer: {
-    backgroundColor: '#FF3B30',
+    backgroundColor: theme.error,
     padding: 10,
     borderRadius: 8,
     marginBottom: 20,
   },
   errorText: {
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     textAlign: 'center',
     fontSize: 14,
   },
@@ -264,18 +268,18 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     marginBottom: 8,
   },
   input: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: theme.inputBackground,
     borderRadius: 10,
     padding: 15,
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontSize: 16,
   },
   button: {
-    backgroundColor: '#D26A68',
+    backgroundColor: theme.accent,
     borderRadius: 10,
     padding: 15,
     alignItems: 'center',
@@ -285,7 +289,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   buttonText: {
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -297,10 +301,10 @@ const styles = StyleSheet.create({
   divider: {
     flex: 1,
     height: 1,
-    backgroundColor: '#333333',
+    backgroundColor: theme.inputBorder,
   },
   dividerText: {
-    color: '#666666',
+    color: theme.textSecondary,
     marginHorizontal: 10,
     fontSize: 14,
   },
@@ -308,8 +312,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#1A1A1A', // темный фон
-    borderColor: '#D26A68',     // фирменный цвет
+    backgroundColor: theme.cardBackground,
+    borderColor: theme.accent,
     borderWidth: 1.5,
     borderRadius: 10,
     padding: 15,
@@ -319,7 +323,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   googleButtonText: {
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -329,23 +333,23 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   signupText: {
-    color: '#666666',
+    color: theme.textSecondary,
     fontSize: 14,
   },
   signupLink: {
-    color: '#D26A68',
+    color: theme.accent,
     fontSize: 14,
     fontWeight: 'bold',
   },
   logoutButton: {
-    backgroundColor: '#FF3B30',
+    backgroundColor: theme.error,
     borderRadius: 10,
     padding: 15,
     alignItems: 'center',
     marginTop: 20,
   },
   logoutButtonText: {
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontSize: 16,
     fontWeight: 'bold',
   },

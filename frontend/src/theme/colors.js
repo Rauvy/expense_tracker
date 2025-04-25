@@ -1,12 +1,12 @@
-export const darkTheme = {
+export const lightTheme = {
     background: "#121212",
     cardBackground: "#1A1A1A",
     textPrimary: "#FFFFFF",
     textSecondary: "#666666",
     placeholderTextColor: "#666666",
-    inputBackground: "#1A1A1A",
+    inputBackground: "#1a1a1a",
     inputBorder: "#333333",
-    accent: "#276EF1",
+    accent: "#D26A68",
     error: "#FF3B30",
     success: "#27ae60",
     warning: "#FF9500",
@@ -29,7 +29,7 @@ export const darkTheme = {
     cardDiscover: "#FF6600",
 };
 
-export const lightTheme = {
+export const darkTheme = {
     background: "#FFFFFF",
     cardBackground: "#F2F2F2",
     textPrimary: "#000000",
@@ -37,7 +37,7 @@ export const lightTheme = {
     placeholderTextColor: "#999999",
     inputBackground: "#F5F5F5",
     inputBorder: "#333333",
-    accent: "#276EF1",
+    accent: "#D26A68",
     error: "#FF3B30",
     success: "#4CD964",
     warning: "#FF9500",
