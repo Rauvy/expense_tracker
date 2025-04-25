@@ -178,7 +178,7 @@ const AccountsScreen = ({ navigation }) => {
               backgroundGradientFrom: theme.background,
               backgroundGradientTo: theme.background,
               decimalPlaces: 2,
-              color: (opacity = 1) => `rgba(41, 128, 185, ${opacity})`,
+              color: (opacity = 1) => `rgba(210, 106, 104, ${opacity})`,
               labelColor: (opacity = 1) => `rgba(${theme.modes === 'dark' ? '255, 255, 255' : '0, 0, 0'}, ${opacity})`,
               style: {
                 borderRadius: 0,
@@ -679,7 +679,7 @@ const AccountsScreen = ({ navigation }) => {
               onPress={() => setNewAccountVisible(true)}
               activeOpacity={0.7}
             >
-              <Ionicons name="add" size={24} color="#FFFFFF" />
+              <Ionicons name="add" size={24} color={theme.textPrimary} />
             </TouchableOpacity>
           </View>
 
@@ -828,7 +828,7 @@ const useThemedStyles = (theme) => StyleSheet.create({
     backgroundColor: theme.darkGrey,
     borderRadius: 10,
     padding: 16,
-    shadowColor: '#000',
+    shadowColor: theme.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
@@ -941,7 +941,7 @@ const useThemedStyles = (theme) => StyleSheet.create({
     marginHorizontal: 5,
   },
   accountTypeSelected: {
-    backgroundColor: 'rgba(41, 128, 185, 0.2)',
+    backgroundColor: 'rgba(243, 157, 117, 0.2)',
     borderWidth: 1,
     borderColor: theme.graphBlue,
   },

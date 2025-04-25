@@ -32,13 +32,13 @@ export const darkTheme = {
     deleteWarningBackground: "rgba(255, 59, 48, 0.1)",
     darkGrey: "#252525",
     mediumGrey: "#333333",
-    graphBlue: "#2980b9",
+    graphBlue: "#E57C6E",
     tileBackground: "#252525",
     tileBorderColor: "#333333",
     activeTileBackground: "#333333",
     dashedBorderColor: "#bdc3c7",
     lightGrey: "#bdc3c7",
-    chartColor: "rgba(41, 128, 185, 1)",
+    chartColor: "rgba(210, 106, 104, 1)",
 };
 
 export const lightTheme = {
@@ -75,11 +75,11 @@ export const lightTheme = {
     deleteWarningBackground: "rgba(255, 59, 48, 0.1)",
     darkGrey: "#EBEBEB",
     mediumGrey: "#DDDDDD",
-    graphBlue: "#2980b9",
+    graphBlue: "#E57C6E",
     tileBackground: "#EBEBEB",
     tileBorderColor: "#DDDDDD",
     activeTileBackground: "#DDDDDD",
     dashedBorderColor: "#999999",
     lightGrey: "#999999",
-    chartColor: "rgba(41, 128, 185, 1)",
+    chartColor: "rgba(210, 106, 104, 1)",
 };
