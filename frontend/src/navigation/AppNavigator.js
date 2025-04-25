@@ -22,16 +22,19 @@ import SecuritySettings from '../screens/SecuritySettings';
 import CategoriesScreen from '../screens/CategoriesScreen';
 import SubscriptionScreen from '../screens/SubscriptionScreen';
 import PaymentMethods from '../screens/PaymentMethods';
+import { useTheme } from '../theme/ThemeProvider';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 const MainAppNavigator = () => {
+  const theme = useTheme();
+
   return (
     <Tab.Navigator
       screenOptions={{
         tabBarStyle: {
-          backgroundColor: '#1a1a1a',
+          backgroundColor: theme.background,
           borderTopWidth: 0,
           paddingBottom: Platform.OS === 'ios' ? 15 : 5,
           paddingTop: 5,
