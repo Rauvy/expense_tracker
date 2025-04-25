@@ -6,10 +6,15 @@ import { LineChart } from 'react-native-chart-kit';
 import { Dimensions } from 'react-native';
 import api from '../services/apiService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTheme } from '../theme/ThemeProvider';
 
 const screenWidth = Dimensions.get('window').width;
 
 const AccountsScreen = ({ navigation }) => {
+  
+  const { theme } = useTheme();
+  const styles = useThemedStyles(theme);
+
   const [accounts, setAccounts] = useState([
     {
       id: '1',
@@ -153,7 +158,7 @@ const AccountsScreen = ({ navigation }) => {
       <View style={styles.graphContainer}>
         <View style={styles.graphInfoContainer}>
           <Text style={styles.graphValue}>${currentValue.toLocaleString()}</Text>
-          <Text style={[styles.graphGrowth, { color: growthPercentage >= 0 ? '#27ae60' : '#e74c3c' }]}>
+          <Text style={[styles.graphGrowth, { color: growthPercentage >= 0 ? theme.success : theme.error }]}>
             {growthPercentage >= 0 ? '+' : ''}{growthPercentage.toFixed(2)}%
           </Text>
           <Text style={styles.graphDate}>{currentDate}</Text>
@@ -169,12 +174,12 @@ const AccountsScreen = ({ navigation }) => {
             width={screenWidth}
             height={220}
             chartConfig={{
-              backgroundColor: '#121212',
-              backgroundGradientFrom: '#121212',
-              backgroundGradientTo: '#121212',
+              backgroundColor: theme.background,
+              backgroundGradientFrom: theme.background,
+              backgroundGradientTo: theme.background,
               decimalPlaces: 2,
               color: (opacity = 1) => `rgba(41, 128, 185, ${opacity})`,
-              labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+              labelColor: (opacity = 1) => `rgba(${theme.modes === 'dark' ? '255, 255, 255' : '0, 0, 0'}, ${opacity})`,
               style: {
                 borderRadius: 0,
               },
@@ -191,7 +196,7 @@ const AccountsScreen = ({ navigation }) => {
                 fontSize: 10,
               },
               propsForHorizontalLabels: {
-                stroke: 'rgba(255, 255, 255, 0.3)',
+                stroke: `rgba(${theme.modes === 'dark' ? '255, 255, 255' : '0, 0, 0'}, 0.3)`,
                 strokeWidth: 1,
                 strokeDasharray: [5, 5],
                 position: 'bottom',
@@ -264,12 +269,12 @@ const AccountsScreen = ({ navigation }) => {
             <View style={styles.tileContent}>
               <View style={styles.tileLeft}>
                 <View style={styles.tileHeader}>
-                  <Ionicons name="cash" size={20} color="#FFFFFF" />
+                  <Ionicons name="cash" size={20} color={theme.textPrimary} />
                   <Text style={styles.tileTitle}>Cash</Text>
                 </View>
                 <View style={styles.tileInfo}>
                   <Text style={styles.tileSubtitle}>{cashAccounts.length} accounts</Text>
-                  <Text style={[styles.tileGrowth, { color: cashGrowth >= 0 ? '#27ae60' : '#e74c3c' }]}>
+                  <Text style={[styles.tileGrowth, { color: cashGrowth >= 0 ? theme.success : theme.error }]}>
                     {cashGrowth >= 0 ? '+' : ''}{cashGrowth}%
                   </Text>
                 </View>
@@ -290,7 +295,7 @@ const AccountsScreen = ({ navigation }) => {
                 >
                   <View style={styles.expandedAccountLeft}>
                     <View style={styles.expandedAccountHeader}>
-                      <Ionicons name={getAccountIcon(account.type)} size={20} color="#FFFFFF" />
+                      <Ionicons name={getAccountIcon(account.type)} size={20} color={theme.textPrimary} />
                       <Text style={styles.expandedAccountName}>
                         {account.name} ({account.number.slice(-4)})
                       </Text>
@@ -323,12 +328,12 @@ const AccountsScreen = ({ navigation }) => {
             <View style={styles.tileContent}>
               <View style={styles.tileLeft}>
                 <View style={styles.tileHeader}>
-                  <Ionicons name="card" size={20} color="#FFFFFF" />
+                  <Ionicons name="card" size={20} color={theme.textPrimary} />
                   <Text style={styles.tileTitle}>Credit Cards</Text>
                 </View>
                 <View style={styles.tileInfo}>
                   <Text style={styles.tileSubtitle}>{creditCardAccounts.length} accounts</Text>
-                  <Text style={[styles.tileGrowth, { color: creditCardGrowth >= 0 ? '#27ae60' : '#e74c3c' }]}>
+                  <Text style={[styles.tileGrowth, { color: creditCardGrowth >= 0 ? theme.success : theme.error }]}>
                     {creditCardGrowth >= 0 ? '+' : ''}{creditCardGrowth}%
                   </Text>
                 </View>
@@ -349,7 +354,7 @@ const AccountsScreen = ({ navigation }) => {
                 >
                   <View style={styles.expandedAccountLeft}>
                     <View style={styles.expandedAccountHeader}>
-                      <Ionicons name={getAccountIcon(account.type)} size={20} color="#FFFFFF" />
+                      <Ionicons name={getAccountIcon(account.type)} size={20} color={theme.textPrimary} />
                       <Text style={styles.expandedAccountName}>
                         {account.name} ({account.number.slice(-4)})
                       </Text>
@@ -378,7 +383,7 @@ const AccountsScreen = ({ navigation }) => {
           style={styles.addAccountButton}
           onPress={() => setNewAccountVisible(true)}
         >
-          <Ionicons name="add" size={20} color="#bdc3c7" />
+          <Ionicons name="add" size={20} color={theme.lightGrey} />
           <Text style={styles.addAccountButtonText}>Add Account</Text>
         </TouchableOpacity>
       </View>
@@ -397,7 +402,7 @@ const AccountsScreen = ({ navigation }) => {
                  account.type === 'card' ? 'card' :
                  account.type === 'paypal' ? 'logo-paypal' : 'logo-bitcoin'}
             size={22}
-            color="#FFFFFF"
+            color={theme.textPrimary}
           />
         </View>
         <View>
@@ -407,7 +412,7 @@ const AccountsScreen = ({ navigation }) => {
              account.type === 'crypto' ? account.address : account.number}
           </Text>
           <View style={styles.connectionInfo}>
-            <View style={[styles.connectionDot, { backgroundColor: account.connected ? '#4CAF50' : '#FF3B30' }]} />
+            <View style={[styles.connectionDot, { backgroundColor: account.connected ? theme.success : theme.error }]} />
             <Text style={styles.lastSyncText}>
               {account.connected ? `Last sync: ${account.lastSync}` : 'Disconnected'}
             </Text>
@@ -428,7 +433,7 @@ const AccountsScreen = ({ navigation }) => {
             // In a real app, this would trigger a sync with the financial institution
           }}
         >
-          <Ionicons name="sync" size={16} color="#FFFFFF" />
+          <Ionicons name="sync" size={16} color={theme.textPrimary} />
           <Text style={styles.accountActionText}>Sync</Text>
         </TouchableOpacity>
 
@@ -438,7 +443,7 @@ const AccountsScreen = ({ navigation }) => {
             Alert.alert('Edit Account', `Edit ${account.name} details`);
           }}
         >
-          <Ionicons name="create" size={16} color="#FFFFFF" />
+          <Ionicons name="create" size={16} color={theme.textPrimary} />
           <Text style={styles.accountActionText}>Edit</Text>
         </TouchableOpacity>
 
@@ -461,7 +466,7 @@ const AccountsScreen = ({ navigation }) => {
             );
           }}
         >
-          <Ionicons name="close-circle" size={16} color="#FFFFFF" />
+          <Ionicons name="close-circle" size={16} color={theme.textPrimary} />
           <Text style={styles.accountActionText}>Remove</Text>
         </TouchableOpacity>
       </View>
@@ -480,7 +485,7 @@ const AccountsScreen = ({ navigation }) => {
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Connect New Account</Text>
             <TouchableOpacity onPress={() => setNewAccountVisible(false)}>
-              <Ionicons name="close" size={24} color="#FFFFFF" />
+              <Ionicons name="close" size={24} color={theme.textPrimary} />
             </TouchableOpacity>
           </View>
 
@@ -496,7 +501,7 @@ const AccountsScreen = ({ navigation }) => {
                 <Ionicons
                   name="business"
                   size={22}
-                  color={accountType === 'bank' ? "#D26A68" : "#FFFFFF"}
+                  color={accountType === 'bank' ? theme.accent : theme.textPrimary}
                 />
                 <Text style={[
                   styles.accountTypeText,
@@ -516,7 +521,7 @@ const AccountsScreen = ({ navigation }) => {
                 <Ionicons
                   name="card"
                   size={22}
-                  color={accountType === 'card' ? "#D26A68" : "#FFFFFF"}
+                  color={accountType === 'card' ? theme.accent : theme.textPrimary}
                 />
                 <Text style={[
                   styles.accountTypeText,
@@ -536,7 +541,7 @@ const AccountsScreen = ({ navigation }) => {
                 <Ionicons
                   name="logo-paypal"
                   size={22}
-                  color={accountType === 'paypal' ? "#D26A68" : "#FFFFFF"}
+                  color={accountType === 'paypal' ? theme.accent : theme.textPrimary}
                 />
                 <Text style={[
                   styles.accountTypeText,
@@ -556,7 +561,7 @@ const AccountsScreen = ({ navigation }) => {
                 <Ionicons
                   name="logo-bitcoin"
                   size={22}
-                  color={accountType === 'crypto' ? "#D26A68" : "#FFFFFF"}
+                  color={accountType === 'crypto' ? theme.accent : theme.textPrimary}
                 />
                 <Text style={[
                   styles.accountTypeText,
@@ -581,7 +586,7 @@ const AccountsScreen = ({ navigation }) => {
               placeholder={accountType === 'bank' ? "e.g. Chase Bank" :
                           accountType === 'card' ? "e.g. Visa Credit" :
                           accountType === 'paypal' ? "e.g. PayPal" : "e.g. Coinbase"}
-              placeholderTextColor="#666666"
+              placeholderTextColor={theme.placeholderTextColor}
             />
           </View>
 
@@ -598,7 +603,7 @@ const AccountsScreen = ({ navigation }) => {
               placeholder={accountType === 'bank' ? "Enter account number" :
                           accountType === 'card' ? "Enter card number" :
                           accountType === 'paypal' ? "Enter PayPal email" : "Enter wallet address"}
-              placeholderTextColor="#666666"
+              placeholderTextColor={theme.placeholderTextColor}
               keyboardType={accountType === 'paypal' ? "email-address" : "default"}
               secureTextEntry={accountType === 'bank' || accountType === 'card'}
               autoCapitalize="none"
@@ -612,7 +617,7 @@ const AccountsScreen = ({ navigation }) => {
               value={accountBalance}
               onChangeText={setAccountBalance}
               placeholder="Enter balance"
-              placeholderTextColor="#666666"
+              placeholderTextColor={theme.placeholderTextColor}
               keyboardType="numeric"
             />
           </View>
@@ -757,10 +762,10 @@ const AccountsScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const useThemedStyles = (theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: theme.background,
   },
   content: {
     flex: 1,
@@ -781,7 +786,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: theme.textPrimary,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -806,21 +811,21 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
   },
   topButtonActive: {
-    backgroundColor: '#2980b9',
+    backgroundColor: theme.graphBlue,
   },
   topButtonText: {
-    color: '#bdc3c7',
+    color: theme.lightGrey,
     fontSize: 14,
     fontWeight: '500',
   },
   topButtonTextActive: {
-    color: '#ffffff',
+    color: theme.textPrimary,
   },
   accountsList: {
     gap: 12,
   },
   accountCard: {
-    backgroundColor: '#2c3e50',
+    backgroundColor: theme.darkGrey,
     borderRadius: 10,
     padding: 16,
     shadowColor: '#000',
@@ -838,7 +843,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#2980b9',
+    backgroundColor: theme.graphBlue,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -849,12 +854,12 @@ const styles = StyleSheet.create({
   accountName: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#ffffff',
+    color: theme.textPrimary,
     marginBottom: 4,
   },
   accountType: {
     fontSize: 14,
-    color: '#bdc3c7',
+    color: theme.lightGrey,
   },
   accountBalance: {
     alignItems: 'flex-end',
@@ -862,16 +867,16 @@ const styles = StyleSheet.create({
   balanceAmount: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#ffffff',
+    color: theme.textPrimary,
     marginBottom: 4,
   },
   balanceLabel: {
     fontSize: 12,
-    color: '#bdc3c7',
+    color: theme.lightGrey,
   },
   accountFooter: {
     borderTopWidth: 1,
-    borderTopColor: '#3a3a3a',
+    borderTopColor: theme.mediumGrey,
     paddingTop: 12,
   },
   accountStats: {
@@ -885,26 +890,26 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 12,
-    color: '#bdc3c7',
+    color: theme.lightGrey,
     marginBottom: 4,
   },
   statValue: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#ffffff',
+    color: theme.textPrimary,
   },
   statDivider: {
     width: 1,
     height: 24,
-    backgroundColor: '#3a3a3a',
+    backgroundColor: theme.mediumGrey,
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: theme.modalOverlay,
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: theme.cardBackground,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
@@ -918,7 +923,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 20,
-    color: '#ffffff',
+    color: theme.textPrimary,
     fontWeight: 'bold',
   },
   accountTypeSelector: {
@@ -930,7 +935,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#2c3e50',
+    backgroundColor: theme.darkGrey,
     borderRadius: 12,
     padding: 15,
     marginHorizontal: 5,
@@ -938,30 +943,30 @@ const styles = StyleSheet.create({
   accountTypeSelected: {
     backgroundColor: 'rgba(41, 128, 185, 0.2)',
     borderWidth: 1,
-    borderColor: '#2980b9',
+    borderColor: theme.graphBlue,
   },
   accountTypeText: {
-    color: '#ffffff',
+    color: theme.textPrimary,
     fontSize: 15,
     fontWeight: '500',
     marginLeft: 8,
   },
   accountTypeTextSelected: {
-    color: '#2980b9',
+    color: theme.graphBlue,
   },
   inputContainer: {
     marginBottom: 20,
   },
   inputLabel: {
     fontSize: 16,
-    color: '#ffffff',
+    color: theme.textPrimary,
     marginBottom: 8,
   },
   input: {
-    backgroundColor: '#2c3e50',
+    backgroundColor: theme.darkGrey,
     borderRadius: 12,
     padding: 15,
-    color: '#ffffff',
+    color: theme.textPrimary,
     fontSize: 16,
   },
   addButton: {
@@ -973,18 +978,18 @@ const styles = StyleSheet.create({
     borderWidth: 0,
   },
   addButtonText: {
-    color: '#ffffff',
+    color: theme.textPrimary,
     fontSize: 16,
     fontWeight: '600',
   },
   addButtonDisabled: {
-    backgroundColor: '#3a3a3a',
+    backgroundColor: theme.mediumGrey,
     opacity: 0.7,
   },
   accountDetailsCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#2c3e50',
+    backgroundColor: theme.darkGrey,
     borderRadius: 12,
     padding: 15,
     marginBottom: 20,
@@ -995,29 +1000,29 @@ const styles = StyleSheet.create({
   accountDetailsName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#ffffff',
+    color: theme.textPrimary,
   },
   accountDetailsNumber: {
     fontSize: 14,
-    color: '#bdc3c7',
+    color: theme.lightGrey,
     marginTop: 2,
   },
   divider: {
     height: 1,
-    backgroundColor: '#3a3a3a',
+    backgroundColor: theme.mediumGrey,
     marginVertical: 15,
   },
   subscriptionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#ffffff',
+    color: theme.textPrimary,
     marginBottom: 15,
   },
   subscriptionOption: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#2c3e50',
+    backgroundColor: theme.darkGrey,
     borderRadius: 12,
     padding: 15,
     marginBottom: 15,
@@ -1028,32 +1033,32 @@ const styles = StyleSheet.create({
   subscriptionName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#ffffff',
+    color: theme.textPrimary,
   },
   subscriptionPrice: {
     fontSize: 14,
-    color: '#bdc3c7',
+    color: theme.lightGrey,
     marginTop: 2,
   },
   savingsText: {
     fontSize: 12,
-    color: '#27ae60',
+    color: theme.success,
     marginTop: 5,
     fontWeight: '500',
   },
   selectButton: {
-    backgroundColor: '#2980b9',
+    backgroundColor: theme.graphBlue,
     borderRadius: 8,
     paddingVertical: 8,
     paddingHorizontal: 15,
   },
   selectButtonText: {
-    color: '#ffffff',
+    color: theme.textPrimary,
     fontSize: 14,
     fontWeight: '500',
   },
   syncAction: {
-    backgroundColor: '#2980b9',
+    backgroundColor: theme.graphBlue,
   },
   connectionInfo: {
     flexDirection: 'row',
@@ -1068,7 +1073,7 @@ const styles = StyleSheet.create({
   },
   lastSyncText: {
     fontSize: 12,
-    color: '#bdc3c7',
+    color: theme.lightGrey,
   },
   graphSection: {
     marginBottom: 40,
@@ -1076,13 +1081,13 @@ const styles = StyleSheet.create({
   graphInfoContainer: {
     marginBottom: 16,
     padding: 16,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: theme.cardBackground,
     borderRadius: 12,
   },
   graphValue: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: theme.textPrimary,
   },
   graphGrowth: {
     fontSize: 16,
@@ -1091,7 +1096,7 @@ const styles = StyleSheet.create({
   },
   graphDate: {
     fontSize: 14,
-    color: '#bdc3c7',
+    color: theme.lightGrey,
     marginTop: 4,
   },
   graphControls: {
@@ -1108,15 +1113,15 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   timeButtonActive: {
-    backgroundColor: '#2980b9',
+    backgroundColor: theme.graphBlue,
   },
   timeButtonText: {
-    color: '#bdc3c7',
+    color: theme.lightGrey,
     fontSize: 12,
     fontWeight: '500',
   },
   timeButtonTextActive: {
-    color: '#ffffff',
+    color: theme.textPrimary,
   },
   graphWrapper: {
     position: 'relative',
@@ -1140,7 +1145,7 @@ const styles = StyleSheet.create({
     top: 20,
     width: 1,
     height: 165,
-    backgroundColor: '#3a3a3a',
+    backgroundColor: theme.mediumGrey,
     zIndex: 2,
   },
   pointIndicator: {
@@ -1148,12 +1153,12 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#2980b9',
+    backgroundColor: theme.graphBlue,
     zIndex: 3,
     transform: [{ translateY: -4 }, { translateX: -4 }],
   },
   graphContainer: {
-    backgroundColor: '#121212',
+    backgroundColor: theme.background,
     borderRadius: 0,
     padding: 16,
     height: 250,
@@ -1169,14 +1174,14 @@ const styles = StyleSheet.create({
   },
   accountTile: {
     width: '100%',
-    backgroundColor: '#252525',
+    backgroundColor: theme.tileBackground,
     borderRadius: 12,
     padding: 15,
     paddingBottom: 20,
     height: 100,
   },
   accountTileActive: {
-    backgroundColor: '#333333',
+    backgroundColor: theme.activeTileBackground,
   },
   tileContent: {
     flexDirection: 'row',
@@ -1201,12 +1206,12 @@ const styles = StyleSheet.create({
   tileTitle: {
     fontSize: 15,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     marginLeft: 8,
   },
   tileSubtitle: {
     fontSize: 14,
-    color: '#bdc3c7',
+    color: theme.lightGrey,
     marginBottom: 4,
   },
   tileGrowth: {
@@ -1216,16 +1221,16 @@ const styles = StyleSheet.create({
   tileAmount: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     marginBottom: 4,
   },
   tilePercentage: {
     fontSize: 14,
     marginBottom: 3,
-    color: '#bdc3c7',
+    color: theme.lightGrey,
   },
   expandedAccounts: {
-    backgroundColor: '#252525',
+    backgroundColor: theme.tileBackground,
     borderBottomLeftRadius: 12,
     borderBottomRightRadius: 12,
     padding: 12,
@@ -1237,7 +1242,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#333333',
+    borderBottomColor: theme.tileBorderColor,
   },
   expandedAccountLeft: {
     flex: 1,
@@ -1249,7 +1254,7 @@ const styles = StyleSheet.create({
   },
   expandedAccountName: {
     fontSize: 14,
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     marginLeft: 8,
   },
   expandedAccountDetails: {
@@ -1258,19 +1263,19 @@ const styles = StyleSheet.create({
   },
   expandedAccountType: {
     fontSize: 12,
-    color: '#bdc3c7',
+    color: theme.lightGrey,
   },
   expandedAccountRight: {
     alignItems: 'flex-end',
   },
   expandedAccountBalance: {
     fontSize: 14,
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontWeight: '600',
   },
   expandedAccountSync: {
     fontSize: 12,
-    color: '#bdc3c7',
+    color: theme.lightGrey,
   },
   addAccountButton: {
     flexDirection: 'row',
@@ -1279,16 +1284,52 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderWidth: 1,
     borderStyle: 'dashed',
-    borderColor: '#bdc3c7',
+    borderColor: theme.dashedBorderColor,
     borderRadius: 8,
     marginTop: 8,
     backgroundColor: 'rgba(189, 195, 199, 0.1)',
   },
   addAccountButtonText: {
-    color: '#bdc3c7',
+    color: theme.lightGrey,
     fontSize: 14,
     marginLeft: 8,
     fontWeight: '500',
+  },
+  accountCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  accountBalanceContainer: {
+    marginBottom: 16,
+  },
+  accountActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  accountAction: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    paddingVertical: 8,
+    marginHorizontal: 4,
+  },
+  accountActionText: {
+    color: theme.textPrimary,
+    fontSize: 14,
+    marginLeft: 4,
+  },
+  editAction: {
+    backgroundColor: theme.accent,
+  },
+  deleteAction: {
+    backgroundColor: theme.error,
+  },
+  accountNumber: {
+    fontSize: 14,
+    color: theme.lightGrey,
   },
 });
 

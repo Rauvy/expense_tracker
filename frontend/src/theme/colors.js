@@ -30,6 +30,15 @@ export const darkTheme = {
     cardDiscover: "#FF6600",
     modalOverlay: "rgba(0,0,0,0.7)",
     deleteWarningBackground: "rgba(255, 59, 48, 0.1)",
+    darkGrey: "#252525",
+    mediumGrey: "#333333",
+    graphBlue: "#2980b9",
+    tileBackground: "#252525",
+    tileBorderColor: "#333333",
+    activeTileBackground: "#333333",
+    dashedBorderColor: "#bdc3c7",
+    lightGrey: "#bdc3c7",
+    chartColor: "rgba(41, 128, 185, 1)",
 };
 
 export const lightTheme = {
@@ -64,4 +73,13 @@ export const lightTheme = {
     cardDiscover: "#FF6600",
     modalOverlay: "rgba(0,0,0,0.5)",
     deleteWarningBackground: "rgba(255, 59, 48, 0.1)",
+    darkGrey: "#EBEBEB",
+    mediumGrey: "#DDDDDD",
+    graphBlue: "#2980b9",
+    tileBackground: "#EBEBEB",
+    tileBorderColor: "#DDDDDD",
+    activeTileBackground: "#DDDDDD",
+    dashedBorderColor: "#999999",
+    lightGrey: "#999999",
+    chartColor: "rgba(41, 128, 185, 1)",
 };
