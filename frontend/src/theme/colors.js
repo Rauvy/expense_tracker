@@ -1,5 +1,6 @@
 export const darkTheme = {
     modes: "dark",
+    iconColor: "#FFFFFF",
     background: "#121212",
     cardBackground: "#1A1A1A",
     textPrimary: "#FFFFFF",
@@ -43,6 +44,7 @@ export const darkTheme = {
 
 export const lightTheme = {
     modes: "light",
+    iconColor: "#FFFFFF",
     background: "#FFFFFF",
     cardBackground: "#F2F2F2",
     textPrimary: "#000000",

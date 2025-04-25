@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Platform, StatusBar, SafeAreaView, Modal, TextInput, Switch, FlatList, KeyboardAvoidingView, TouchableWithoutFeedback, Keyboard, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTheme } from '../theme/ThemeProvider';
 
 import { getTransactions, deleteTransaction } from '../services/transactionsService';
 
@@ -20,6 +21,9 @@ const COLORS = {
 };
 
 const AddExpenseScreen = ({ navigation }) => {
+  const { theme } = useTheme();
+  const styles = useThemedStyles(theme);
+  
   const [filterType, setFilterType] = useState('all'); // 'all', 'expense', 'income'
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [transactionDetailsVisible, setTransactionDetailsVisible] = useState(false);
@@ -188,7 +192,7 @@ const AddExpenseScreen = ({ navigation }) => {
     const categoryList = filterType === 'income' ? incomeCategories : categories;
     const category = categoryList.find(cat => cat.name === categoryName);
 
-    return category || { color: '#D26A68', icon: 'ellipsis-horizontal' };
+    return category || { color: COLORS.BLUE, icon: 'ellipsis-horizontal' };
   }, [categories, incomeCategories, filterType]);
 
   // Filter transactions based on selected type and advanced filters
@@ -337,7 +341,7 @@ const totalExpenses = allTransactions?.length
               style={styles.filterModalCloseButton}
               onPress={() => setShowFilterModal(false)}
             >
-              <Ionicons name="chevron-down" size={26} color="#FFFFFF" />
+              <Ionicons name="chevron-down" size={26} color={theme.textPrimary} />
             </TouchableOpacity>
             <Text style={styles.filterModalTitle}>Filters</Text>
             <TouchableOpacity
@@ -358,17 +362,17 @@ const totalExpenses = allTransactions?.length
             <View style={styles.filterSection}>
               <Text style={styles.filterSectionTitle}>Search</Text>
               <View style={styles.searchInputContainer}>
-                <Ionicons name="search" size={20} color="#999999" style={styles.searchInputIcon} />
+                <Ionicons name="search" size={20} color={theme.placeholderTextColor} style={styles.searchInputIcon} />
                 <TextInput
                   style={styles.searchInput}
                   placeholder="Search transactions..."
-                  placeholderTextColor="#999999"
+                  placeholderTextColor={theme.placeholderTextColor}
                   value={searchQuery}
                   onChangeText={setSearchQuery}
                 />
                 {searchQuery.length > 0 && (
                   <TouchableOpacity onPress={() => setSearchQuery('')}>
-                    <Ionicons name="close-circle" size={20} color="#999999" />
+                    <Ionicons name="close-circle" size={20} color={theme.placeholderTextColor} />
                   </TouchableOpacity>
                 )}
               </View>
@@ -402,9 +406,9 @@ const totalExpenses = allTransactions?.length
                       ]}>
                         {category}
                       </Text>
-                      {isSelected && (
-                        <Ionicons name="checkmark" size={16} color="#FFFFFF" style={styles.categoryCheckmark} />
-                      )}
+                      {/* {isSelected && (
+                        <Ionicons name="checkmark" size={16} color={theme.textPrimary} style={styles.categoryCheckmark} />
+                      )} */}
                     </TouchableOpacity>
                   );
                 })}
@@ -423,11 +427,11 @@ const totalExpenses = allTransactions?.length
                     <TextInput
                       style={styles.dateInput}
                       placeholder="DD/MM/YYYY"
-                      placeholderTextColor="#999999"
+                      placeholderTextColor={theme.placeholderTextColor}
                       value={dateRange.start}
                       onChangeText={(text) => setDateRange({...dateRange, start: text})}
                     />
-                    <Ionicons name="calendar" size={20} color="#999999" style={styles.dateInputIcon} />
+                    <Ionicons name="calendar" size={20} color={theme.placeholderTextColor} style={styles.dateInputIcon} />
                   </View>
                 </View>
 
@@ -437,11 +441,11 @@ const totalExpenses = allTransactions?.length
                     <TextInput
                       style={styles.dateInput}
                       placeholder="DD/MM/YYYY"
-                      placeholderTextColor="#999999"
+                      placeholderTextColor={theme.placeholderTextColor}
                       value={dateRange.end}
                       onChangeText={(text) => setDateRange({...dateRange, end: text})}
                     />
-                    <Ionicons name="calendar" size={20} color="#999999" style={styles.dateInputIcon} />
+                    <Ionicons name="calendar" size={20} color={theme.placeholderTextColor} style={styles.dateInputIcon} />
                   </View>
                 </View>
               </View>
@@ -460,7 +464,7 @@ const totalExpenses = allTransactions?.length
                     <TextInput
                       style={styles.amountInput}
                       placeholder="0.00"
-                      placeholderTextColor="#999999"
+                      placeholderTextColor={theme.placeholderTextColor}
                       keyboardType="numeric"
                       value={amountRange.min}
                       onChangeText={(text) => setAmountRange({...amountRange, min: text})}
@@ -475,7 +479,7 @@ const totalExpenses = allTransactions?.length
                     <TextInput
                       style={styles.amountInput}
                       placeholder="Any"
-                      placeholderTextColor="#999999"
+                      placeholderTextColor={theme.placeholderTextColor}
                       keyboardType="numeric"
                       value={amountRange.max}
                       onChangeText={(text) => setAmountRange({...amountRange, max: text})}
@@ -568,14 +572,14 @@ const totalExpenses = allTransactions?.length
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Transaction Details</Text>
               <TouchableOpacity onPress={() => setTransactionDetailsVisible(false)}>
-                <Ionicons name="close" size={24} color="#FFFFFF" />
+                <Ionicons name="close" size={24} color={theme.textPrimary} />
               </TouchableOpacity>
             </View>
 
             {selectedTransaction && (
               <View style={styles.transactionDetailsContent}>
                 <View style={[styles.transactionIcon, { backgroundColor: selectedTransaction.color }]}>
-                  <Ionicons name={selectedTransaction.icon} size={24} color="#FFFFFF" />
+                  <Ionicons name={selectedTransaction.icon} size={24} color={theme.textPrimary} />
                 </View>
 
                 <Text style={styles.transactionDetailsTitle}>{selectedTransaction.description}</Text>
@@ -623,7 +627,7 @@ const totalExpenses = allTransactions?.length
                           ? selectedTransaction.sourceIcon
                           : selectedTransaction.paymentIcon}
                         size={16}
-                        color="#FFFFFF"
+                        color={theme.textPrimary}
                       />
                     </View>
                     <Text style={[styles.transactionDetailsValue, { marginLeft: 8, fontSize: 16 }]}>
@@ -637,8 +641,8 @@ const totalExpenses = allTransactions?.length
                 <View style={styles.transactionDetailsRow}>
                   <Text style={styles.transactionDetailsLabel}>Status</Text>
                   <View style={styles.statusContainer}>
-                    <View style={[styles.statusDot, { backgroundColor: '#4CAF50' }]} />
-                    <Text style={[styles.transactionDetailsValue, { color: '#4CAF50' }]}>Completed</Text>
+                    <View style={[styles.statusDot, { backgroundColor: theme.success }]} />
+                    <Text style={[styles.transactionDetailsValue, { color: theme.success }]}>Completed</Text>
                   </View>
                 </View>
 
@@ -712,7 +716,7 @@ const totalExpenses = allTransactions?.length
                 style={styles.advancedFilterButton}
                 onPress={() => setShowFilterModal(true)}
               >
-                <Ionicons name="options" size={20} color="#FFFFFF" />
+                <Ionicons name="options" size={20} color={theme.textPrimary} />
               </TouchableOpacity>
             </View>
 
@@ -773,8 +777,8 @@ const totalExpenses = allTransactions?.length
                     activeOpacity={0.7}
                     onPress={() => handleTransactionClick(transaction)}
                   >
-                    <View style={[styles.transactionIcon, { backgroundColor: transaction.color || '#5856D6' }]}>
-                      <Ionicons name={transaction.icon || 'apps'} size={20} color="#FFFFFF" />
+                    <View style={[styles.transactionIcon, { backgroundColor: transaction.color || theme.accent }]}>
+                      <Ionicons name={transaction.icon || 'apps'} size={20} color={theme.iconColor} />
                     </View>
 
                     <View style={styles.transactionInfo}>
@@ -809,10 +813,10 @@ const totalExpenses = allTransactions?.length
                               ? (transaction.sourceIcon || 'person') 
                               : (transaction.paymentIcon || 'card')}
                             size={14}
-                            color="#FFFFFF"
+                            color={theme.iconColor}
                           />
                         </View>
-                        <Text style={{ color: '#FFFFFF', fontSize: 13, marginLeft: 6 }}>
+                        <Text style={{ color: theme.textPrimary, fontSize: 13, marginLeft: 6 }}>
                           {transaction.type === 'income'
                             ? (transaction.source || 'Unknown source')
                             : (transaction.payment_method || 'Unknown method')}
@@ -847,18 +851,18 @@ const totalExpenses = allTransactions?.length
   );
 };
 
-const styles = StyleSheet.create({
+const useThemedStyles = (theme) => StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: theme.background,
   },
   container: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: theme.background,
   },
   content: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: theme.background,
   },
   contentContainer: {
     paddingBottom: 30,
@@ -876,10 +880,10 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: theme.textPrimary,
   },
   summaryCard: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: theme.cardBackground,
     borderRadius: 15,
     padding: 20,
     marginBottom: 15,
@@ -898,14 +902,14 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#252525',
+    backgroundColor: theme.darkGrey,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
   summaryLabel: {
     fontSize: 14,
-    color: '#888888',
+    color: theme.textSecondary,
     marginBottom: 4,
   },
   summaryAmount: {
@@ -921,7 +925,7 @@ const styles = StyleSheet.create({
   summaryDivider: {
     width: 1,
     height: 40,
-    backgroundColor: '#333333',
+    backgroundColor: theme.mediumGrey,
     marginHorizontal: 15,
   },
   filterContainer: {
@@ -933,21 +937,21 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 12,
     alignItems: 'center',
-    backgroundColor: '#1a1a1a',
+    backgroundColor: theme.cardBackground,
     marginHorizontal: 5,
     borderRadius: 10,
   },
   advancedFilterButton: {
     width: 44,
     height: 44,
-    backgroundColor: '#555555',
+    backgroundColor: theme.mediumGrey,
     marginLeft: 5,
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
   },
   activeFilterButton: {
-    backgroundColor: COLORS.BLUE,
+    backgroundColor: theme.accent,
   },
   activeIncomeButton: {
     backgroundColor: COLORS.INCOME,
@@ -956,7 +960,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.EXPENSE,
   },
   filterText: {
-    color: '#888888',
+    color: theme.textSecondary,
     fontWeight: '500',
   },
   activeFilterText: {
@@ -966,7 +970,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   activeFiltersTitle: {
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontSize: 14,
     marginBottom: 8,
   },
@@ -974,7 +978,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   activeFilterChip: {
-    backgroundColor: '#333333',
+    backgroundColor: theme.mediumGrey,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 50,
@@ -996,14 +1000,14 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   transactionsContainer: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: theme.cardBackground,
     borderRadius: 15,
     padding: 15,
   },
   transactionItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#252525',
+    backgroundColor: theme.darkGrey,
     borderRadius: 12,
     padding: 15,
     marginBottom: 10,
@@ -1021,13 +1025,13 @@ const styles = StyleSheet.create({
   },
   transactionTitle: {
     fontSize: 16,
-    color: '#ffffff',
+    color: theme.textPrimary,
     fontWeight: '500',
     marginBottom: 3,
   },
   transactionCategory: {
     fontSize: 14,
-    color: '#888888',
+    color: theme.textSecondary,
   },
   transactionDetails: {
     alignItems: 'flex-end',
@@ -1039,7 +1043,7 @@ const styles = StyleSheet.create({
   },
   transactionDate: {
     fontSize: 13,
-    color: '#888888',
+    color: theme.textSecondary,
     marginBottom: 5,
   },
   transactionMethodIcon: {
@@ -1055,7 +1059,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   noTransactionsText: {
-    color: '#888888',
+    color: theme.textSecondary,
     fontSize: 16,
   },
   modalOverlay: {
@@ -1066,11 +1070,11 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: theme.modalOverlay,
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: theme.cardBackground,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
@@ -1084,7 +1088,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 20,
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontWeight: 'bold',
   },
   transactionDetailsContent: {
@@ -1093,14 +1097,14 @@ const styles = StyleSheet.create({
   },
   transactionDetailsTitle: {
     fontSize: 24,
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontWeight: 'bold',
     marginTop: 15,
     marginBottom: 5,
   },
   transactionDetailsCategory: {
     fontSize: 16,
-    color: '#888888',
+    color: theme.textSecondary,
     marginBottom: 20,
   },
   transactionDetailsAmount: {
@@ -1115,15 +1119,15 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingVertical: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#333333',
+    borderBottomColor: theme.mediumGrey,
   },
   transactionDetailsLabel: {
     fontSize: 16,
-    color: '#888888',
+    color: theme.textSecondary,
   },
   transactionDetailsValue: {
     fontSize: 16,
-    color: '#FFFFFF',
+    color: theme.textPrimary,
   },
   transactionDetailsMethod: {
     flexDirection: 'row',
@@ -1140,7 +1144,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   deleteTransactionButton: {
-    backgroundColor: '#FF3B30', // iOS red color
+    backgroundColor: theme.error, // iOS red color
     width: '100%',
     paddingVertical: 15,
     borderRadius: 12,
@@ -1148,18 +1152,18 @@ const styles = StyleSheet.create({
     marginTop: 30,
   },
   deleteTransactionButtonText: {
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontSize: 16,
     fontWeight: '600',
   },
   // Filter Modal Styles
   filterModalContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: theme.modalOverlay,
   },
   filterModalContent: {
     flex: 1,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: theme.cardBackground,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     marginTop: 60,
@@ -1171,7 +1175,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#333333',
+    borderBottomColor: theme.mediumGrey,
   },
   filterModalCloseButton: {
     padding: 4,
@@ -1179,7 +1183,7 @@ const styles = StyleSheet.create({
   filterModalTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: theme.textPrimary,
   },
   filterModalResetButton: {
     padding: 4,
@@ -1199,25 +1203,25 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: Platform.OS === 'ios' ? 35 : 20,
     borderTopWidth: 1,
-    borderTopColor: '#333333',
+    borderTopColor: theme.mediumGrey,
   },
   filterSection: {
     padding: 20,
   },
   filterDivider: {
     height: 8,
-    backgroundColor: '#121212',
+    backgroundColor: theme.background,
   },
   filterSectionTitle: {
     fontSize: 17,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     marginBottom: 18,
   },
   searchInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#252525',
+    backgroundColor: theme.darkGrey,
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 12,
@@ -1227,7 +1231,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontSize: 16,
     padding: 0,
   },
@@ -1239,16 +1243,16 @@ const styles = StyleSheet.create({
   categoryChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#252525',
+    backgroundColor: theme.darkGrey,
     borderWidth: 1,
-    borderColor: '#333333',
+    borderColor: theme.mediumGrey,
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 20,
     margin: 5,
   },
   categoryChipText: {
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontSize: 15,
   },
   selectedCategoryChipText: {
@@ -1268,20 +1272,20 @@ const styles = StyleSheet.create({
   },
   dateInputLabel: {
     fontSize: 15,
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     marginBottom: 8,
   },
   dateInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#252525',
+    backgroundColor: theme.darkGrey,
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 12,
   },
   dateInput: {
     flex: 1,
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontSize: 16,
     padding: 0,
   },
@@ -1294,25 +1298,25 @@ const styles = StyleSheet.create({
   },
   amountInputLabel: {
     fontSize: 15,
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     marginBottom: 8,
   },
   amountInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#252525',
+    backgroundColor: theme.darkGrey,
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 12,
   },
   amountInputPrefix: {
-    color: '#999999',
+    color: theme.placeholderTextColor,
     fontSize: 16,
     marginRight: 5,
   },
   amountInput: {
     flex: 1,
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontSize: 16,
     padding: 0,
   },
@@ -1326,7 +1330,7 @@ const styles = StyleSheet.create({
   filterApplyButtonText: {
     fontSize: 17,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: theme.textPrimary,
   },
 });
 
