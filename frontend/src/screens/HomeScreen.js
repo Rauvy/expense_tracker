@@ -157,9 +157,9 @@ const HomeScreen = ({ navigation }) => {
   // Add state for financial overview
   const [activeCardIndex, setActiveCardIndex] = useState(0);
   const [financialCards, setFinancialCards] = useState([
-    { title: 'Net Worth', value: 0, trend: '0%', color: '#D26A68' },
-    { title: 'Assets', value: 0, trend: '0%', color: '#4BC0C0' },
-    { title: 'Liabilities', value: 0, trend: '0%', color: '#FF6384' }
+    { title: 'Net Worth', value: 0, trend: '0%', color: theme.accent },
+    { title: 'Assets', value: 0, trend: '0%', color: theme.neutralCyan },
+    { title: 'Liabilities', value: 0, trend: '0%', color: theme.categoryRed }
   ]);
 
   // Set up refs for the carousel
@@ -194,25 +194,24 @@ const HomeScreen = ({ navigation }) => {
         .reduce((sum, t) => sum + Number(t.amount || 0), 0);
   
       const netWorth = assetsTotal - liabilitiesTotal;
-  
       setFinancialCards([
         {
           title: 'Net Worth',
           value: netWorth,
           trend: '',
-          color: netWorth >= 0 ? '#4BC0C0' : '#FF6384'
+          color: netWorth >= 0 ? theme.neutralCyan : theme.categoryRed
         },
         {
           title: 'Assets',
           value: assetsTotal,
           trend: '',
-          color: '#4BC0C0'
+          color: theme.neutralCyan
         },
         {
           title: 'Liabilities',
           value: liabilitiesTotal,
           trend: '',
-          color: '#FF6384'
+          color: theme.categoryRed
         }
       ]);
     } catch (err) {
@@ -254,16 +253,16 @@ const HomeScreen = ({ navigation }) => {
             activeOpacity={0.7}
             onPress={() => setIncomeModalVisible(true)}
           >
-            <Ionicons name="add-circle" size={20} color="#FFFFFF" />
+            <Ionicons name="add-circle" size={20} color={theme.iconColor} />
             <Text style={styles.netWorthActionText}>Income</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.netWorthActionButton, {backgroundColor: '#FF6384'}]}
+            style={[styles.netWorthActionButton, {backgroundColor: theme.categoryRed}]}
             activeOpacity={0.7}
             onPress={() => setExpenseModalVisible(true)}
           >
-            <Ionicons name="remove-circle" size={20} color="#FFFFFF" />
+            <Ionicons name="remove-circle" size={20} color={theme.iconColor} />
             <Text style={styles.netWorthActionText}>Expense</Text>
           </TouchableOpacity>
         </View>
@@ -486,9 +485,9 @@ const HomeScreen = ({ navigation }) => {
         name: item.category || 'Unknown',
         amount: Number(item.amount) || 0,
         color: colors[index % colors.length],
-        legendFontColor: '#FFFFFF',
+        legendFontColor: theme.textPrimary,
         legendFontSize: 12,
-      })).filter(item => item.amount > 0); // Фильтруем только положительные значения
+      })).filter(item => item.amount > 0); 
 
       console.log('Formatted pie chart data:', formattedData);
       setPieChartData(formattedData);
@@ -662,7 +661,7 @@ const HomeScreen = ({ navigation }) => {
           {/* Monthly Stats Section */}
           <View style={styles.monthlyStatsHeader}>
             <Text style={styles.sectionTitle}>Monthly Statistics</Text>
-            <Ionicons name="stats-chart" size={22} color="#D26A68" />
+            <Ionicons name="stats-chart" size={22} color={theme.accent} />
           </View>
 
           {/* Tiles for Monthly Earned and Monthly Spent */}
@@ -679,7 +678,7 @@ const HomeScreen = ({ navigation }) => {
               <Text style={styles.tileLabel}>Monthly Earned</Text>
               <Text style={[styles.tileAmount, styles.earnedAmount]}>${monthlyEarned.toFixed(2)}</Text>
               <View style={styles.tileIconContainer}>
-                <Ionicons name="trending-up" size={24} color="#4BC0C0" />
+                <Ionicons name="trending-up" size={24} color={theme.neutralCyan} />
               </View>
             </TouchableOpacity>
 
@@ -695,7 +694,7 @@ const HomeScreen = ({ navigation }) => {
               <Text style={styles.tileLabel}>Monthly Spent</Text>
               <Text style={[styles.tileAmount, styles.spentAmount]}>${monthlySpent.toFixed(2)}</Text>
               <View style={styles.tileIconContainer}>
-                <Ionicons name="trending-down" size={24} color="#FF6384" />
+                <Ionicons name="trending-down" size={24} color={theme.categoryRed} />
               </View>
             </TouchableOpacity>
           </View>
@@ -729,9 +728,9 @@ const HomeScreen = ({ navigation }) => {
                         width={Dimensions.get('window').width}
                         height={420}
                         chartConfig={{
-                          backgroundColor: '#1a1a1a',
-                          backgroundGradientFrom: '#1a1a1a',
-                          backgroundGradientTo: '#1a1a1a',
+                          backgroundColor: theme.background,
+                          backgroundGradientFrom: theme.background,
+                          backgroundGradientTo: theme.background,
                           decimalPlaces: 0,
                           color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
                           labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
@@ -741,7 +740,7 @@ const HomeScreen = ({ navigation }) => {
                           propsForDots: {
                             r: '6',
                             strokeWidth: '2',
-                            stroke: '#ffa726',
+                            stroke: theme.accent,
                           },
                         }}
                         accessor="amount"
@@ -795,7 +794,7 @@ const HomeScreen = ({ navigation }) => {
                   onPress={() => navigation.navigate('Transactions', { selectedTransaction: transaction })}
                 >
                   <View style={[styles.expenseIcon, { backgroundColor: transaction.color }]}>
-                    <Ionicons name={transaction.icon} size={20} color="#FFFFFF" />
+                    <Ionicons name={transaction.icon} size={20} color={theme.iconColor} />
                   </View>
 
                   <View style={styles.expenseInfo}>
@@ -806,7 +805,7 @@ const HomeScreen = ({ navigation }) => {
                   <View style={styles.expenseAmount}>
                     <Text style={[
                       styles.expenseValue,
-                      { color: transaction.type === 'income' ? '#4BC0C0' : '#FF6384' }
+                      { color: transaction.type === 'income' ? theme.neutralCyan : theme.categoryRed }
                     ]}>
                       {transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)}
                     </Text>
@@ -853,7 +852,7 @@ const HomeScreen = ({ navigation }) => {
                     setSelectedPaymentMethod(null);
                   }}
                 >
-                  <Ionicons name="close" size={24} color="#ffffff" />
+                  <Ionicons name="close" size={24} color={theme.textPrimary} />
                 </TouchableOpacity>
               </View>
 
@@ -861,7 +860,7 @@ const HomeScreen = ({ navigation }) => {
               <TextInput
                 style={styles.amountInput}
                 placeholder="$0.00"
-                placeholderTextColor="#666666"
+                placeholderTextColor={theme.placeholderTextColor}
                 keyboardType="decimal-pad"
                 value={expenseAmount}
                 onChangeText={setExpenseAmount}
@@ -870,7 +869,7 @@ const HomeScreen = ({ navigation }) => {
               <TextInput
                 style={styles.input}
                 placeholder="Description"
-                placeholderTextColor="#666666"
+                placeholderTextColor={theme.placeholderTextColor}
                 value={expenseDescription}
                 onChangeText={setExpenseDescription}
               />
@@ -887,7 +886,7 @@ const HomeScreen = ({ navigation }) => {
                     onPress={() => setSelectedCategory(category.name)}
                   >
                     <View style={[styles.categoryIcon, { backgroundColor: category.color }]}>
-                      <Ionicons name={category.icon} size={18} color="#FFFFFF" />
+                      <Ionicons name={category.icon} size={18} color={theme.iconColor} />
                     </View>
                     <Text style={styles.categoryText}>{category.name}</Text>
                   </TouchableOpacity>
@@ -904,7 +903,7 @@ const HomeScreen = ({ navigation }) => {
                     navigation.navigate('Categories');
                   }}
                 >
-                  <Ionicons name="add" size={20} color="#D26A68" />
+                  <Ionicons name="add" size={20} color={theme.accent} />
                   <Text style={styles.addCategoryText}>Custom</Text>
                 </TouchableOpacity>
               </View>
@@ -921,7 +920,7 @@ const HomeScreen = ({ navigation }) => {
                     onPress={() => setSelectedPaymentMethod(method.name)}
                   >
                     <View style={[styles.categoryIcon, { backgroundColor: method.color }]}>
-                      <Ionicons name={method.icon} size={18} color="#FFFFFF" />
+                      <Ionicons name={method.icon} size={18} color={theme.iconColor} />
                     </View>
                     <Text style={styles.categoryText}>{method.name}</Text>
                   </TouchableOpacity>
@@ -938,13 +937,13 @@ const HomeScreen = ({ navigation }) => {
                     navigation.navigate('PaymentMethods');
                   }}
                 >
-                  <Ionicons name="add" size={20} color="#D26A68" />
+                  <Ionicons name="add" size={20} color={theme.accent} />
                   <Text style={styles.addCategoryText}>Custom</Text>
                 </TouchableOpacity>
               </View>
 
               <TouchableOpacity
-                style={[styles.addButton, { backgroundColor: '#FF6384' }]}
+                style={[styles.addButton, { backgroundColor: theme.categoryRed }]}
                 onPress={handleAddExpense}
               >
                 <Text style={styles.buttonText}>Add Expense</Text>
@@ -982,7 +981,7 @@ const HomeScreen = ({ navigation }) => {
                     setSelectedIncomeSource(null);
                   }}
                 >
-                  <Ionicons name="close" size={24} color="#ffffff" />
+                  <Ionicons name="close" size={24} color={theme.textPrimary} />
                 </TouchableOpacity>
               </View>
 
@@ -990,7 +989,7 @@ const HomeScreen = ({ navigation }) => {
               <TextInput
                 style={styles.amountInput}
                 placeholder="$0.00"
-                placeholderTextColor="#666666"
+                placeholderTextColor={theme.placeholderTextColor}
                 keyboardType="decimal-pad"
                 value={incomeAmount}
                 onChangeText={setIncomeAmount}
@@ -999,7 +998,7 @@ const HomeScreen = ({ navigation }) => {
               <TextInput
                 style={styles.input}
                 placeholder="Description"
-                placeholderTextColor="#666666"
+                placeholderTextColor={theme.placeholderTextColor}
                 value={incomeDescription}
                 onChangeText={setIncomeDescription}
               />
@@ -1016,7 +1015,7 @@ const HomeScreen = ({ navigation }) => {
                     onPress={() => setSelectedIncomeCategory(category.name)}
                   >
                     <View style={[styles.categoryIcon, { backgroundColor: category.color }]}>
-                      <Ionicons name={category.icon} size={18} color="#FFFFFF" />
+                      <Ionicons name={category.icon} size={18} color={theme.iconColor} />
                     </View>
                     <Text style={styles.categoryText}>{category.name}</Text>
                   </TouchableOpacity>
@@ -1033,7 +1032,7 @@ const HomeScreen = ({ navigation }) => {
                     navigation.navigate('IncomeSource');
                   }}
                 >
-                  <Ionicons name="add" size={20} color="#D26A68" />
+                  <Ionicons name="add" size={20} color={theme.accent} />
                   <Text style={styles.addCategoryText}>Custom</Text>
                 </TouchableOpacity>
               </View>
@@ -1050,7 +1049,7 @@ const HomeScreen = ({ navigation }) => {
                     onPress={() => setSelectedIncomeSource(source.name)}
                   >
                     <View style={[styles.categoryIcon, { backgroundColor: source.color }]}>
-                      <Ionicons name={source.icon} size={18} color="#FFFFFF" />
+                      <Ionicons name={source.icon} size={18} color={theme.iconColor} />
                     </View>
                     <Text style={styles.categoryText}>{source.name}</Text>
                   </TouchableOpacity>
@@ -1067,13 +1066,13 @@ const HomeScreen = ({ navigation }) => {
                     navigation.navigate('IncomeSource');
                   }}
                 >
-                  <Ionicons name="add" size={20} color="#D26A68" />
+                  <Ionicons name="add" size={20} color={theme.accent} />
                   <Text style={styles.addCategoryText}>Custom</Text>
                 </TouchableOpacity>
               </View>
 
               <TouchableOpacity
-                style={[styles.addButton, { backgroundColor: '#4BC0C0' }]}
+                style={[styles.addButton, { backgroundColor: theme.neutralCyan }]}
                 onPress={handleAddIncome}
               >
                 <Text style={styles.buttonText}>Add Income</Text>
@@ -1104,7 +1103,7 @@ const HomeScreen = ({ navigation }) => {
                     if (expenseStatsModalVisible) setExpenseStatsModalVisible(false);
                   }}
                 >
-                  <Ionicons name="close" size={24} color="#ffffff" />
+                  <Ionicons name="close" size={24} color={theme.textPrimary} />
                 </TouchableOpacity>
               </View>
 
@@ -1120,12 +1119,12 @@ const HomeScreen = ({ navigation }) => {
                   <Ionicons
                     name="trending-up"
                     size={18}
-                    color={activeStatsTab === 'income' ? '#4BC0C0' : '#999999'}
+                    color={activeStatsTab === 'income' ? theme.neutralCyan : theme.placeholderTextColor}
                   />
                   <Text style={[
                     styles.statsTabText,
                     activeStatsTab === 'income' && styles.statsTabTextActive,
-                    activeStatsTab === 'income' && {color: '#4BC0C0'}
+                    activeStatsTab === 'income' && {color: theme.neutralCyan}
                   ]}>Income</Text>
                 </TouchableOpacity>
 
@@ -1139,12 +1138,12 @@ const HomeScreen = ({ navigation }) => {
                   <Ionicons
                     name="trending-down"
                     size={18}
-                    color={activeStatsTab === 'expense' ? '#FF6384' : '#999999'}
+                    color={activeStatsTab === 'expense' ? theme.categoryRed : theme.placeholderTextColor}
                   />
                   <Text style={[
                     styles.statsTabText,
                     activeStatsTab === 'expense' && styles.statsTabTextActive,
-                    activeStatsTab === 'expense' && {color: '#FF6384'}
+                    activeStatsTab === 'expense' && {color: theme.categoryRed}
                   ]}>Expenses</Text>
                 </TouchableOpacity>
               </View>
@@ -1158,14 +1157,14 @@ const HomeScreen = ({ navigation }) => {
                       <Text style={styles.statsCardTitle}>Monthly Income</Text>
                     </View>
 
-                    <Text style={[styles.statsAmount, {color: '#4BC0C0'}]}>${monthlyEarned.toFixed(2)}</Text>
+                    <Text style={[styles.statsAmount, {color: theme.neutralCyan}]}>${monthlyEarned.toFixed(2)}</Text>
 
                     <View style={styles.statsDivider} />
 
                     <View style={styles.statsMetricsContainer}>
                       <View style={styles.statsMetricItem}>
                         <View style={styles.statsMetricIcon}>
-                          <Ionicons name="arrow-up" size={16} color="#FFFFFF" style={styles.statsMetricIconBg} />
+                          <Ionicons name="arrow-up" size={16} color={theme.iconColor} style={styles.statsMetricIconBg} />
                         </View>
                         <Text style={styles.statsMetricValue}>+12.5%</Text>
                         <Text style={styles.statsMetricLabel}>vs Last Month</Text>
@@ -1173,7 +1172,7 @@ const HomeScreen = ({ navigation }) => {
 
                       <View style={styles.statsMetricItem}>
                         <View style={styles.statsMetricIcon}>
-                          <Ionicons name="calendar" size={16} color="#FFFFFF" style={[styles.statsMetricIconBg, {backgroundColor: '#9966FF'}]} />
+                          <Ionicons name="calendar" size={16} color={theme.iconColor} style={[styles.statsMetricIconBg, {backgroundColor: theme.neutralPurple}]} />
                         </View>
                         <Text style={styles.statsMetricValue}>${(monthlyEarned / 30).toFixed(2)}</Text>
                         <Text style={styles.statsMetricLabel}>Daily Average</Text>
@@ -1181,7 +1180,7 @@ const HomeScreen = ({ navigation }) => {
 
                       <View style={styles.statsMetricItem}>
                         <View style={styles.statsMetricIcon}>
-                          <Ionicons name="trending-up" size={16} color="#FFFFFF" style={[styles.statsMetricIconBg, {backgroundColor: '#36A2EB'}]} />
+                          <Ionicons name="trending-up" size={16} color={theme.iconColor} style={[styles.statsMetricIconBg, {backgroundColor: theme.neutralBlue}]} />
                         </View>
                         <Text style={styles.statsMetricValue}>$34,200</Text>
                         <Text style={styles.statsMetricLabel}>Yearly Pace</Text>
@@ -1196,7 +1195,7 @@ const HomeScreen = ({ navigation }) => {
                       {/* Simplified trend bars */}
                       {[0.7, 0.8, 0.75, 0.9, 0.85, 1].map((height, index) => (
                         <View key={index} style={styles.trendBarWrapper}>
-                          <View style={[styles.trendBar, { height: 100 * height, backgroundColor: '#4BC0C0' }]} />
+                          <View style={[styles.trendBar, { height: 100 * height, backgroundColor: theme.neutralCyan }]} />
                           <Text style={styles.trendBarLabel}>{['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'][index]}</Text>
                         </View>
                       ))}
@@ -1237,7 +1236,7 @@ const HomeScreen = ({ navigation }) => {
                       {incomeSources.map((source, index) => (
                         <View key={index} style={styles.statsSourceItem}>
                           <View style={[styles.statsSourceIcon, {backgroundColor: source.color}]}>
-                            <Ionicons name={source.icon} size={20} color="#FFFFFF" />
+                            <Ionicons name={source.icon} size={20} color={theme.iconColor} />
                           </View>
                           <View style={styles.statsSourceInfo}>
                             <Text style={styles.statsSourceName}>{source.name}</Text>
@@ -1260,14 +1259,14 @@ const HomeScreen = ({ navigation }) => {
                       <Text style={styles.statsCardTitle}>Monthly Expenses</Text>
                     </View>
 
-                    <Text style={[styles.statsAmount, {color: '#FF6384'}]}>${monthlySpent.toFixed(2)}</Text>
+                    <Text style={[styles.statsAmount, {color: theme.categoryRed}]}>${monthlySpent.toFixed(2)}</Text>
 
                     <View style={styles.statsDivider} />
 
                     <View style={styles.statsMetricsContainer}>
                       <View style={styles.statsMetricItem}>
                         <View style={styles.statsMetricIcon}>
-                          <Ionicons name="arrow-down" size={16} color="#FFFFFF" style={styles.statsMetricIconBg} />
+                          <Ionicons name="arrow-down" size={16} color={theme.iconColor} style={styles.statsMetricIconBg} />
                         </View>
                         <Text style={styles.statsMetricValue}>-8.3%</Text>
                         <Text style={styles.statsMetricLabel}>vs Last Month</Text>
@@ -1275,7 +1274,7 @@ const HomeScreen = ({ navigation }) => {
 
                       <View style={styles.statsMetricItem}>
                         <View style={styles.statsMetricIcon}>
-                          <Ionicons name="calendar" size={16} color="#FFFFFF" style={[styles.statsMetricIconBg, {backgroundColor: '#9966FF'}]} />
+                          <Ionicons name="calendar" size={16} color={theme.iconColor} style={[styles.statsMetricIconBg, {backgroundColor: theme.neutralPurple}]} />
                         </View>
                         <Text style={styles.statsMetricValue}>${(monthlySpent / 30).toFixed(2)}</Text>
                         <Text style={styles.statsMetricLabel}>Daily Average</Text>
@@ -1283,7 +1282,7 @@ const HomeScreen = ({ navigation }) => {
 
                       <View style={styles.statsMetricItem}>
                         <View style={styles.statsMetricIcon}>
-                          <Ionicons name="wallet" size={16} color="#FFFFFF" style={[styles.statsMetricIconBg, {backgroundColor: '#FF9F40'}]} />
+                          <Ionicons name="wallet" size={16} color={theme.iconColor} style={[styles.statsMetricIconBg, {backgroundColor: theme.categoryOrange}]} />
                         </View>
                         <Text style={styles.statsMetricValue}>${(monthlyEarned - monthlySpent).toFixed(2)}</Text>
                         <Text style={styles.statsMetricLabel}>Net Income</Text>
@@ -1300,7 +1299,7 @@ const HomeScreen = ({ navigation }) => {
                         <View style={styles.budgetCircleContainer}>
                           <View style={styles.budgetCircleBackground}></View>
                           <View style={[styles.budgetCircleProgress, {
-                            borderColor: '#FF6384',
+                            borderColor: theme.categoryRed,
                             transform: [{ rotateZ: `${0.71 * Math.PI}rad` }],
                           }]}></View>
                           <View style={styles.budgetCircleContent}>
@@ -1315,7 +1314,7 @@ const HomeScreen = ({ navigation }) => {
                         <View style={styles.budgetCircleContainer}>
                           <View style={styles.budgetCircleBackground}></View>
                           <View style={[styles.budgetCircleProgress, {
-                            borderColor: '#4BC0C0',
+                            borderColor: theme.neutralCyan,
                             transform: [{ rotateZ: `${0.35 * Math.PI}rad` }],
                           }]}></View>
                           <View style={styles.budgetCircleContent}>
@@ -1340,7 +1339,7 @@ const HomeScreen = ({ navigation }) => {
                                 key={index}
                                 d={generatePieChartPath(index, formattedPieChartData, chartRadius, innerRadius)}
                                 fill={item.color}
-                                stroke="#1a1a1a"
+                                stroke={theme.activeTileBackground}
                                 strokeWidth={1}
                               />
                             ))}
@@ -1348,8 +1347,8 @@ const HomeScreen = ({ navigation }) => {
                               cx={centerX}
                               cy={centerY}
                               r={innerRadius}
-                              fill="#1a1a1a"
-                              stroke="#333333"
+                              fill={theme.activeTileBackground}
+                              stroke={theme.activeTileBackground}
                               strokeWidth={2}
                             />
                           </G>
@@ -1389,7 +1388,7 @@ const HomeScreen = ({ navigation }) => {
                       {paymentMethods.map((method, index) => (
                         <View key={index} style={styles.statsSourceItem}>
                           <View style={[styles.statsSourceIcon, {backgroundColor: method.color}]}>
-                            <Ionicons name={method.icon} size={20} color="#FFFFFF" />
+                            <Ionicons name={method.icon} size={20} color={theme.iconColor} />
                           </View>
                           <View style={styles.statsSourceInfo}>
                             <Text style={styles.statsSourceName}>{method.name}</Text>
@@ -1407,7 +1406,7 @@ const HomeScreen = ({ navigation }) => {
         </View>
       </Modal>
 
-      {/* Transaction Details Modal */}
+      {/* Transaction Details Modal delete ???? */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -1419,14 +1418,14 @@ const HomeScreen = ({ navigation }) => {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Transaction Details</Text>
               <TouchableOpacity onPress={() => setTransactionDetailsVisible(false)}>
-                <Ionicons name="close" size={24} color="#FFFFFF" />
+                <Ionicons name="close" size={24} color={theme.textPrimary} />
               </TouchableOpacity>
             </View>
 
             {selectedTransaction && (
               <View style={styles.transactionDetailsContent}>
                 <View style={[styles.transactionIcon, { backgroundColor: selectedTransaction.color }]}>
-                  <Ionicons name={selectedTransaction.icon} size={24} color="#FFFFFF" />
+                  <Ionicons name={selectedTransaction.icon} size={24} color={theme.iconColor} />
                 </View>
 
                 <Text style={styles.transactionDetailsTitle}>{selectedTransaction.title}</Text>
@@ -1454,8 +1453,8 @@ const HomeScreen = ({ navigation }) => {
                 <View style={styles.transactionDetailsRow}>
                   <Text style={styles.transactionDetailsLabel}>Payment Method</Text>
                   <View style={styles.transactionDetailsMethod}>
-                    <View style={[styles.transactionMethodIcon, { backgroundColor: '#FF6384' }]}>
-                      <Ionicons name="card" size={16} color="#FFFFFF" />
+                    <View style={[styles.transactionMethodIcon, { backgroundColor: theme.categoryRed }]}>
+                      <Ionicons name="card" size={16} color={theme.iconColor} />
                     </View>
                     <Text style={styles.transactionDetailsValue}>Credit Card</Text>
                   </View>
@@ -1482,7 +1481,6 @@ const HomeScreen = ({ navigation }) => {
                 <TouchableOpacity
                   style={styles.editTransactionButton}
                   onPress={() => {
-                    // Handle edit action
                     setTransactionDetailsVisible(false);
                   }}
                 >
@@ -1500,7 +1498,7 @@ const HomeScreen = ({ navigation }) => {
 const useThemedStyles = (theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: theme.background,
     paddingTop: Platform.OS === 'android' ? 30 : 0,
   },
   scrollView: {
@@ -1514,7 +1512,7 @@ const useThemedStyles = (theme) => StyleSheet.create({
     padding: 15,
   },
   overviewContainer: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: theme.cardBackground,
     borderRadius: 15,
     padding: 20,
     marginBottom: 12,
@@ -1531,12 +1529,12 @@ const useThemedStyles = (theme) => StyleSheet.create({
   },
   balance: {
     fontSize: 36,
-    color: '#ffffff',
+    color: theme.textPrimary,
     fontWeight: 'bold',
   },
   balanceLabel: {
     fontSize: 14,
-    color: '#666666',
+    color: theme.textSecondary,
     marginTop: 5,
   },
   tilesContainer: {
@@ -1545,7 +1543,7 @@ const useThemedStyles = (theme) => StyleSheet.create({
     marginBottom: 12,
   },
   tile: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: theme.cardBackground,
     borderRadius: 15,
     padding: 12,
     width: '49%',
@@ -1560,14 +1558,14 @@ const useThemedStyles = (theme) => StyleSheet.create({
     shadowOpacity: 0.22,
     shadowRadius: 2.22,
     borderWidth: 1,
-    borderColor: '#333333',
+    borderColor: theme.tileBorderColor,
   },
   tileTouched: {
-    backgroundColor: '#252525',
+    backgroundColor: theme.activeTileBackground,
   },
   tileLabel: {
     fontSize: 14,
-    color: '#666666',
+    color: theme.textSecondary,
     marginBottom: 4,
   },
   tileAmount: {
@@ -1576,10 +1574,10 @@ const useThemedStyles = (theme) => StyleSheet.create({
     marginBottom: 2,
   },
   earnedAmount: {
-    color: '#4BC0C0',
+    color: theme.neutralCyan,
   },
   spentAmount: {
-    color: '#FF6384',
+    color: theme.categoryRed,
   },
   tileIconContainer: {
     position: 'absolute',
@@ -1588,20 +1586,20 @@ const useThemedStyles = (theme) => StyleSheet.create({
     opacity: 0.8,
   },
   activityContainer: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: theme.cardBackground,
     borderRadius: 15,
     padding: 20,
     marginBottom: 15,
   },
   sectionTitle: {
     fontSize: 24,
-    color: '#ffffff',
+    color: theme.textPrimary,
     fontWeight: 'bold',
     marginBottom: 5,
   },
   sectionSubtitle: {
     fontSize: 14,
-    color: '#666666',
+    color: theme.textSecondary,
     marginBottom: 25,
   },
   chartAndLegendWrapper: {
@@ -1616,7 +1614,7 @@ const useThemedStyles = (theme) => StyleSheet.create({
     marginBottom: 20,
   },
   totalSpentBox: {
-    backgroundColor: '#252525',
+    backgroundColor: theme.activeTileBackground,
     borderRadius: 12,
     padding: 15,
     alignItems: 'center',
@@ -1626,12 +1624,12 @@ const useThemedStyles = (theme) => StyleSheet.create({
   totalSpentAmount: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     marginBottom: 5,
   },
   totalSpentLabel: {
     fontSize: 14,
-    color: '#999999',
+    color: theme.textSecondary,
   },
   chartWrapper: {
     alignItems: 'center',
@@ -1653,20 +1651,20 @@ const useThemedStyles = (theme) => StyleSheet.create({
     width: INNER_RADIUS * 1.9,
     height: INNER_RADIUS * 1.9,
     borderRadius: INNER_RADIUS * 0.95,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: theme.cardBackground,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 8,
   },
   chartCenterValue: {
     fontSize: 22,
-    color: '#ffffff',
+    color: theme.textPrimary,
     fontWeight: 'bold',
     textAlign: 'center',
   },
   chartCenterLabel: {
     fontSize: 12,
-    color: '#999999',
+    color: theme.textSecondary,
     marginTop: 4,
     textAlign: 'center',
   },
@@ -1682,7 +1680,7 @@ const useThemedStyles = (theme) => StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     marginBottom: 10,
-    backgroundColor: '#252525',
+    backgroundColor: theme.activeTileBackground,
     borderRadius: 12,
   },
   legendColorDot: {
@@ -1693,17 +1691,17 @@ const useThemedStyles = (theme) => StyleSheet.create({
   },
   legendLabel: {
     fontSize: 16,
-    color: '#ffffff',
+    color: theme.textPrimary,
     flex: 1,
     fontWeight: '500',
   },
   legendValue: {
     fontSize: 16,
-    color: '#ffffff',
+    color: theme.textPrimary,
     fontWeight: '600',
   },
   activeLegendItem: {
-    backgroundColor: '#333333',
+    backgroundColor: theme.activeTileBackground,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
@@ -1712,14 +1710,14 @@ const useThemedStyles = (theme) => StyleSheet.create({
     transform: [{ scale: 1.02 }],
   },
   expenseContainer: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: theme.cardBackground,
     borderRadius: 15,
     padding: 20,
   },
   expenseItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#252525',
+    backgroundColor: theme.activeTileBackground,
     borderRadius: 12,
     padding: 15,
     marginBottom: 10,
@@ -1737,13 +1735,13 @@ const useThemedStyles = (theme) => StyleSheet.create({
   },
   expenseTitle: {
     fontSize: 16,
-    color: '#ffffff',
+    color: theme.textPrimary,
     fontWeight: '500',
     marginBottom: 3,
   },
   expenseCategory: {
     fontSize: 14,
-    color: '#888888',
+    color: theme.textSecondary,
   },
   expenseAmount: {
     alignItems: 'flex-end',
@@ -1755,15 +1753,15 @@ const useThemedStyles = (theme) => StyleSheet.create({
   },
   expenseDate: {
     fontSize: 13,
-    color: '#888888',
+    color: theme.textSecondary,
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: theme.modalOverlay,
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: theme.cardBackground,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
@@ -1777,29 +1775,29 @@ const useThemedStyles = (theme) => StyleSheet.create({
   },
   modalTitle: {
     fontSize: 20,
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontWeight: 'bold',
   },
   amountInput: {
     fontSize: 32,
-    color: '#ffffff',
+    color: theme.textPrimary,
     marginBottom: 20,
     fontWeight: 'bold',
     borderBottomWidth: 1,
-    borderBottomColor: '#333333',
+    borderBottomColor: theme.activeTileBackground,
     paddingBottom: 10,
   },
   input: {
     fontSize: 16,
-    color: '#ffffff',
+    color: theme.textPrimary,
     marginBottom: 20,
-    backgroundColor: '#252525',
+    backgroundColor: theme.activeTileBackground,
     padding: 15,
     borderRadius: 10,
   },
   categoryLabel: {
     fontSize: 16,
-    color: '#ffffff',
+    color: theme.textPrimary,
     fontWeight: '600',
     marginBottom: 15,
   },
@@ -1813,7 +1811,7 @@ const useThemedStyles = (theme) => StyleSheet.create({
     alignItems: 'center',
     borderWidth: 2,
     borderColor: 'transparent',
-    backgroundColor: '#252525',
+    backgroundColor: theme.activeTileBackground,
     borderRadius: 10,
     padding: 12,
     margin: 5,
@@ -1829,14 +1827,14 @@ const useThemedStyles = (theme) => StyleSheet.create({
   },
   categoryText: {
     fontSize: 14,
-    color: '#ffffff',
+    color: theme.textPrimary,
   },
   addCategoryButton: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 2,
     borderColor: 'transparent',
-    backgroundColor: '#252525',
+    backgroundColor: theme.activeTileBackground,
     borderRadius: 10,
     padding: 12,
     margin: 5,
@@ -1844,7 +1842,7 @@ const useThemedStyles = (theme) => StyleSheet.create({
   },
   addCategoryText: {
     fontSize: 14,
-    color: '#D26A68',
+    color: theme.accent,
     marginLeft: 5,
   },
   addButton: {
@@ -1856,7 +1854,7 @@ const useThemedStyles = (theme) => StyleSheet.create({
   },
   buttonText: {
     fontSize: 16,
-    color: '#ffffff',
+    color: theme.textPrimary,
     fontWeight: 'bold',
   },
   iconGrid: {
@@ -1867,7 +1865,7 @@ const useThemedStyles = (theme) => StyleSheet.create({
   iconButton: {
     width: 50,
     height: 50,
-    backgroundColor: '#252525',
+    backgroundColor: theme.activeTileBackground,
     borderWidth: 2,
     borderColor: 'transparent',
     borderRadius: 25,
@@ -1894,7 +1892,7 @@ const useThemedStyles = (theme) => StyleSheet.create({
     marginTop: 10,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#333333',
+    borderTopColor: theme.activeTileBackground,
   },
   tapText: {
     fontSize: 12,
@@ -1910,14 +1908,14 @@ const useThemedStyles = (theme) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#4BC0C0',
+    backgroundColor: theme.neutralCyan,
     borderRadius: 8,
     paddingVertical: 6,
     paddingHorizontal: 12,
     width: '42%',
   },
   netWorthActionText: {
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontSize: 13,
     fontWeight: '600',
     marginLeft: 6,
@@ -1928,14 +1926,14 @@ const useThemedStyles = (theme) => StyleSheet.create({
     marginTop: 10,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#333333',
+    borderTopColor: theme.activeTileBackground,
   },
   statsText: {
     fontSize: 12,
     marginLeft: 5,
   },
   statsSummaryCard: {
-    backgroundColor: '#252525',
+    backgroundColor: theme.activeTileBackground,
     borderRadius: 15,
     padding: 20,
     marginBottom: 18,
@@ -1948,7 +1946,7 @@ const useThemedStyles = (theme) => StyleSheet.create({
   },
   timeFrameSelector: {
     flexDirection: 'row',
-    backgroundColor: '#1A1A1A',
+    backgroundColor: theme.activeTileBackground,
     borderRadius: 20,
     padding: 4,
   },
@@ -1957,30 +1955,30 @@ const useThemedStyles = (theme) => StyleSheet.create({
     paddingVertical: 5,
   },
   timeFrameSelected: {
-    backgroundColor: '#333333',
+    backgroundColor: theme.activeTileBackground,
     borderRadius: 16,
     overflow: 'hidden',
   },
   timeFrameText: {
     fontSize: 12,
-    color: '#999999',
+    color: theme.textSecondary,
   },
   timeFrameTextSelected: {
-    color: '#FFFFFF',
+    color: theme.textPrimary,
   },
   statsCardTitle: {
     fontSize: 16,
-    color: '#999999',
+    color: theme.textSecondary,
     fontWeight: '500',
   },
   statsAmount: {
     fontSize: 36,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: theme.textPrimary,
   },
   statsDivider: {
     height: 1,
-    backgroundColor: '#333333',
+    backgroundColor: theme.activeTileBackground,
     marginTop: 10,
     marginBottom: 15,
     width: '100%',
@@ -2002,7 +2000,7 @@ const useThemedStyles = (theme) => StyleSheet.create({
     justifyContent: 'center',
   },
   statsMetricIconBg: {
-    backgroundColor: '#4BC0C0',
+    backgroundColor: theme.neutralCyan,
     borderRadius: 18,
     padding: 8,
     overflow: 'hidden',
@@ -2010,24 +2008,24 @@ const useThemedStyles = (theme) => StyleSheet.create({
   statsMetricValue: {
     fontSize: 15,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: theme.textPrimary,
     marginBottom: 5,
     textAlign: 'center',
   },
   statsMetricLabel: {
     fontSize: 12,
-    color: '#999999',
+    color: theme.textSecondary,
     textAlign: 'center',
   },
   statsTrendCard: {
-    backgroundColor: '#252525',
+    backgroundColor: theme.activeTileBackground,
     borderRadius: 15,
     padding: 20,
     marginBottom: 18,
   },
   statsSectionTitle: {
     fontSize: 17,
-    color: '#ffffff',
+    color: theme.textPrimary,
     fontWeight: '600',
     marginBottom: 15,
   },
@@ -2043,16 +2041,16 @@ const useThemedStyles = (theme) => StyleSheet.create({
   },
   trendBar: {
     width: '70%',
-    backgroundColor: '#4BC0C0',
+    backgroundColor: theme.neutralCyan,
     borderRadius: 3,
   },
   trendBarLabel: {
     fontSize: 12,
-    color: '#999999',
+    color: theme.textSecondary,
     marginTop: 8,
   },
   statsDetailCard: {
-    backgroundColor: '#252525',
+    backgroundColor: theme.activeTileBackground,
     borderRadius: 15,
     padding: 20,
     marginBottom: 18,
@@ -2078,7 +2076,7 @@ const useThemedStyles = (theme) => StyleSheet.create({
   },
   statsBarPercentage: {
     fontSize: 12,
-    color: '#999999',
+    color: theme.textSecondary,
     marginTop: 2,
   },
   categoryDot: {
@@ -2089,16 +2087,16 @@ const useThemedStyles = (theme) => StyleSheet.create({
   },
   statsBarLabel: {
     fontSize: 14,
-    color: '#ffffff',
+    color: theme.textPrimary,
   },
   statsBarValue: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: theme.textPrimary,
   },
   statsBarBackground: {
     height: 8,
-    backgroundColor: '#333333',
+    backgroundColor: theme.activeTileBackground,
     borderRadius: 4,
     overflow: 'hidden',
   },
@@ -2113,7 +2111,7 @@ const useThemedStyles = (theme) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 15,
-    backgroundColor: '#1A1A1A',
+    backgroundColor: theme.activeTileBackground,
     borderRadius: 12,
     padding: 12,
   },
@@ -2130,21 +2128,21 @@ const useThemedStyles = (theme) => StyleSheet.create({
   },
   statsSourceName: {
     fontSize: 14,
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontWeight: '500',
   },
   statsSourceCount: {
     fontSize: 12,
-    color: '#999999',
+    color: theme.textSecondary,
     marginTop: 2,
   },
   statsSourceAmount: {
     fontSize: 15,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: theme.textPrimary,
   },
   statsBudgetCard: {
-    backgroundColor: '#252525',
+    backgroundColor: theme.activeTileBackground,
     borderRadius: 15,
     padding: 20,
     marginBottom: 18,
@@ -2172,7 +2170,7 @@ const useThemedStyles = (theme) => StyleSheet.create({
     height: '100%',
     borderRadius: 55,
     borderWidth: 8,
-    borderColor: '#333333',
+    borderColor: theme.activeTileBackground,
   },
   budgetCircleProgress: {
     position: 'absolute',
@@ -2191,15 +2189,15 @@ const useThemedStyles = (theme) => StyleSheet.create({
   budgetCirclePercentage: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: theme.textPrimary,
   },
   budgetCircleLabel: {
     fontSize: 12,
-    color: '#999999',
+    color: theme.textSecondary,
   },
   budgetProgressLabel: {
     fontSize: 14,
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontWeight: '500',
   },
   statsPieContainer: {
@@ -2221,27 +2219,27 @@ const useThemedStyles = (theme) => StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#FF6384',
+    backgroundColor: theme.categoryRed,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 15,
   },
   transactionDetailsTitle: {
     fontSize: 24,
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontWeight: 'bold',
     marginTop: 15,
     marginBottom: 5,
   },
   transactionDetailsCategory: {
     fontSize: 16,
-    color: '#888888',
+    color: theme.textSecondary,
     marginBottom: 20,
   },
   transactionDetailsAmount: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#FF6384',
+    color: theme.categoryRed,
     marginBottom: 30,
   },
   transactionDetailsRow: {
@@ -2251,15 +2249,15 @@ const useThemedStyles = (theme) => StyleSheet.create({
     width: '100%',
     paddingVertical: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#333333',
+    borderBottomColor: theme.activeTileBackground,
   },
   transactionDetailsLabel: {
     fontSize: 16,
-    color: '#888888',
+    color: theme.textSecondary,
   },
   transactionDetailsValue: {
     fontSize: 16,
-    color: '#FFFFFF',
+    color: theme.textPrimary,
   },
   transactionDetailsMethod: {
     flexDirection: 'row',
@@ -2284,15 +2282,16 @@ const useThemedStyles = (theme) => StyleSheet.create({
     marginRight: 10,
   },
   editTransactionButton: {
-    backgroundColor: '#D26A68',
+    backgroundColor: theme.accent,
     width: '100%',
     paddingVertical: 15,
     borderRadius: 12,
     alignItems: 'center',
     marginTop: 30,
   },
+  // delete edit ?
   editTransactionButtonText: {
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -2300,7 +2299,7 @@ const useThemedStyles = (theme) => StyleSheet.create({
   statsTabSelector: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    backgroundColor: '#1A1A1A',
+    backgroundColor: theme.activeTileBackground,
     borderRadius: 15,
     padding: 5,
     marginBottom: 20,
@@ -2315,16 +2314,16 @@ const useThemedStyles = (theme) => StyleSheet.create({
     marginHorizontal: 5,
   },
   statsTabActive: {
-    backgroundColor: '#252525',
+    backgroundColor: theme.activeTileBackground,
   },
   statsTabText: {
     fontSize: 15,
     fontWeight: '500',
-    color: '#999999',
+    color: theme.textSecondary,
     marginLeft: 8,
   },
   statsTabTextActive: {
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontWeight: '600',
   },
   paginationDots: {
@@ -2338,11 +2337,11 @@ const useThemedStyles = (theme) => StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#333333',
+    backgroundColor: theme.activeTileBackground,
     marginHorizontal: 4,
   },
   paginationDotActive: {
-    backgroundColor: '#D26A68',
+    backgroundColor: theme.accent,
     width: 8,
     height: 8,
     borderRadius: 4,
@@ -2354,7 +2353,7 @@ const useThemedStyles = (theme) => StyleSheet.create({
     paddingHorizontal: 0,
   },
   overviewContainer: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: theme.activeTileBackground,
     borderRadius: 15,
     padding: 20,
     width: screenWidth - 30, // Full width minus padding
@@ -2368,7 +2367,7 @@ const useThemedStyles = (theme) => StyleSheet.create({
   },
   tileTrend: {
     fontSize: 12,
-    color: '#666666',
+    color: theme.textSecondary,
     marginBottom: 8,
   },
   miniActionButton: {
@@ -2401,7 +2400,7 @@ const useThemedStyles = (theme) => StyleSheet.create({
   },
   swipeableTile: {
     width: 280,
-    backgroundColor: '#252525',
+    backgroundColor: theme.activeTileBackground,
     borderRadius: 12,
     padding: 12,
     marginRight: 10,
@@ -2410,7 +2409,7 @@ const useThemedStyles = (theme) => StyleSheet.create({
     flex: 1,
   },
   tileTitle: {
-    color: '#8E8E93',
+    color: theme.textSecondary,
     fontSize: 14,
     marginBottom: 6,
   },
@@ -2423,7 +2422,7 @@ const useThemedStyles = (theme) => StyleSheet.create({
     marginBottom: 2,
   },
   categoryText: {
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontSize: 13,
   },
   noTransactionsContainer: {
@@ -2432,17 +2431,17 @@ const useThemedStyles = (theme) => StyleSheet.create({
     alignItems: 'center',
   },
   noTransactionsText: {
-    color: '#888888',
+    color: theme.textSecondary,
     fontSize: 16,
   },
   chartTitle: {
     fontSize: 18,
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontWeight: 'bold',
     marginBottom: 10,
   },
   noDataText: {
-    color: '#888888',
+    color: theme.textSecondary,
     fontSize: 16,
     textAlign: 'center',
   },
@@ -2456,7 +2455,7 @@ const useThemedStyles = (theme) => StyleSheet.create({
     alignItems: 'center',
   },
   noExpensesText: {
-    color: '#888888',
+    color: theme.textSecondary,
     fontSize: 16,
   },
   chartWrapper: {
@@ -2470,7 +2469,7 @@ const useThemedStyles = (theme) => StyleSheet.create({
     justifyContent: 'center',
     top: '40%',
     left: '35%',
-    backgroundColor: '#1a1a1a',
+    backgroundColor: theme.activeTileBackground,
     borderRadius: 40,
     padding: 15,
     elevation: 5,
@@ -2482,11 +2481,11 @@ const useThemedStyles = (theme) => StyleSheet.create({
   centerLabelTotal: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: theme.textPrimary,
   },
   centerLabelText: {
     fontSize: 12,
-    color: '#999999',
+    color: theme.textSecondary,
     marginTop: 4,
   },
   chartWithDetailsContainer: {
@@ -2504,29 +2503,29 @@ const useThemedStyles = (theme) => StyleSheet.create({
     justifyContent: 'center',
   },
   totalContainer: {
-    backgroundColor: '#252525',
+    backgroundColor: theme.activeTileBackground,
     padding: 15,
     borderRadius: 12,
     marginBottom: 10,
   },
   totalLabel: {
     fontSize: 14,
-    color: '#999999',
+    color: theme.textSecondary,
     marginBottom: 5,
   },
   totalAmount: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: theme.textPrimary,
   },
   selectedCategoryContainer: {
-    backgroundColor: '#252525',
+    backgroundColor: theme.activeTileBackground,
     padding: 15,
     borderRadius: 12,
   },
   selectedCategoryLabel: {
     fontSize: 12,
-    color: '#999999',
+    color: theme.textSecondary,
     marginBottom: 5,
   },
   selectedCategoryName: {
@@ -2537,30 +2536,30 @@ const useThemedStyles = (theme) => StyleSheet.create({
   selectedCategoryAmount: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     marginBottom: 3,
   },
   selectedCategoryPercentage: {
     fontSize: 14,
-    color: '#999999',
+    color: theme.textSecondary,
   },
   totalInfoContainer: {
     width: '100%',
     alignItems: 'center',
     marginBottom: 20,
-    backgroundColor: '#252525',
+    backgroundColor: theme.activeTileBackground,
     padding: 15,
     borderRadius: 12,
   },
   totalSpentTitle: {
     fontSize: 16,
-    color: '#999999',
+    color: theme.textSecondary,
     marginBottom: 8,
   },
   totalSpentAmount: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: theme.textPrimary,
   },
   chartWrapper: {
     alignItems: 'center',
@@ -2570,7 +2569,7 @@ const useThemedStyles = (theme) => StyleSheet.create({
   },
   selectedCategoryInfo: {
     width: '100%',
-    backgroundColor: '#252525',
+    backgroundColor: theme.activeTileBackground,
     borderRadius: 12,
     marginTop: 10,
   },
@@ -2586,12 +2585,12 @@ const useThemedStyles = (theme) => StyleSheet.create({
   selectedCategoryAmount: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     marginBottom: 3,
   },
   selectedCategoryPercentage: {
     fontSize: 14,
-    color: '#999999',
+    color: theme.textSecondary,
   },
 });
 
