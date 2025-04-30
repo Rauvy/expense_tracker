@@ -469,7 +469,6 @@ const SettingsScreen = () => {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Data & Privacy</Text>
             {renderMenuItem('shield-checkmark-outline', 'Security', 'Manage your security settings', () => navigation.navigate('SecuritySettings'))}
-            {renderMenuItem('card-outline', 'Payment Methods', 'Manage your payment methods', () => navigation.navigate('PaymentMethods'))}
             {renderMenuItem('cloud-download-outline', 'Backup', 'Backup your data', () => navigation.navigate('BackUpSettings'))}
             {renderMenuItem('trash-outline', 'Delete Account', 'Permanently delete your account', () => setDeleteAccountModalVisible(true))}
           </View>
