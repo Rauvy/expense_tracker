@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Svg, { Path, Circle, Line, Text as SvgText, G, Rect } from 'react-native-svg';
 import { getTransactions, getSmartTip } from '../services/transactionsService';
 import { useFocusEffect } from '@react-navigation/native';
+import { useTheme } from '../theme/ThemeProvider';
 
 const { width } = Dimensions.get('window');
 
@@ -222,6 +223,7 @@ const incomeStatisticsData = {
 
 // Simple Line Chart Component
 const SimpleLineChart = ({ data, labels, width, height }) => {
+  const { theme } = useTheme();
   const [activePointIndex, setActivePointIndex] = useState(null);
 
   // Validate input data
@@ -347,13 +349,13 @@ const SimpleLineChart = ({ data, labels, width, height }) => {
                   y1={y}
                   x2={width - paddingRight}
                   y2={y}
-                  stroke="rgba(255, 255, 255, 0.1)"
+                  stroke={theme.chartlineStats}
                   strokeWidth="1"
                 />
                 <SvgText
                   x={paddingLeft - 10}
                   y={y + 4}
-                  fill="#666666"
+                  fill={theme.textSecondary}
                   fontSize="10"
                   textAnchor="end"
                 >
@@ -369,7 +371,7 @@ const SimpleLineChart = ({ data, labels, width, height }) => {
               key={`label-${i}`}
               x={getX(i)}
               y={height - paddingBottom + 20}
-              fill="#666666"
+              fill={theme.textSecondary}
               fontSize="10"
               textAnchor="middle"
             >
@@ -380,7 +382,7 @@ const SimpleLineChart = ({ data, labels, width, height }) => {
           {/* Line path */}
           <Path
             d={path}
-            stroke="#D26A68"
+            stroke={theme.accent}
             strokeWidth="2"
             fill="none"
           />
@@ -394,8 +396,8 @@ const SimpleLineChart = ({ data, labels, width, height }) => {
                 cx={getX(index)}
                 cy={getY(value)}
                 r={activePointIndex === index ? 6 : 4}
-                fill={activePointIndex === index ? "#fff" : "#D26A68"}
-                stroke="#D26A68"
+                fill={activePointIndex === index ? theme.textPrimary : theme.accent}
+                stroke={theme.accent}
                 strokeWidth="2"
               />
             );
@@ -408,14 +410,14 @@ const SimpleLineChart = ({ data, labels, width, height }) => {
                 cx={getX(activePointIndex)}
                 cy={getY(data[activePointIndex])}
                 r="6"
-                fill="#fff"
-                stroke="#D26A68"
+                fill={theme.textPrimary}
+                stroke={theme.accent}
                 strokeWidth="2"
               />
               <SvgText
                 x={getX(activePointIndex) - 25}
                 y={getY(data[activePointIndex]) - 12}
-                fill="#fff"
+                fill={theme.textPrimary}
                 fontSize="9"
                 fontWeight="bold"
                 textAnchor="start"
@@ -425,7 +427,7 @@ const SimpleLineChart = ({ data, labels, width, height }) => {
               <SvgText
                 x={getX(activePointIndex) - 15}
                 y={getY(data[activePointIndex]) - 12}
-                fill="#fff"
+                fill={theme.textPrimary}
                 fontSize="9"
                 fontWeight="bold"
                 textAnchor="start"
@@ -443,7 +445,7 @@ const SimpleLineChart = ({ data, labels, width, height }) => {
           <SvgText
             x={width / 2}
             y={height / 2}
-            fill="#fff"
+            fill={theme.textPrimary}
             fontSize="12"
             textAnchor="middle"
           >
@@ -456,7 +458,7 @@ const SimpleLineChart = ({ data, labels, width, height }) => {
 
   return (
     <View
-      style={{ width, height, backgroundColor: '#1a1a1a', borderRadius: 12 }}
+      style={{ width, height, backgroundColor: theme.background, borderRadius: 12 }}
       {...panResponder.panHandlers}
     >
       {renderChart()}
@@ -464,165 +466,11 @@ const SimpleLineChart = ({ data, labels, width, height }) => {
   );
 };
 
-// Simple Bar Chart Component
-const SimpleBarChart = ({ data, labels, width, height, colors }) => {
-  const [activeBarIndex, setActiveBarIndex] = useState(null);
 
-  // Padding values - increase significantly to make room for labels
-  const paddingLeft = 80;
-  const paddingRight = 20;
-  const paddingTop = 40;
-  const paddingBottom = 40;
-
-  // Calculate available space for the chart
-  const chartWidth = width - paddingLeft - paddingRight;
-  const chartHeight = height - paddingTop - paddingBottom;
-
-  // Find max value in data
-  const maxValue = Math.max(...data);
-
-  // Bar width calculation
-  const barWidth = chartWidth / data.length / 2;
-  const barSpacing = chartWidth / data.length;
-
-  // Handle bar press
-  const handleBarPress = (index) => {
-    setActiveBarIndex(prev => prev === index ? null : index);
-  };
-
-  // Generate Y-axis labels with proper formatting
-  const yAxisLabels = [];
-  const numYLabels = 5;
-  for (let i = 0; i < numYLabels; i++) {
-    const value = Math.round((maxValue / (numYLabels - 1)) * i);
-    yAxisLabels.push(value);
-  }
-
-  // Function to get Y coordinate based on value
-  const getY = (value) => paddingTop + chartHeight - (value / maxValue) * chartHeight;
-
-  // Format value with appropriate suffix
-  const formatValue = (value) => {
-    if (value >= 1000000) {
-      return (value / 1000000).toFixed(1) + 'M';
-    } else if (value >= 1000) {
-      return (value / 1000).toFixed(1) + 'K';
-    }
-    return value.toString();
-  };
-
-  return (
-    <View style={{ width, height, backgroundColor: '#1a1a1a', borderRadius: 12 }}>
-      <Svg width={width} height={height}>
-        {/* Y-axis line */}
-        <Line
-          x1={paddingLeft}
-          y1={paddingTop}
-          x2={paddingLeft}
-          y2={paddingTop + chartHeight}
-          stroke="#333"
-          strokeWidth="1"
-        />
-
-        {/* X-axis line */}
-        <Line
-          x1={paddingLeft}
-          y1={paddingTop + chartHeight}
-          x2={paddingLeft + chartWidth}
-          y2={paddingTop + chartHeight}
-          stroke="#333"
-          strokeWidth="1"
-        />
-
-        {/* Grid lines */}
-        {yAxisLabels.map((value, i) => (
-          <Line
-            key={`grid-${i}`}
-            x1={paddingLeft}
-            y1={getY(value)}
-            x2={paddingLeft + chartWidth}
-            y2={getY(value)}
-            stroke="rgba(255, 255, 255, 0.1)"
-            strokeWidth="1"
-          />
-        ))}
-
-        {/* Y-axis title showing currency */}
-        <SvgText
-          x={paddingLeft - 40}
-          y={paddingTop - 10}
-          fill="#999999"
-          fontSize="12"
-          textAnchor="center"
-        >
-          Amount ($)
-        </SvgText>
-
-        {/* Y-axis labels */}
-        {yAxisLabels.map((value, i) => (
-          <SvgText
-            key={`y-label-${i}`}
-            x={paddingLeft - 10}
-            y={getY(value) + 4}
-            fill="#666666"
-            fontSize="10"
-            textAnchor="end"
-          >
-            {formatValue(value)}
-          </SvgText>
-        ))}
-
-        {/* Bars */}
-        {data.map((value, index) => {
-          const barHeight = (value / maxValue) * chartHeight;
-          const barX = paddingLeft + index * barSpacing + barSpacing/4;
-          const barY = paddingTop + chartHeight - barHeight;
-          const color = colors[index % colors.length];
-          const isActive = activeBarIndex === index;
-
-          return (
-            <G key={`bar-${index}`} onPress={() => handleBarPress(index)}>
-              <Rect
-                x={barX}
-                y={barY}
-                width={barWidth}
-                height={barHeight}
-                fill={color}
-                fillOpacity={isActive ? 1 : 0.7}
-                rx={5}
-              />
-
-              <SvgText
-                x={barX + barWidth/2}
-                y={barY - 5}
-                fill="#fff"
-                fontSize={isActive ? "12" : "10"}
-                fontWeight={isActive ? "bold" : "normal"}
-                textAnchor="middle"
-              >
-                ${formatValue(value)}
-              </SvgText>
-
-              <SvgText
-                x={barX + barWidth/2}
-                y={paddingTop + chartHeight + 20}
-                fill={isActive ? "#fff" : "#666"}
-                fontSize="10"
-                fontWeight={isActive ? "bold" : "normal"}
-                textAnchor="middle"
-              >
-                {labels[index].length > 5 ? labels[index].substring(0, 5) + '...' : labels[index]}
-              </SvgText>
-            </G>
-          );
-        })}
-      </Svg>
-    </View>
-  );
-};
 
 // New Component for Month-to-Month Comparison - COMPLETELY OVERHAULED DESIGN
 const MonthComparisonChart = ({ data, width, height, isIncome = false }) => {
+  const { theme } = useTheme();
   // Safely destructure with defaults
   const {
     currentMonth = '',
@@ -642,25 +490,25 @@ const MonthComparisonChart = ({ data, width, height, isIncome = false }) => {
   };
 
   const isOverallImprovement = isIncome ? overallGrowth > 0 : overallGrowth < 0; // For income, positive growth is improvement
-  const improvementColor = isIncome ? '#4BC0C0' : '#FF6384';
-  const declineColor = isIncome ? '#FF6384' : '#4BC0C0';
+  const improvementColor = isIncome ? theme.neutralCyan : theme.categoryRed;
+  const declineColor = isIncome ? theme.categoryRed : theme.neutralCyan;
 
   return (
-    <View style={{ width: '100%', backgroundColor: '#111', borderRadius: 12, padding: 0, overflow: 'hidden' }}>
+    <View style={{ width: '100%', backgroundColor: theme.cardBackground, borderRadius: 12, padding: 0, overflow: 'hidden' }}>
       {/* Summary header */}
       <View style={{
-        backgroundColor: '#181818',
+        backgroundColor: theme.cardBackground,
         padding: 20,
         marginBottom: 15,
         borderBottomWidth: 1,
         borderBottomColor: '#282828'
       }}>
         <View style={{ marginBottom: 15 }}>
-          <Text style={{ color: '#999', fontSize: 13, marginBottom: 8 }}>Overall Change</Text>
+          <Text style={{ color: theme.textSecondary, fontSize: 13, marginBottom: 8 }}>Overall Change</Text>
           <View style={{
             backgroundColor: isOverallImprovement
-              ? (isIncome ? 'rgba(75, 192, 192, 0.1)' : 'rgba(255, 99, 132, 0.1)')
-              : (isIncome ? 'rgba(255, 99, 132, 0.1)' : 'rgba(75, 192, 192, 0.1)'),
+              ? (isIncome ? theme.cyan01 : theme.red01)
+              : (isIncome ? theme.red01 : theme.cyan01),
             paddingHorizontal: 15,
             paddingVertical: 10,
             borderRadius: 8,
@@ -680,15 +528,15 @@ const MonthComparisonChart = ({ data, width, height, isIncome = false }) => {
 
         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
           <View style={{ width: '46%' }}>
-            <Text style={{ color: '#999', fontSize: 13, marginBottom: 8 }}>Current</Text>
-            <Text style={{ color: '#4BC0C0', fontSize: 24, fontWeight: 'bold' }}>
+            <Text style={{ color: theme.textSecondary, fontSize: 13, marginBottom: 8 }}>Current</Text>
+            <Text style={{ color: theme.neutralCyan, fontSize: 24, fontWeight: 'bold' }}>
               ${currentTotal.toFixed(0)}
             </Text>
           </View>
 
           <View style={{ width: '46%' }}>
-            <Text style={{ color: '#999', fontSize: 13, marginBottom: 8 }}>Previous</Text>
-            <Text style={{ color: '#FF6384', fontSize: 24, fontWeight: 'bold' }}>
+            <Text style={{ color: theme.textSecondary, fontSize: 13, marginBottom: 8 }}>Previous</Text>
+            <Text style={{ color: theme.categoryRed, fontSize: 24, fontWeight: 'bold' }}>
               ${previousTotal.toFixed(0)}
             </Text>
           </View>
@@ -713,7 +561,7 @@ const MonthComparisonChart = ({ data, width, height, isIncome = false }) => {
 
           return (
             <View key={index} style={{
-              backgroundColor: '#181818',
+              backgroundColor: theme.cardBackground,
               borderRadius: 10,
               padding: 15,
               marginBottom: 12,
@@ -721,7 +569,7 @@ const MonthComparisonChart = ({ data, width, height, isIncome = false }) => {
               borderLeftColor: changeColor,
             }}>
               <Text style={{
-                color: '#fff',
+                color: theme.textPrimary,
                 fontSize: 16,
                 fontWeight: 'bold',
                 marginBottom: 12
@@ -751,8 +599,8 @@ const MonthComparisonChart = ({ data, width, height, isIncome = false }) => {
 
               <View style={{
                 backgroundColor: isImprovement
-                  ? (isIncome ? 'rgba(75, 192, 192, 0.1)' : 'rgba(255, 99, 132, 0.1)')
-                  : (isIncome ? 'rgba(255, 99, 132, 0.1)' : 'rgba(75, 192, 192, 0.1)'),
+                  ? (isIncome ? theme.cyan01 : theme.red01)
+                  : (isIncome ? theme.red01 : theme.cyan01),
                 padding: 10,
                 borderRadius: 6,
               }}>
@@ -812,6 +660,10 @@ const getPercentage = (value, total, defaultValue = 0) => {
 };
 
 const StatisticsScreen = ({ navigation }) => {
+
+  const { theme } = useTheme();
+  const styles = useThemedStyles(theme);
+
   const [timeframe, setTimeframe] = useState('weekly');
   const [statType, setStatType] = useState('expense');
   const [transactions, setTransactions] = useState([]);
@@ -997,7 +849,7 @@ const StatisticsScreen = ({ navigation }) => {
         .slice(0, 3); // Get top 3 categories
 
       // Add colors and icons to categories
-      const categoryColors = ['#FF6384', '#4BC0C0', '#FFCE56'];
+      const categoryColors = [theme.categoryRed, theme.neutralCyan, theme.tipsBorder];
       const categoryIcons = ['fast-food', 'car', 'cart'];
 
       const categoriesWithStyle = sortedCategories.map((cat, index) => ({
@@ -1029,7 +881,7 @@ const StatisticsScreen = ({ navigation }) => {
         .slice(0, 3); // Get top 3 methods
 
       // Add colors and icons to payment methods
-      const methodColors = ['#FF6384', '#4BC0C0', '#FFCE56'];
+      const methodColors = [theme.categoryRed, theme.neutralCyan, theme.tipsBorder];
       const methodIcons = ['card', 'cash', 'phone-portrait'];
 
       const methodsWithStyle = sortedMethods.map((method, index) => ({
@@ -1171,7 +1023,7 @@ const StatisticsScreen = ({ navigation }) => {
     ? statisticsData[timeframe]
     : incomeStatisticsData[timeframe];
 
-  // Chart colors
+  // Chart colors // where does this use ?????
   const barChartColors = ['#FF6384', '#4BC0C0', '#FFCE56', '#36A2EB', '#9966FF', '#FF9F40'];
 
   const renderTimeframeButton = (label, value) => (
@@ -1199,15 +1051,15 @@ const StatisticsScreen = ({ navigation }) => {
         styles.statTypeButton,
         statType === value && styles.activeStatTypeButton,
         { backgroundColor: statType === value
-          ? value === 'expense' ? '#FF6384' : '#4BC0C0'
-          : '#252525' }
+          ? value === 'expense' ? theme.categoryRed : theme.neutralCyan
+          : theme.cardBackground }
       ]}
       onPress={() => setStatType(value)}
     >
       <Ionicons
         name={value === 'expense' ? 'trending-down' : 'trending-up'}
         size={18}
-        color="#FFFFFF"
+        color={theme.textPrimary}
       />
       <Text style={styles.statTypeText}>{label}</Text>
     </TouchableOpacity>
@@ -1237,7 +1089,7 @@ const StatisticsScreen = ({ navigation }) => {
   // Helper function to render a section loading indicator
   const renderSectionLoader = useCallback(() => (
     <View style={styles.sectionLoadingContainer}>
-      <ActivityIndicator size="small" color="#D26A68" />
+      <ActivityIndicator size="small" color={theme.accent} />
     </View>
   ), []);
 
@@ -1246,7 +1098,7 @@ const StatisticsScreen = ({ navigation }) => {
       <SafeAreaView style={styles.container} edges={['top']}>
         {isLoading && transactions.length === 0 ? (
           <View style={styles.fullScreenLoading}>
-            <ActivityIndicator size="large" color="#D26A68" />
+            <ActivityIndicator size="large" color={theme.accent} />
             <Text style={styles.loadingText}>Loading statistics...</Text>
           </View>
         ) : (
@@ -1258,9 +1110,9 @@ const StatisticsScreen = ({ navigation }) => {
               <RefreshControl
                 refreshing={refreshing}
                 onRefresh={onRefresh}
-                tintColor="#D26A68"
-                colors={["#D26A68"]}
-                progressBackgroundColor="#1a1a1a"
+                tintColor={theme.accent}
+                colors={[theme.accent]}
+                progressBackgroundColor={theme.cardBackground}
               />
             }
           >
@@ -1301,7 +1153,7 @@ const StatisticsScreen = ({ navigation }) => {
                           <Ionicons
                             name="stats-chart"
                             size={24}
-                            color={statType === 'expense' ? '#FF6384' : '#4BC0C0'}
+                            color={statType === 'expense' ? theme.categoryRed : theme.neutralCyan}
                           />
                         </View>
                         <Text style={styles.cardLabel}>
@@ -1309,7 +1161,7 @@ const StatisticsScreen = ({ navigation }) => {
                         </Text>
                         <Text style={[
                           styles.totalAmount,
-                          {color: statType === 'expense' ? '#FF6384' : '#4BC0C0'}
+                          {color: statType === 'expense' ? theme.categoryRed : theme.neutralCyan}
                         ]}>
                           ${totalAmount.toFixed(2)}
                         </Text>
@@ -1323,8 +1175,8 @@ const StatisticsScreen = ({ navigation }) => {
                             styles.improvementText,
                             {
                               color: statType === 'expense'
-                                ? (data.improvementPercentage > 0 ? '#4BC0C0' : '#FF6384')
-                                : (data.growthPercentage > 0 ? '#4BC0C0' : '#FF6384')
+                                ? (data.improvementPercentage > 0 ? theme.neutralCyan : theme.categoryRed)
+                                : (data.growthPercentage > 0 ? theme.neutralCyan : theme.categoryRed)
                             }
                           ]}>
                             {statType === 'expense'
@@ -1354,7 +1206,7 @@ const StatisticsScreen = ({ navigation }) => {
                           <View style={styles.legendItem}>
                             <View style={[
                               styles.legendDot,
-                              { backgroundColor: statType === 'expense' ? '#D26A68' : '#4BC0C0' }
+                              { backgroundColor: statType === 'expense' ? theme.categoryRed : theme.neutralCyan }
                             ]} />
                             <Text style={styles.legendText}>
                               {statType === 'expense'
@@ -1404,7 +1256,7 @@ const StatisticsScreen = ({ navigation }) => {
                         {topCategories.map((category, index) => (
                           <View key={index} style={styles.categoryItem}>
                             <View style={[styles.categoryIcon, { backgroundColor: category.color }]}>
-                              <Ionicons name={getCategoryIcon(category.name)} size={20} color="#FFFFFF" />
+                              <Ionicons name={getCategoryIcon(category.name)} size={20} color={theme.iconColor} />
                             </View>
 
                             <View style={styles.categoryInfo}>
@@ -1449,7 +1301,7 @@ const StatisticsScreen = ({ navigation }) => {
                         {paymentMethods.map((method, index) => (
                           <View key={index} style={styles.categoryItem}>
                             <View style={[styles.categoryIcon, { backgroundColor: method.color }]}>
-                              <Ionicons name={getPaymentMethodIcon(method.name)} size={20} color="#FFFFFF" />
+                              <Ionicons name={getPaymentMethodIcon(method.name)} size={20} color={theme.iconColor} />
                             </View>
 
                             <View style={styles.categoryInfo}>
@@ -1505,15 +1357,15 @@ const StatisticsScreen = ({ navigation }) => {
                   {/* Tips Card */}
                   <View style={styles.tipsCard}>
                     <View style={styles.tipsHeader}>
-                      <Ionicons name="bulb" size={24} color="#FFCE56" />
+                      <Ionicons name="bulb" size={24} color={theme.tipsBorder} />
                       <Text style={styles.tipsTitle}>
                         {statType === 'expense' ? 'Smart Saving Tip' : 'Income Growth Tip'}
                       </Text>
                     </View>
                     {isLoading ? (
-                      <ActivityIndicator size="small" color="#FFCE56" />
+                      <ActivityIndicator size="small" color={theme.tipsBorder} />
                     ) : error ? (
-                      <Text style={[styles.tipsText, { color: '#FF6384' }]}>
+                      <Text style={[styles.tipsText, { color: theme.error }]}>
                         {error}
                       </Text>
                     ) : (
@@ -1532,14 +1384,14 @@ const StatisticsScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const useThemedStyles = (theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: theme.background,
   },
   content: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: theme.background,
   },
   contentContainer: {
     paddingBottom: 30,
@@ -1557,21 +1409,21 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     marginHorizontal: 5,
     borderRadius: 20,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: theme.cardBackground,
   },
   activeTimeframeButton: {
-    backgroundColor: '#D26A68',
+    backgroundColor: theme.accent,
   },
   timeframeText: {
-    color: '#888888',
+    color: theme.textSecondary,
     fontSize: 14,
     fontWeight: '500',
   },
   activeTimeframeText: {
-    color: '#ffffff',
+    color: theme.iconColor,
   },
   card: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: theme.cardBackground,
     borderRadius: 15,
     padding: 20,
     marginBottom: 15,
@@ -1588,17 +1440,17 @@ const styles = StyleSheet.create({
   },
   cardLabel: {
     fontSize: 14,
-    color: '#666666',
+    color: theme.textSecondary,
     marginBottom: 10,
   },
   totalAmount: {
     fontSize: 36,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: theme.iconColor,
   },
   totalLabel: {
     fontSize: 14,
-    color: '#666666',
+    color: theme.textSecondary,
     marginTop: 5,
   },
   improvementContainer: {
@@ -1606,14 +1458,14 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     paddingHorizontal: 10,
     borderRadius: 8,
-    backgroundColor: 'rgba(26, 26, 26, 0.8)',
+    backgroundColor: theme.cardBackground,
   },
   improvementText: {
     fontSize: 12,
     fontWeight: '600',
   },
   sectionCard: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: theme.cardBackground,
     borderRadius: 15,
     padding: 12,
     marginBottom: 15,
@@ -1623,13 +1475,13 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    color: '#ffffff',
+    color: theme.textPrimary,
     fontWeight: '600',
     marginBottom: 5,
   },
   sectionSubtitle: {
     fontSize: 14,
-    color: '#666666',
+    color: theme.textSecondary,
     marginBottom: 5,
   },
   chartLegend: {
@@ -1650,7 +1502,7 @@ const styles = StyleSheet.create({
   },
   legendText: {
     fontSize: 12,
-    color: '#ffffff',
+    color: theme.textPrimary,
   },
   chartContainer: {
     alignItems: 'center',
@@ -1662,7 +1514,7 @@ const styles = StyleSheet.create({
   categoryItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#252525',
+    backgroundColor: theme.cardBackground,
     borderRadius: 12,
     padding: 15,
     marginBottom: 8,
@@ -1686,12 +1538,12 @@ const styles = StyleSheet.create({
   },
   categoryName: {
     fontSize: 16,
-    color: '#ffffff',
+    color: theme.textPrimary,
     fontWeight: '500',
   },
   categoryAmount: {
     fontSize: 16,
-    color: '#ffffff',
+    color: theme.textPrimary,
     fontWeight: '600',
   },
   progressBarContainer: {
@@ -1706,15 +1558,15 @@ const styles = StyleSheet.create({
   },
   categoryPercentage: {
     fontSize: 12,
-    color: '#666666',
+    color: theme.textSecondary,
   },
   tipsCard: {
-    backgroundColor: '#252525',
+    backgroundColor: theme.cardBackground,
     borderRadius: 15,
     padding: 20,
     marginBottom: 15,
     borderLeftWidth: 4,
-    borderLeftColor: '#FFCE56',
+    borderLeftColor: theme.tipsBorder,
   },
   tipsHeader: {
     flexDirection: 'row',
@@ -1723,13 +1575,13 @@ const styles = StyleSheet.create({
   },
   tipsTitle: {
     fontSize: 16,
-    color: '#FFCE56',
+    color: theme.tipsBorder,
     fontWeight: '600',
     marginLeft: 10,
   },
   tipsText: {
     fontSize: 14,
-    color: '#ffffff',
+    color: theme.textPrimary,
     lineHeight: 20,
   },
   statTypeSelector: {
@@ -1737,7 +1589,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 15,
     borderRadius: 12,
-    backgroundColor: '#1A1A1A',
+    backgroundColor: theme.cardBackground,
     padding: 4,
   },
   statTypeButton: {
@@ -1760,7 +1612,7 @@ const styles = StyleSheet.create({
     shadowRadius: 1.41,
   },
   statTypeText: {
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontSize: 15,
     fontWeight: '600',
     marginLeft: 8,
@@ -1771,7 +1623,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    color: '#ffffff',
+    color: theme.textPrimary,
     fontSize: 16,
     fontWeight: 'bold',
     marginTop: 10,
@@ -1782,7 +1634,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   errorText: {
-    color: '#FF6384',
+    color: theme.error,
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 20,
@@ -1790,10 +1642,10 @@ const styles = StyleSheet.create({
   retryButton: {
     padding: 15,
     borderRadius: 10,
-    backgroundColor: '#FF6384',
+    backgroundColor: theme.error,
   },
   retryButtonText: {
-    color: '#ffffff',
+    color: theme.textPrimary,
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -1801,7 +1653,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#121212',
+    backgroundColor: theme.background,
   },
   sectionLoadingContainer: {
     padding: 30,

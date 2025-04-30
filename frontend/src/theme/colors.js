@@ -40,6 +40,10 @@ export const darkTheme = {
     dashedBorderColor: "#bdc3c7",
     lightGrey: "#bdc3c7",
     chartColor: "rgba(210, 106, 104, 1)",
+    tipsBorder: "#FFCE56",
+    cyan01: "rgba(75, 192, 192, 0.1)",
+    red01: "rgba(255, 99, 132, 0.1)",
+    chartlineStats: "rgba(255, 255, 255, 0.1)",
 };
 
 export const lightTheme = {
@@ -84,4 +88,8 @@ export const lightTheme = {
     dashedBorderColor: "#999999",
     lightGrey: "#999999",
     chartColor: "rgba(210, 106, 104, 1)",
+    tipsBorder: "#FFCE56",
+    cyan01: "rgba(75, 192, 192, 0.1)",
+    red01: "rgba(255, 99, 132, 0.1)",
+    chartlineStats: "rgba(0, 0, 0, 0.1)",
 };
