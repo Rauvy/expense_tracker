@@ -501,7 +501,7 @@ const MonthComparisonChart = ({ data, width, height, isIncome = false }) => {
         padding: 20,
         marginBottom: 15,
         borderBottomWidth: 1,
-        borderBottomColor: '#282828'
+        borderBottomColor: theme.modalBorder
       }}>
         <View style={{ marginBottom: 15 }}>
           <Text style={{ color: theme.textSecondary, fontSize: 13, marginBottom: 8 }}>Overall Change</Text>
