@@ -18,10 +18,13 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
+import { useTheme } from '../theme/ThemeProvider';
 
 const ProfileSettings = () => {
   const navigation = useNavigation();
-  
+  const { theme } = useTheme();
+  const styles = useThemedStyles(theme);
+
   // User profile states
   const [name, setName] = useState('John Doe');
   const [email, setEmail] = useState('john.doe@example.com');
@@ -185,7 +188,7 @@ const ProfileSettings = () => {
               onPress={() => navigation.goBack()}
               activeOpacity={0.7}
             >
-              <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
+              <Ionicons name="chevron-back" size={24} color={theme.textPrimary} />
             </TouchableOpacity>
             
             <Text style={styles.screenTitle}>Profile Settings</Text>
@@ -259,7 +262,7 @@ const ProfileSettings = () => {
               onPress={() => setChangePasswordVisible(true)}
             >
               <View style={styles.securityOptionIcon}>
-                <Ionicons name="lock-closed" size={22} color="#FFFFFF" />
+                <Ionicons name="lock-closed" size={22} color={theme.textPrimary} />
               </View>
               <View style={styles.securityOptionInfo}>
                 <Text style={styles.securityOptionTitle}>Change Password</Text>
@@ -293,7 +296,7 @@ const ProfileSettings = () => {
                   setConfirmPassword('');
                 }}
               >
-                <Ionicons name="close" size={24} color="#FFFFFF" />
+                <Ionicons name="close" size={24} color={theme.textPrimary} />
               </TouchableOpacity>
             </View>
             
@@ -395,14 +398,14 @@ const ProfileSettings = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const useThemedStyles = (theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: theme.background,
   },
   content: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: theme.background,
   },
   contentContainer: {
     paddingBottom: 30,
@@ -420,7 +423,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#252525',
+    backgroundColor: theme.cardBackground,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: "#000",
@@ -435,21 +438,21 @@ const styles = StyleSheet.create({
   screenTitle: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: theme.textPrimary,
   },
   saveButton: {
     paddingHorizontal: 15,
     paddingVertical: 8,
-    backgroundColor: '#D26A68',
+    backgroundColor: theme.accent,
     borderRadius: 8,
   },
   saveButtonText: {
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontSize: 14,
     fontWeight: '600',
   },
   disabledButton: {
-    backgroundColor: '#333333',
+    backgroundColor: theme.modalBorder,
     opacity: 0.7,
   },
   profileImageContainer: {
@@ -461,13 +464,13 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: '#252525',
+    backgroundColor: theme.cardBackground,
   },
   profileImagePlaceholder: {
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: '#252525',
+    backgroundColor: theme.cardBackground,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -475,26 +478,26 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     right: '35%',
-    backgroundColor: '#D26A68',
+    backgroundColor: theme.accent,
     width: 36,
     height: 36,
     borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#121212',
+    borderColor: theme.background,
   },
   section: {
     marginBottom: 25,
   },
   sectionTitle: {
     fontSize: 18,
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontWeight: '600',
     marginBottom: 15,
   },
   infoSection: {
-    backgroundColor: '#252525',
+    backgroundColor: theme.cardBackground,
     borderRadius: 12,
     overflow: 'hidden',
   },
@@ -502,24 +505,24 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     paddingHorizontal: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#333333',
+    borderBottomColor: theme.modalBorder,
   },
   infoLabel: {
-    color: '#888888',
+    color: theme.textSecondary,
     fontSize: 14,
     marginBottom: 5,
   },
   input: {
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontSize: 16,
     paddingVertical: 5,
     borderBottomWidth: 1,
-    borderBottomColor: '#333333',
+    borderBottomColor: theme.modalBorder,
   },
   securityOption: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#252525',
+    backgroundColor: theme.cardBackground,
     borderRadius: 12,
     padding: 15,
   },
@@ -527,7 +530,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#333333',
+    backgroundColor: theme.modalBorder,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -537,12 +540,12 @@ const styles = StyleSheet.create({
   },
   securityOptionTitle: {
     fontSize: 16,
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontWeight: '500',
   },
   securityOptionDesc: {
     fontSize: 12,
-    color: '#888888',
+    color: theme.textSecondary,
     marginTop: 3,
   },
   modalContainer: {
@@ -551,7 +554,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: theme.cardBackground,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
@@ -565,7 +568,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 20,
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontWeight: 'bold',
   },
   inputContainer: {
@@ -573,20 +576,20 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 16,
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     marginBottom: 8,
   },
   passwordInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#252525',
+    backgroundColor: theme.cardBackground,
     borderRadius: 12,
     paddingHorizontal: 15,
   },
   passwordInput: {
     flex: 1,
     paddingVertical: 15,
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontSize: 16,
   },
   eyeIcon: {
@@ -594,11 +597,11 @@ const styles = StyleSheet.create({
   },
   passwordHint: {
     fontSize: 12,
-    color: '#888888',
+    color: theme.textSecondary,
     marginTop: 8,
   },
   updatePasswordButton: {
-    backgroundColor: '#D26A68',
+    backgroundColor: theme.accent,
     borderRadius: 12,
     padding: 15,
     alignItems: 'center',
@@ -606,7 +609,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   updatePasswordButtonText: {
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontSize: 16,
     fontWeight: '600',
   },
