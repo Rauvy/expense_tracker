@@ -44,6 +44,8 @@ export const darkTheme = {
     cyan01: "rgba(75, 192, 192, 0.1)",
     red01: "rgba(255, 99, 132, 0.1)",
     chartlineStats: "rgba(255, 255, 255, 0.1)",
+    modalBorder: "#333333",
+    statsBackground: "#252525",
 };
 
 export const lightTheme = {
@@ -92,4 +94,6 @@ export const lightTheme = {
     cyan01: "rgba(75, 192, 192, 0.1)",
     red01: "rgba(255, 99, 132, 0.1)",
     chartlineStats: "rgba(0, 0, 0, 0.1)",
+    modalBorder: "#DDDDDD",
+    statsBackground: "#F2F2F2",
 };

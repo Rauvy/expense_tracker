@@ -452,7 +452,7 @@ const ProfileScreen = () => {
                 onPress={navigateToSettings}
                 activeOpacity={0.7}
               >
-                <Ionicons name="settings-outline" size={24} color="#FFFFFF" />
+                <Ionicons name="settings-outline" size={24} color={theme.textPrimary} />
               </TouchableOpacity>
             </View>
 
@@ -503,7 +503,7 @@ const ProfileScreen = () => {
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>Budget Period</Text>
                 <TouchableOpacity onPress={() => setBudgetPeriodModalVisible(false)}>
-                  <Ionicons name="close" size={24} color="#FFFFFF" />
+                  <Ionicons name="close" size={24} color={theme.textPrimary} />
                 </TouchableOpacity>
               </View>
 
@@ -514,13 +514,13 @@ const ProfileScreen = () => {
                 >
                   <View style={styles.periodOptionLeft}>
                     <View style={styles.periodIconContainer}>
-                      <Ionicons name="calendar-outline" size={22} color="#FFFFFF" />
+                      <Ionicons name="calendar-outline" size={22} color={theme.textPrimary} />
                     </View>
                     <Text style={styles.periodOptionText}>Weekly</Text>
                   </View>
 
                   {budgetPeriod === 'week' && (
-                    <Ionicons name="checkmark-circle" size={22} color="#D26A68" />
+                    <Ionicons name="checkmark-circle" size={22} color={theme.accent} />
                   )}
                 </TouchableOpacity>
 
@@ -530,13 +530,13 @@ const ProfileScreen = () => {
                 >
                   <View style={styles.periodOptionLeft}>
                     <View style={styles.periodIconContainer}>
-                      <Ionicons name="calendar" size={22} color="#FFFFFF" />
+                      <Ionicons name="calendar" size={22} color={theme.textPrimary} />
                     </View>
                     <Text style={styles.periodOptionText}>Monthly</Text>
                   </View>
 
                   {budgetPeriod === 'month' && (
-                    <Ionicons name="checkmark-circle" size={22} color="#D26A68" />
+                    <Ionicons name="checkmark-circle" size={22} color={theme.accent} />
                   )}
                 </TouchableOpacity>
 
@@ -546,13 +546,13 @@ const ProfileScreen = () => {
                 >
                   <View style={styles.periodOptionLeft}>
                     <View style={styles.periodIconContainer}>
-                      <Ionicons name="apps" size={22} color="#FFFFFF" />
+                      <Ionicons name="apps" size={22} color={theme.textPrimary} />
                     </View>
                     <Text style={styles.periodOptionText}>Quarterly</Text>
                   </View>
 
                   {budgetPeriod === 'quarter' && (
-                    <Ionicons name="checkmark-circle" size={22} color="#D26A68" />
+                    <Ionicons name="checkmark-circle" size={22} color={theme.accent} />
                   )}
                 </TouchableOpacity>
 
@@ -562,13 +562,13 @@ const ProfileScreen = () => {
                 >
                   <View style={styles.periodOptionLeft}>
                     <View style={styles.periodIconContainer}>
-                      <Ionicons name="today" size={22} color="#FFFFFF" />
+                      <Ionicons name="today" size={22} color={theme.textPrimary} />
                     </View>
                     <Text style={styles.periodOptionText}>Yearly</Text>
                   </View>
 
                   {budgetPeriod === 'year' && (
-                    <Ionicons name="checkmark-circle" size={22} color="#D26A68" />
+                    <Ionicons name="checkmark-circle" size={22} color={theme.accent} />
                   )}
                 </TouchableOpacity>
 
@@ -591,11 +591,11 @@ const ProfileScreen = () => {
 const useThemedStyles = (theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: theme.background,
   },
   content: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: theme.background,
   },
   contentContainer: {
     paddingBottom: 30,
@@ -604,7 +604,7 @@ const useThemedStyles = (theme) => StyleSheet.create({
     padding: 15,
   },
   profileCard: {
-    backgroundColor: '#1A1A1A',
+    backgroundColor: theme.cardBackground,
     borderRadius: 16,
     padding: 20,
     marginBottom: 20,
@@ -631,7 +631,7 @@ const useThemedStyles = (theme) => StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#252525',
+    backgroundColor: theme.statsBackground,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 15,
@@ -647,23 +647,23 @@ const useThemedStyles = (theme) => StyleSheet.create({
   profileName: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     marginBottom: 4,
   },
   profileEmail: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: theme.textSecondary,
   },
   profileJoined: {
     fontSize: 12,
-    color: '#666666',
+    color: theme.textSecondary,
     marginTop: 5,
   },
   settingsButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#252525',
+    backgroundColor: theme.statsBackground,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: "#000",
@@ -679,7 +679,7 @@ const useThemedStyles = (theme) => StyleSheet.create({
   statsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    backgroundColor: '#252525',
+    backgroundColor: theme.statsBackground,
     borderRadius: 12,
     padding: 15,
   },
@@ -690,16 +690,16 @@ const useThemedStyles = (theme) => StyleSheet.create({
   statValue: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     marginBottom: 5,
   },
   statLabel: {
     fontSize: 12,
-    color: '#666666',
+    color: theme.textSecondary,
   },
   statDivider: {
     width: 1,
-    backgroundColor: '#333333',
+    backgroundColor: theme.modalBorder,
     marginHorizontal: 10,
   },
   section: {
@@ -707,7 +707,7 @@ const useThemedStyles = (theme) => StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    color: '#ffffff',
+    color: theme.textPrimary,
     fontWeight: '600',
     marginBottom: 15,
   },
@@ -716,7 +716,7 @@ const useThemedStyles = (theme) => StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     paddingHorizontal: 15,
-    backgroundColor: '#1A1A1A',
+    backgroundColor: theme.cardBackground,
     borderRadius: 12,
     marginBottom: 8,
   },
@@ -724,7 +724,7 @@ const useThemedStyles = (theme) => StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#252525',
+    backgroundColor: theme.cardBackground,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -735,12 +735,12 @@ const useThemedStyles = (theme) => StyleSheet.create({
   menuTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     marginBottom: 4,
   },
   menuSubtitle: {
     fontSize: 12,
-    color: '#8E8E93',
+    color: theme.textSecondary,
   },
   menuRight: {
     marginLeft: 10,
@@ -749,7 +749,7 @@ const useThemedStyles = (theme) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#1A1A1A',
+    backgroundColor: theme.cardBackground,
     borderRadius: 12,
     padding: 15,
     marginTop: 20,
@@ -757,16 +757,16 @@ const useThemedStyles = (theme) => StyleSheet.create({
   logoutText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FF3B30',
+    color: theme.error,
     marginLeft: 8,
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: theme.modalOverlay,
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: theme.background,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: '90%',
@@ -777,68 +777,18 @@ const useThemedStyles = (theme) => StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#333333',
+    borderBottomColor: theme.modalBorder,
   },
   modalTitle: {
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontSize: 20,
     fontWeight: 'bold',
-  },
-  inputContainer: {
-    marginBottom: 20,
-  },
-  inputLabel: {
-    fontSize: 16,
-    color: '#FFFFFF',
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: '#333333',
-    borderRadius: 8,
-    padding: 12,
-    color: '#FFFFFF',
-    marginBottom: 20,
-  },
-  saveButton: {
-    backgroundColor: '#D26A68',
-    borderRadius: 12,
-    padding: 15,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  saveButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  pictureOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#252525',
-    borderRadius: 12,
-    padding: 15,
-    marginBottom: 12,
-  },
-  pictureOptionIcon: {
-    marginRight: 15,
-  },
-  pictureOptionText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-  },
-  removePictureOption: {
-    backgroundColor: 'rgba(255, 59, 48, 0.2)',
-    borderWidth: 1,
-    borderColor: '#FF3B30',
-  },
-  removePictureText: {
-    color: '#FF3B30',
   },
   profilePhotoPlaceholder: {
     width: 70,
     height: 70,
     borderRadius: 35,
-    backgroundColor: '#D26A68',
+    backgroundColor: theme.accent,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -846,25 +796,25 @@ const useThemedStyles = (theme) => StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     right: 0,
-    backgroundColor: '#D26A68',
+    backgroundColor: theme.accent,
     width: 24,
     height: 24,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#1a1a1a',
+    borderColor: theme.cardBackground,
   },
   profileInitials: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: theme.textPrimary,
   },
   periodOption: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#252525',
+    backgroundColor: theme.cardBackground,
     borderRadius: 12,
     padding: 12,
     marginBottom: 8,
