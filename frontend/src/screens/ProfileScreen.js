@@ -8,6 +8,7 @@ import { getUserProfile, getUserBalance, updateUserProfile } from '../services/u
 import { useNavigation } from '@react-navigation/native';
 import { TextInput as PaperTextInput } from 'react-native-paper';
 import { logout } from '../services/authService';
+import { useTheme } from '../theme/ThemeProvider';
 // Initial user data structure
 const initialUserData = {
   name: '',
@@ -24,6 +25,10 @@ const initialUserData = {
 };
 
 const ProfileScreen = () => {
+  
+  const { theme } = useTheme();
+  const styles = useThemedStyles(theme);
+
   const navigation = useNavigation();
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -486,108 +491,6 @@ const ProfileScreen = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Edit Profile Modal */}
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={editProfileVisible}
-          onRequestClose={() => setEditProfileVisible(false)}
-        >
-          <View style={styles.modalContainer}>
-            <View style={styles.modalContent}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Edit Profile</Text>
-                <TouchableOpacity onPress={() => setEditProfileVisible(false)}>
-                  <Ionicons name="close" size={24} color="#FFFFFF" />
-                </TouchableOpacity>
-              </View>
-
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>First Name</Text>
-                <PaperTextInput
-                  style={styles.input}
-                  value={editData.firstName}
-                  onChangeText={(text) => setEditData(prev => ({ ...prev, firstName: text }))}
-                  mode="outlined"
-                />
-              </View>
-
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Last Name</Text>
-                <PaperTextInput
-                  style={styles.input}
-                  value={editData.lastName}
-                  onChangeText={(text) => setEditData(prev => ({ ...prev, lastName: text }))}
-                  mode="outlined"
-                />
-              </View>
-
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Email</Text>
-                <PaperTextInput
-                  style={styles.input}
-                  value={editData.email}
-                  onChangeText={(text) => setEditData(prev => ({ ...prev, email: text }))}
-                  mode="outlined"
-                  keyboardType="email-address"
-                />
-              </View>
-
-              <TouchableOpacity
-                style={styles.saveButton}
-                onPress={handleSave}
-              >
-                <Text style={styles.saveButtonText}>Save Changes</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
-
-        {/* Profile Picture Options Modal */}
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={profilePictureOptionsVisible}
-          onRequestClose={() => setProfilePictureOptionsVisible(false)}
-        >
-          <View style={styles.modalContainer}>
-            <View style={styles.modalContent}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Profile Picture</Text>
-                <TouchableOpacity onPress={() => setProfilePictureOptionsVisible(false)}>
-                  <Ionicons name="close" size={24} color="#FFFFFF" />
-                </TouchableOpacity>
-              </View>
-
-              <TouchableOpacity
-                style={styles.pictureOption}
-                onPress={() => handleSelectProfilePicture('camera')}
-              >
-                <Ionicons name="camera" size={22} color="#FFFFFF" style={styles.pictureOptionIcon} />
-                <Text style={styles.pictureOptionText}>Take a Photo</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.pictureOption}
-                onPress={() => handleSelectProfilePicture('gallery')}
-              >
-                <Ionicons name="images" size={22} color="#FFFFFF" style={styles.pictureOptionIcon} />
-                <Text style={styles.pictureOptionText}>Choose from Gallery</Text>
-              </TouchableOpacity>
-
-              {userData.profilePhoto && (
-                <TouchableOpacity
-                  style={[styles.pictureOption, styles.removePictureOption]}
-                  onPress={() => handleSelectProfilePicture('remove')}
-                >
-                  <Ionicons name="trash" size={22} color="#FF3B30" style={styles.pictureOptionIcon} />
-                  <Text style={[styles.pictureOptionText, styles.removePictureText]}>Remove Profile Picture</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          </View>
-        </Modal>
-
         {/* Budget Period Modal */}
         <Modal
           animationType="slide"
@@ -680,115 +583,12 @@ const ProfileScreen = () => {
           </View>
         </Modal>
 
-        {/* Categories Modal */}
-        <Modal
-          visible={categoriesModalVisible}
-          animationType="slide"
-          transparent={true}
-          onRequestClose={() => setCategoriesModalVisible(false)}
-        >
-          <View style={styles.modalContainer}>
-            <View style={styles.modalContent}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Categories</Text>
-                <TouchableOpacity onPress={() => setCategoriesModalVisible(false)}>
-                  <Ionicons name="close" size={24} color="#FFFFFF" />
-                </TouchableOpacity>
-              </View>
-
-              <View style={styles.tabContainer}>
-                <TouchableOpacity
-                  style={[styles.tab, activeTab === 'expense' && styles.activeTab]}
-                  onPress={() => handleTabSwitch('expense')}
-                >
-                  <Text style={[styles.tabText, activeTab === 'expense' && styles.activeTabText]}>
-                    Expense Categories
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.tab, activeTab === 'income' && styles.activeTab]}
-                  onPress={() => handleTabSwitch('income')}
-                >
-                  <Text style={[styles.tabText, activeTab === 'income' && styles.activeTabText]}>
-                    Income Categories
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
-              <ScrollView style={styles.modalBody}>
-                <View style={styles.categoriesList}>
-                  {(activeTab === 'expense' ? categories : incomeCategories).map((category) => (
-                    <View key={category.name} style={styles.categoryItem}>
-                      <View style={[styles.categoryIcon, { backgroundColor: category.color }]}>
-                        <Ionicons name={category.icon} size={24} color="#FFFFFF" />
-                      </View>
-                      <Text style={styles.categoryName}>{category.name}</Text>
-                    </View>
-                  ))}
-                </View>
-
-                <View style={styles.addCategoryForm}>
-                  <Text style={styles.formTitle}>Add New Category</Text>
-                  <PaperTextInput
-                    style={styles.input}
-                    placeholder="Category Name"
-                    placeholderTextColor="#666666"
-                    value={customCategoryName}
-                    onChangeText={setCustomCategoryName}
-                  />
-
-                  <Text style={styles.formLabel}>Select Icon</Text>
-                  <View style={styles.iconsGrid}>
-                    {['home', 'car', 'restaurant', 'shirt', 'airplane', 'gift', 'medical', 'school'].map((icon) => (
-                      <TouchableOpacity
-                        key={`icon-${icon}`}
-                        style={[
-                          styles.iconOption,
-                          selectedIcon === icon && styles.selectedIconOption
-                        ]}
-                        onPress={() => setSelectedIcon(icon)}
-                      >
-                        <Ionicons
-                          name={icon}
-                          size={24}
-                          color={selectedIcon === icon ? '#FFFFFF' : '#CCCCCC'}
-                        />
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-
-                  <Text style={styles.formLabel}>Select Color</Text>
-                  <View style={styles.colorsGrid}>
-                    {['#FF3B30', '#FF9500', '#FFCC00', '#34C759', '#5AC8FA', '#007AFF', '#5856D6', '#FF2D55'].map((color) => (
-                      <TouchableOpacity
-                        key={`color-${color}`}
-                        style={[
-                          styles.colorOption,
-                          { backgroundColor: color },
-                          selectedColor === color && styles.selectedColorOption
-                        ]}
-                        onPress={() => setSelectedColor(color)}
-                      />
-                    ))}
-                  </View>
-
-                  <TouchableOpacity
-                    style={styles.addButton}
-                    onPress={saveNewCategory}
-                  >
-                    <Text style={styles.addButtonText}>Add Category</Text>
-                  </TouchableOpacity>
-                </View>
-              </ScrollView>
-            </View>
-          </View>
-        </Modal>
       </ScrollView>
     </SafeAreaView>
   );
 };
 
-const styles = StyleSheet.create({
+const useThemedStyles = (theme) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#121212',
@@ -1078,127 +878,20 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#333333',
+    backgroundColor: theme.cardBackground,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
   periodOptionText: {
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontSize: 15,
-  },
-  tabContainer: {
-    flexDirection: 'row',
-    marginBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#333333',
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: 15,
-    alignItems: 'center',
-  },
-  activeTab: {
-    borderBottomWidth: 2,
-    borderBottomColor: '#D26A68',
-  },
-  tabText: {
-    color: '#666666',
-    fontSize: 16,
-  },
-  activeTabText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-  },
-  modalBody: {
-    padding: 20,
-  },
-  categoriesList: {
-    marginBottom: 20,
-  },
-  categoryItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#333333',
-  },
-  categoryIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 15,
-  },
-  categoryName: {
-    color: '#FFFFFF',
-    fontSize: 16,
-  },
-  addCategoryForm: {
-    backgroundColor: '#252525',
-    borderRadius: 12,
-    padding: 20,
-  },
-  formTitle: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  formLabel: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    marginBottom: 10,
-  },
-  iconsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 20,
-  },
-  iconOption: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#333333',
-    justifyContent: 'center',
-    alignItems: 'center',
-    margin: 5,
-  },
-  selectedIconOption: {
-    backgroundColor: '#D26A68',
-  },
-  colorsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 20,
-  },
-  colorOption: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    margin: 5,
-  },
-  selectedColorOption: {
-    borderWidth: 3,
-    borderColor: '#FFFFFF',
-  },
-  addButton: {
-    backgroundColor: '#D26A68',
-    borderRadius: 8,
-    padding: 15,
-    alignItems: 'center',
-  },
-  addButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
   },
   tilesContainer: {
     marginBottom: 20,
   },
   preferenceTile: {
-    backgroundColor: '#252525',
+    backgroundColor: theme.cardBackground,
     borderRadius: 12,
     padding: 15,
     marginBottom: 10,
@@ -1216,17 +909,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   preferenceTitle: {
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontSize: 16,
     fontWeight: '600',
   },
   preferenceSubtitle: {
-    color: '#8E8E93',
+    color: theme.textSecondary,
     fontSize: 14,
     marginTop: 2,
   },
   applyButton: {
-    backgroundColor: '#D26A68',
+    backgroundColor: theme.accent,
     borderRadius: 12,
     padding: 15,
     alignItems: 'center',

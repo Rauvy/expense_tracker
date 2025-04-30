@@ -37,13 +37,6 @@ const availableIcons = [
   'flower', 'leaf', 'paw', 'nutrition', 'basketball', 'football'
 ];
 
-// const colorOptions = [
-//   '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
-//   '#FF9F40', '#FF6B6B', '#C9CB3F', '#4FFBDF', '#975FFF',
-//   '#E85D75', '#5DA5E8', '#F9F871', '#00B8A9', '#F08A5D',
-//   '#B83B5E', '#6A2C70', '#08D9D6', '#FF2E63', '#252A34'
-// ];
-
 const colorOptions = [
   '#E57373', // dark pastel red
   '#4DB6AC', // muted teal
