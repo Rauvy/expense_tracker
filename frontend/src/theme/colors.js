@@ -95,5 +95,5 @@ export const lightTheme = {
     red01: "rgba(255, 99, 132, 0.1)",
     chartlineStats: "rgba(0, 0, 0, 0.1)",
     modalBorder: "#DDDDDD",
-    statsBackground: "#F2F2F2",
+    statsBackground: "#E5E5E5",
 };

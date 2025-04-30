@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
+import { useTheme } from '../theme/ThemeProvider';
 
 const initialCategories = [
   { id: '1', name: 'Food', icon: 'fast-food', color: '#FF6384' },
@@ -61,6 +62,8 @@ const colorOptions = [
 
 const CategoriesSettings = () => {
   const navigation = useNavigation();
+  const { theme } = useTheme();
+  const styles = useThemedStyles(theme);
 
   // Categories states
   const [categories, setCategories] = useState(initialCategories);
@@ -281,7 +284,7 @@ const CategoriesSettings = () => {
           onPress={() => navigation.goBack()}
           activeOpacity={0.7}
         >
-          <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
+          <Ionicons name="chevron-back" size={24} color={theme.textPrimary} />
         </TouchableOpacity>
 
         <Text style={styles.screenTitle}>Categories</Text>
@@ -358,7 +361,7 @@ const CategoriesSettings = () => {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Add New Category</Text>
               <TouchableOpacity onPress={() => setAddCategoryVisible(false)}>
-                <Ionicons name="close" size={24} color="#FFFFFF" />
+                <Ionicons name="close" size={24} color={theme.textPrimary} />
               </TouchableOpacity>
             </View>
 
@@ -388,7 +391,7 @@ const CategoriesSettings = () => {
                   value={newCategoryName}
                   onChangeText={setNewCategoryName}
                   placeholder="Enter category name"
-                  placeholderTextColor="#666666"
+                  placeholderTextColor={theme.textSecondary}
                 />
               </View>
 
@@ -401,7 +404,7 @@ const CategoriesSettings = () => {
                     key={`icon-${icon}`}
                     style={[
                       styles.iconOption,
-                      selectedIcon === icon && { backgroundColor: selectedColor || '#D26A68' }
+                      selectedIcon === icon && { backgroundColor: selectedColor || theme.accent }
                     ]}
                     onPress={() => setSelectedIcon(icon)}
                   >
@@ -436,7 +439,7 @@ const CategoriesSettings = () => {
               <TouchableOpacity
                 style={[
                   styles.addCategoryButton,
-                  { backgroundColor: selectedColor || '#D26A68' }
+                  { backgroundColor: selectedColor || theme.accent }
                 ]}
                 onPress={handleAddCategory}
               >
@@ -450,10 +453,10 @@ const CategoriesSettings = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const useThemedStyles = (theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: theme.background,
   },
   header: {
     flexDirection: 'row',
@@ -466,27 +469,27 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#252525',
+    backgroundColor: theme.cardBackground,
     justifyContent: 'center',
     alignItems: 'center',
   },
   screenTitle: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: theme.textPrimary,
   },
   addButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#D26A68',
+    backgroundColor: theme.accent,
     justifyContent: 'center',
     alignItems: 'center',
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#252525',
+    backgroundColor: theme.cardBackground,
     borderRadius: 12,
     marginHorizontal: 15,
     marginBottom: 20,
@@ -498,7 +501,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     height: 50,
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontSize: 16,
   },
   clearButton: {
@@ -511,7 +514,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
   },
   emptyText: {
-    color: '#666666',
+    color: theme.textSecondary,
     fontSize: 16,
     textAlign: 'center',
     marginTop: 20,
@@ -521,7 +524,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   clearSearchText: {
-    color: '#D26A68',
+    color: theme.accent,
     fontSize: 16,
   },
   categoriesList: {
@@ -532,7 +535,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#252525',
+    backgroundColor: theme.cardBackground,
     borderRadius: 12,
     padding: 15,
     marginBottom: 10,
@@ -551,7 +554,7 @@ const styles = StyleSheet.create({
     marginRight: 15,
   },
   categoryName: {
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontSize: 16,
     fontWeight: '500',
   },
@@ -560,11 +563,11 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: theme.modalOverlay,
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: theme.background,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: '90%',
@@ -575,10 +578,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#333333',
+    borderBottomColor: theme.modalBorder,
   },
   modalTitle: {
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontSize: 20,
     fontWeight: 'bold',
   },
@@ -598,7 +601,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   previewName: {
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontSize: 18,
     fontWeight: 'bold',
   },
@@ -606,16 +609,16 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   formLabel: {
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontSize: 16,
     marginBottom: 10,
   },
   formInput: {
-    backgroundColor: '#252525',
+    backgroundColor: theme.cardBackground,
     borderRadius: 12,
     paddingHorizontal: 15,
     paddingVertical: 12,
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontSize: 16,
   },
   iconsGrid: {
@@ -626,13 +629,13 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#252525',
+    backgroundColor: theme.cardBackground,
     justifyContent: 'center',
     alignItems: 'center',
     margin: 5,
   },
   selectedIconOption: {
-    // backgroundColor: '#D26A68',
+    // backgroundColor: theme.accent,
   },
   colorsGrid: {
     flexDirection: 'row',
@@ -646,10 +649,10 @@ const styles = StyleSheet.create({
   },
   selectedColorOption: {
     borderWidth: 3,
-    borderColor: '#FFFFFF',
+    borderColor: theme.statsBackground,
   },
   addCategoryButton: {
-    // backgroundColor: '#D26A68',
+    backgroundColor: theme.accent,
     borderRadius: 12,
     paddingVertical: 15,
     alignItems: 'center',
@@ -657,7 +660,7 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   addCategoryButtonText: {
-    color: '#FFFFFF',
+    color: theme.textPrimary,
     fontSize: 16,
     fontWeight: 'bold',
   },
