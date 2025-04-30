@@ -504,8 +504,8 @@ const useThemedStyles = (theme) => StyleSheet.create({
   infoRow: {
     paddingVertical: 15,
     paddingHorizontal: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.modalBorder,
+    // borderBottomWidth: 1,
+    // borderBottomColor: theme.modalBorder,
   },
   infoLabel: {
     color: theme.textSecondary,
